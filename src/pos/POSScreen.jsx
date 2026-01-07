@@ -168,4 +168,85 @@ export default function POSScreen() {
       }
   };
 
+  // KEYBOARD
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (activeModal && activeModal !== 'FLOAT') {
+        if (e.key === 'Escape') {
+            setActiveModal(null);
+            setConfirmConfig(null);
+        }
+        return;
+      }
+      if (e.key === 'F1') { e.preventDefault(); setActiveModal('PRICE_CHECK'); }
+      if (e.key === 'F3') { e.preventDefault(); handleComplexAction('RECALL'); }
+      if (e.key === 'F4') { e.preventDefault(); handleComplexAction('CANCEL'); }
+      if (e.key === 'F6') { e.preventDefault(); setActiveModal('PAID_IN'); }
+      if (e.key === 'F7') { e.preventDefault(); setActiveModal('PAID_OUT'); }
+      if (!activeModal && document.activeElement.tagName !== 'INPUT') {
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeModal]);
+
+  return (
+    <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans relative">
+        {/* HEADER */}
+        <header className="bg-slate-900 text-white h-14 shrink-0 flex items-center justify-between px-4 shadow-md z-30">
+            <div className="flex items-center gap-4">
+                <div className="flex flex-col leading-none">
+                    <span className="font-bold text-lg text-green-400">POS-01</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-medium">Colombo Main</span>
+                </div>
+            </div>
+            <div className="flex items-center gap-5">
+                <div className="flex items-center gap-2 bg-blue-900/40 border border-blue-800 px-4 py-1.5 rounded-full">
+                    <User className="w-4 h-4 text-blue-300" />
+                    <span className="text-sm font-bold text-white uppercase tracking-wide">{session.cashier}</span>
+                </div>
+                <div className="text-right leading-tight">
+                    <div className="font-mono text-xl font-bold text-white">{time.toLocaleTimeString()}</div>
+                </div>
+                <div className="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_10px_#22c55e]"></div>
+                <button onClick={() => handleComplexAction('EXIT')} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wide border border-red-800">Exit</button>
+            </div>
+        </header>
+
+        {/* WORKSPACE */}
+        <div className={`flex flex-1 overflow-hidden transition-all duration-500 ${!session.isOpen || activeModal ? 'blur-[3px] brightness-90' : ''}`}>
+            <BillPanel cart={cart} customer={customer} onRemoveItem={handleVoidItem} onDetachCustomer={() => setCustomer(null)}/>
+            <ControlPanel inputRef={inputRef} inputBuffer={inputBuffer} setInputBuffer={setInputBuffer} onScan={handleScan} onOpenModal={setActiveModal} onAction={handleComplexAction} onVoid={() => handleVoidItem(cart.length - 1)} isEnabled={session.isOpen}/>
+            <ProductGrid onAddToCart={handleAddToCart}/>
+        </div>
+
+        {/* MODALS */}
+        {activeModal === 'FLOAT' && <FloatModal onApprove={handleLogin} />}
+        {activeModal === 'END_SHIFT' && <EndShiftModal cashierName={session.cashier} onClose={() => setActiveModal(null)} onConfirm={handleLogout} />}
+        {activeModal === 'PRICE_CHECK' && <PriceCheckModal onClose={() => setActiveModal(null)} />}
+        {activeModal === 'LOYALTY' && <LoyaltyModal onClose={() => setActiveModal(null)} onAttach={(c) => { setCustomer(c); setActiveModal(null); }} />}
+        {activeModal === 'PAID_IN' && <IOModal type="PAID_IN" onClose={() => setActiveModal(null)} />}
+        {activeModal === 'PAID_OUT' && <IOModal type="PAID_OUT" onClose={() => setActiveModal(null)} />}
+        {activeModal === 'REGISTER' && <RegisterModal onClose={() => setActiveModal(null)} />}
+        {activeModal === 'CONFIRM' && confirmConfig && <ConfirmModal title={confirmConfig.title} message={confirmConfig.message} onConfirm={confirmConfig.onYes} onCancel={() => setActiveModal(null)} isAlert={confirmConfig.isAlert} />}
+        
+        {activeModal === 'LIST' && listConfig && (
+            <ListModal 
+                type={listConfig.type} 
+                onClose={() => setActiveModal(null)} 
+                onSelect={async (item) => { 
+                    try {
+                        // API: Fetch Full Bill Details
+                        const res = await posService.getBillById(item.id);
+                        setListConfig(null); 
+                        showAlert("Success", `Bill #${item.id} loaded.`);
+                        // Here you would typically setCart(res.data.items)
+                    } catch(e) { alert("Error loading bill"); }
+                }} 
+            />
+        )}
+    </div>
+  );
+
 }
