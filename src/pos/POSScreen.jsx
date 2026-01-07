@@ -33,7 +33,7 @@ export default function POSScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  // --- ALERTS ---
+  //ALERTS
   const showAlert = (title, message, onOk = () => {}) => {
       setConfirmConfig({ title, message, onYes: () => { onOk(); setActiveModal(null); }, isAlert: true });
       setActiveModal('CONFIRM');
@@ -42,5 +42,19 @@ export default function POSScreen() {
   const showConfirm = (title, message, onYes) => {
       setConfirmConfig({ title, message, onYes: onYes, isAlert: false });
       setActiveModal('CONFIRM');
+  };
+
+  //API ACTIONS
+  
+  // 1. LOGIN (Start Shift)
+  const handleLogin = async (cashierName, amount) => {
+      try {
+          // API CALL: Open Shift
+          const res = await posService.openShift({ cashier: cashierName, float: amount });
+          setSession({ isOpen: true, cashier: cashierName, shiftId: res.data.shiftId });
+          setActiveModal(null);
+      } catch (err) {
+          alert("Login Failed: " + err.message);
+      }
   };
 }
