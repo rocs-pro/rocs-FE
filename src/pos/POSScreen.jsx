@@ -96,4 +96,27 @@ export default function POSScreen() {
     inputRef.current?.focus();
   };
 
+  // 4. PAYMENTS
+  const handlePayment = async (type) => {
+      if(cart.length === 0) return;
+      
+      const orderData = {
+          items: cart,
+          total: cart.reduce((a,c)=>a+c.price*c.qty,0),
+          customer: customer ? customer.id : null,
+          paymentMethod: type,
+          shiftId: session.shiftId
+      };
+
+      try {
+          await posService.submitOrder(orderData);
+          showAlert("Payment Successful", `Method: ${type === 'PAY_CASH' ? 'CASH' : 'CARD'}\nAmount: ${orderData.total.toFixed(2)}`, () => {
+              setCart([]);
+              setCustomer(null);
+          });
+      } catch (err) {
+          showAlert("Payment Failed", "Could not process transaction.");
+      }
+  }
+
 }
