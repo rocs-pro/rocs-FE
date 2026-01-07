@@ -119,4 +119,53 @@ export default function POSScreen() {
       }
   }
 
+  // 5. VOID / HOLD / RECALL
+  const handleVoidItem = (index) => {
+    const item = cart[index];
+    showConfirm("Void Item", `Remove "${item.name}"?`, () => {
+        const newCart = [...cart];
+        newCart.splice(index, 1);
+        setCart(newCart);
+        setActiveModal(null);
+    });
+  };
+
+  const handleComplexAction = (action) => {
+      if(action === 'HOLD') {
+          if(cart.length === 0) return;
+          showConfirm("Suspend Transaction", "Park this transaction?", () => {
+              // API: Send to Hold status
+              setCart([]);
+              setCustomer(null);
+              setActiveModal(null);
+          });
+      } 
+      else if (action === 'CANCEL') {
+          if(cart.length === 0) return;
+          showConfirm("Cancel Transaction", "Void entire bill?", () => {
+              setCart([]);
+              setCustomer(null);
+              setActiveModal(null);
+          });
+      }
+      else if (action === 'RECALL') {
+          showConfirm("Recall Bill", "Open Held Bills list?", () => {
+              setListConfig({ type: 'RECALL' });
+              setActiveModal('LIST'); 
+          });
+      }
+      else if (action === 'RETURN') {
+          showConfirm("Return Bill", "Enter Return mode?", () => {
+              setListConfig({ type: 'RETURN' });
+              setActiveModal('LIST'); 
+          });
+      }
+      else if (action === 'EXIT') {
+          setActiveModal('END_SHIFT');
+      }
+      else if (action === 'PAY_CASH' || action === 'PAY_CARD') {
+          handlePayment(action);
+      }
+  };
+
 }
