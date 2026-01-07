@@ -69,4 +69,31 @@ export default function POSScreen() {
           alert("Error Closing Shift: " + err.message);
       }
   };
+
+  // 3. ADD ITEM (Scan)
+  const handleAddToCart = async (productId) => {
+    try {
+        // API CALL: Get Product
+        const res = await posService.getProduct(productId);
+        const product = res.data; // Expecting { id, name, price }
+
+        setCart(prev => {
+            const existing = prev.find(item => item.id === product.id);
+            if (existing) {
+                return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+            }
+            return [...prev, { ...product, qty: 1 }];
+        });
+    } catch (err) {
+        showAlert("Product Not Found", `Item code '${productId}' invalid.`);
+    }
+  };
+
+  const handleScan = () => {
+    if (!inputBuffer) return;
+    handleAddToCart(inputBuffer);
+    setInputBuffer("");
+    inputRef.current?.focus();
+  };
+
 }
