@@ -4,14 +4,24 @@ import { Lock, User, ShieldCheck, ChevronDown } from 'lucide-react';
 export default function FloatModal({ onApprove }) {
   const [cashier, setCashier] = useState("Cashier 01");
   const [amount, setAmount] = useState("");
+  // STATE FOR SUPERVISOR
+  const [supUser, setSupUser] = useState("");
+  const [supPass, setSupPass] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if(!amount) return;
+    
+    // Validate that supervisor details are entered
+    if(!supUser || !supPass) {
+        alert("Supervisor credentials are required to open the terminal.");
+        return;
+    }
+
     setIsLoading(true);
-    // Pass both cashier and amount back to POSScreen to handle API call
-    onApprove(cashier, amount);
+    // Send all data including supervisor creds
+    onApprove(cashier, amount, { username: supUser, password: supPass });
   };
 
   return (
@@ -43,6 +53,30 @@ export default function FloatModal({ onApprove }) {
                     </div>
                 </div>
                 <div className="h-px bg-slate-200 my-2"></div>
+                
+                {/* CONNECTED SUPERVISOR INPUTS */}
+                <div className="bg-yellow-50 p-3 rounded border border-yellow-100">
+                    <p className="text-[10px] font-bold text-yellow-800 uppercase mb-2 flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" /> Supervisor Approval
+                    </p>
+                    <div className="space-y-2">
+                        <input 
+                            type="text" 
+                            value={supUser}
+                            onChange={(e) => setSupUser(e.target.value)}
+                            className="w-full border border-yellow-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-yellow-400" 
+                            placeholder="Supervisor Username" 
+                        />
+                        <input 
+                            type="password" 
+                            value={supPass}
+                            onChange={(e) => setSupPass(e.target.value)}
+                            className="w-full border border-yellow-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-yellow-400" 
+                            placeholder="Password" 
+                        />
+                    </div>
+                </div>
+
                 <button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded shadow-md uppercase tracking-wider text-sm transition-all">
                     {isLoading ? "Verifying..." : "Approve & Open"}
                 </button>
