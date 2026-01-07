@@ -57,4 +57,16 @@ export default function POSScreen() {
           alert("Login Failed: " + err.message);
       }
   };
+
+  // 2. LOGOUT (Close Shift)
+  const handleLogout = async (closingAmount) => {
+      try {
+          await posService.closeShift({ shiftId: session.shiftId, amount: closingAmount });
+          showAlert("Shift Closed", `Cashier: ${session.cashier}\nSystem Closed.`, () => {
+             window.location.reload();
+          });
+      } catch (err) {
+          alert("Error Closing Shift: " + err.message);
+      }
+  };
 }
