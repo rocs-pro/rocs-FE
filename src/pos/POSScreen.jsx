@@ -32,4 +32,15 @@ export default function POSScreen() {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // --- ALERTS ---
+  const showAlert = (title, message, onOk = () => {}) => {
+      setConfirmConfig({ title, message, onYes: () => { onOk(); setActiveModal(null); }, isAlert: true });
+      setActiveModal('CONFIRM');
+  };
+
+  const showConfirm = (title, message, onYes) => {
+      setConfirmConfig({ title, message, onYes: onYes, isAlert: false });
+      setActiveModal('CONFIRM');
+  };
 }
