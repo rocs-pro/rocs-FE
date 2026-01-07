@@ -47,29 +47,44 @@ export default function POSScreen() {
   //API ACTIONS
   
   // 1. LOGIN (Start Shift)
-  const handleLogin = async (cashierName, amount) => {
+  const handleLogin = async (cashierName, amount, supervisorCreds) => {
       try {
-          // API CALL: Open Shift
-          const res = await posService.openShift({ cashier: cashierName, float: amount });
+          // Send Cashier + Float + Supervisor Creds to Backend
+          const payload = {
+              cashier: cashierName, 
+              float: amount,
+              supervisor: supervisorCreds // { username: '...', password: '...' }
+          };
+          
+          const res = await posService.openShift(payload);
           setSession({ isOpen: true, cashier: cashierName, shiftId: res.data.shiftId });
           setActiveModal(null);
       } catch (err) {
-          alert("Login Failed: " + err.message);
+          // The backend should return 401/403 if supervisor password is wrong
+          alert("Login Failed: Supervisor credentials incorrect or server error.");
       }
   };
 
   // 2. LOGOUT (Close Shift)
-  const handleLogout = async (closingAmount) => {
+  const handleLogout = async (closingAmount, supervisorCreds) => {
       try {
-          await posService.closeShift({ shiftId: session.shiftId, amount: closingAmount });
+          // Send Closing Info + Supervisor Creds
+          const payload = { 
+              shiftId: session.shiftId, 
+              amount: closingAmount,
+              supervisor: supervisorCreds 
+          };
+
+          await posService.closeShift(payload);
+          
           showAlert("Shift Closed", `Cashier: ${session.cashier}\nSystem Closed.`, () => {
              window.location.reload();
           });
       } catch (err) {
-          alert("Error Closing Shift: " + err.message);
+          alert("Error Closing Shift: Supervisor credentials incorrect or server error.");
       }
   };
-
+  
   // 3. ADD ITEM (Scan)
   const handleAddToCart = async (productId) => {
     try {
