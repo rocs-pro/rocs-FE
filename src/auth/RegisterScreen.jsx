@@ -56,4 +56,25 @@ export default function RegisterScreen() {
       setLoading(false);
   };
 
+  // SUCCESS VIEW
+  if (isSuccess) {
+      return (
+          <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+              <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center animate-in fade-in zoom-in duration-300">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <CheckCircle className="w-10 h-10 text-green-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-slate-800 mb-2">Registration Successful</h2>
+                  <p className="text-slate-500 mb-8">
+                      Your account has been created and is currently <span className="font-bold text-orange-500">Pending Admin Approval</span>. 
+                      You will be notified once access is granted.
+                  </p>
+                  <button onClick={() => window.location.href = '/'} className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
+                      Return to Login <ArrowRight className="w-4 h-4" />
+                  </button>
+              </div>
+          </div>
+      );
+  }
+
 }
