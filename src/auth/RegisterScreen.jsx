@@ -4,6 +4,9 @@ import {
 } from 'lucide-react';
 import { authService } from '../services/authService';
 
+// IMPORT: The new background image
+import bgImage from '../assets/images/registration-bg.png'; 
+
 export default function RegisterScreen() {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -38,10 +41,25 @@ export default function RegisterScreen() {
       setLoading(false);
   };
 
-  // SUCCESS VIEW
+  // COMPONENT: Background Wrapper with Blur
+  const BackgroundWrapper = ({ children }) => (
+    <div className="relative min-h-screen flex items-center justify-center p-4 font-sans overflow-hidden">
+        {/* 1. Background Image Layer */}
+        <div className="absolute inset-0 z-0">
+            <img src={bgImage} alt="Background" className="w-full h-full object-cover blur-sm scale-110" />
+            <div className="absolute inset-0 bg-brand-deep/80 mix-blend-multiply"></div>
+        </div>
+
+        {/* 2. Content Layer */}
+        <div className="relative z-10 w-full flex justify-center">
+            {children}
+        </div>
+    </div>
+  );
+
   if (isSuccess) {
       return (
-          <div className="min-h-screen bg-brand-deep flex items-center justify-center p-4">
+          <BackgroundWrapper>
               <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center animate-in fade-in zoom-in duration-300">
                   <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                       <CheckCircle className="w-10 h-10 text-pos-success" />
@@ -54,34 +72,33 @@ export default function RegisterScreen() {
                       Return to Login <ArrowRight className="w-4 h-4" />
                   </button>
               </div>
-          </div>
+          </BackgroundWrapper>
       );
   }
 
-  // FORM VIEW
   return (
-    <div className="min-h-screen bg-brand-deep flex items-center justify-center p-4 font-sans">
-        
+    <BackgroundWrapper>
         <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
             
-            {/* Left Side: Branding */}
-            <div className="hidden md:flex w-5/12 bg-brand p-8 flex-col justify-between text-white relative overflow-hidden">
+            {/* SIDE BAR */}
+            <div className="hidden md:flex w-5/12 bg-brand-deep p-8 flex-col justify-between text-white relative overflow-hidden">
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 mb-6">
                         <ShieldCheck className="w-8 h-8" />
                         <span className="font-bold text-xl tracking-tight">ROCS ERP</span>
                     </div>
                     <h2 className="text-3xl font-bold mb-4">Join the Team.</h2>
-                    <p className="text-blue-100 text-sm leading-relaxed">
+                    <p className="text-slate-400 text-sm leading-relaxed">
                         Create your secure account to access the Retail Operations Control System.
                     </p>
                 </div>
-                {/* Decorative Circles */}
-                <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-white/20 rounded-full"></div>
-                <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 bg-white/20 rounded-full"></div>
+
+                {/* CIRCLES SIDES BAR*/}
+                <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-brand/20 rounded-full blur-2xl"></div>
+                <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 bg-brand/20 rounded-full blur-xl"></div>
             </div>
 
-            {/* Right Side: Form */}
+            {/* FORM AREA */}
             <div className="w-full md:w-7/12 p-8 md:p-10 bg-pos-bg">
                 <h3 className="text-2xl font-bold text-pos-text mb-6">New User Registration</h3>
                 
@@ -92,10 +109,8 @@ export default function RegisterScreen() {
                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Assigned Branch</label>
                         <div className="relative">
                             <Building2 className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                            <select 
-                                name="branchId" value={formData.branchId} onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand focus:ring-2 focus:ring-blue-100 transition-all appearance-none text-slate-700 font-medium"
-                            >
+                            <select name="branchId" value={formData.branchId} onChange={handleChange}
+                                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand focus:ring-2 focus:ring-blue-100 transition-all appearance-none text-slate-700 font-medium">
                                 <option value="">Select Branch...</option>
                                 {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                             </select>
@@ -187,6 +202,6 @@ export default function RegisterScreen() {
                 </form>
             </div>
         </div>
-    </div>
+    </BackgroundWrapper>
   );
 }
