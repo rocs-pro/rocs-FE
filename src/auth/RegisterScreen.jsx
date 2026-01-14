@@ -77,4 +77,180 @@ export default function RegisterScreen() {
       );
   }
 
+  // REGISTRATION FORM VIEW
+  return (
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans">
+        
+        {/* Card Container */}
+        <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+            
+            {/* Left Side: Brand/Visuals (Hidden on mobile) */}
+            <div className="hidden md:flex w-5/12 bg-blue-600 p-8 flex-col justify-between text-white relative overflow-hidden">
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-6">
+                        <ShieldCheck className="w-8 h-8" />
+                        <span className="font-bold text-xl tracking-tight">ROCS ERP</span>
+                    </div>
+                    <h2 className="text-3xl font-bold mb-4">Join the Team.</h2>
+                    <p className="text-blue-100 text-sm leading-relaxed">
+                        Create your secure account to access the Retail Operations Control System.
+                    </p>
+                </div>
+                {/* Decorative Circles */}
+                <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-blue-500 rounded-full opacity-50"></div>
+                <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 bg-blue-400 rounded-full opacity-50"></div>
+                
+                <div className="relative z-10 text-xs text-blue-200 mt-auto">
+                    &copy; 2026 Retail Ops. Secure System.
+                </div>
+            </div>
+
+            {/* Right Side: Form */}
+            <div className="w-full md:w-7/12 p-8 md:p-10 bg-slate-50">
+                <h3 className="text-2xl font-bold text-slate-800 mb-6">New User Registration</h3>
+                
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    
+                    {/* 1. Branch Selection */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Assigned Branch</label>
+                        <div className="relative">
+                            <Building2 className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                            <select 
+                                name="branchId" 
+                                value={formData.branchId} 
+                                onChange={handleChange}
+                                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all appearance-none text-slate-700 font-medium"
+                            >
+                                <option value="">Select Branch...</option>
+                                {branches.map(b => (
+                                    <option key={b.id} value={b.id}>{b.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* 2. Full Name */}
+                        <div className="col-span-2">
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type="text" name="fullName" required
+                                    placeholder="John Doe"
+                                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all text-sm"
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 3. Email */}
+                        <div className="col-span-1">
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type="email" name="email" required
+                                    placeholder="john@rocs.com"
+                                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all text-sm"
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 4. Phone */}
+                        <div className="col-span-1">
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Phone</label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type="text" name="phone" required
+                                    placeholder="077XXXXXXX"
+                                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all text-sm font-mono"
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="h-px bg-slate-200 my-2"></div>
+
+                    {/* 5. Employee ID & Username */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Employee ID</label>
+                            <div className="relative">
+                                <BadgeId className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type="text" name="employeeId" required
+                                    placeholder="EMP-001"
+                                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all text-sm font-mono uppercase"
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type="text" name="username" required
+                                    placeholder="johnd"
+                                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all text-sm"
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 6. Password Section */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type={showPass ? "text" : "password"} name="password" required
+                                    placeholder="••••••••"
+                                    className="w-full pl-10 pr-10 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all text-sm font-mono"
+                                    onChange={handleChange}
+                                />
+                                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+                                    {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Confirm Password</label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                <input 
+                                    type="password" required
+                                    placeholder="••••••••"
+                                    className={`w-full pl-10 pr-4 py-3 bg-white border rounded-lg focus:outline-none transition-all text-sm font-mono ${confirmPass && confirmPass !== formData.password ? 'border-red-300 focus:border-red-500' : 'border-slate-300 focus:border-blue-500'}`}
+                                    onChange={(e) => setConfirmPass(e.target.value)}
+                                />
+                                {confirmPass && confirmPass === formData.password && (
+                                    <CheckCircle className="absolute right-3 top-3 w-4 h-4 text-green-500" />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg mt-4 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    >
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Register Account"}
+                    </button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+  );
+
 }
