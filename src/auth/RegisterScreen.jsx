@@ -85,7 +85,7 @@ export default function RegisterScreen() {
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 mb-6">
                         <ShieldCheck className="w-8 h-8" />
-                        <span className="font-bold text-xl tracking-tight">ROCS ERP</span>
+                        <span className="font-bold text-xl tracking-tight">Smart Retail Pro</span>
                     </div>
                     <h2 className="text-3xl font-bold mb-4">Join the Team.</h2>
                     <p className="text-slate-400 text-sm leading-relaxed">
