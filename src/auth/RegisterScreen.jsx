@@ -23,4 +23,9 @@ export default function RegisterScreen() {
       password: ""
   });
 
+  // Load Branches on Mount
+  useEffect(() => {
+      authService.getBranches().then(data => setBranches(data));
+  }, []);
+
 }
