@@ -28,4 +28,32 @@ export default function RegisterScreen() {
       authService.getBranches().then(data => setBranches(data));
   }, []);
 
+  // HANDLERS
+  const handleChange = (e) => {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+      e.preventDefault();
+      
+      // Basic Validation
+      if (formData.password !== confirmPass) {
+          alert("Passwords do not match!");
+          return;
+      }
+      if (!formData.branchId) {
+          alert("Please select a branch.");
+          return;
+      }
+
+      setLoading(true);
+      try {
+          await authService.registerUser(formData);
+          setIsSuccess(true);
+      } catch (error) {
+          alert("Registration Failed.");
+      }
+      setLoading(false);
+  };
+
 }
