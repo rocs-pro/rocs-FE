@@ -1,28 +1,48 @@
-// Mock Service for Authentication & Registration
+// Define your Backend URL
+const API_BASE_URL = "http://localhost:8080/api/v1"; //example
+
 export const authService = {
     
-    // 1. Fetch Branches (Mocking Backend List)
-    getBranches: () => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve([
-                    { id: "BR01", name: "Colombo Main - HQ" },
-                    { id: "BR02", name: "Kandy City Centre" },
-                    { id: "BR03", name: "Galle Fort Branch" },
-                    { id: "BR04", name: "Negombo Outlet" }
-                ]);
-            }, 800); // Simulate network delay
-        });
+    // Fetch Branch List from Backend
+    getBranches: async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/branches`);
+            
+            if (!response.ok) {
+                throw new Error("Failed to fetch branch list");
+            }
+
+            // Returns the array of branches: [{ id: 1, name: "Colombo" }, ...]
+            return await response.json(); 
+        } catch (error) {
+            console.error("API Error:", error);
+            throw error; // Re-throw so the UI can show an alert if needed
+        }
     },
 
-    // 2. Register User
-    registerUser: (userData) => {
-        console.log("Sending Registration to Backend:", userData);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Simulate Success
-                resolve({ success: true, message: "User registered successfully." });
-            }, 1500);
-        });
+    // Send Registration Data to Backend
+    registerUser: async (userData) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                // Converts your JS Object into JSON string for the server
+                body: JSON.stringify(userData),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // If backend returns 400/500, throw the specific error message
+                throw new Error(data.message || "Registration failed");
+            }
+
+            return data; // Success response
+        } catch (error) {
+            console.error("API Error:", error);
+            throw error;
+        }
     }
 };
