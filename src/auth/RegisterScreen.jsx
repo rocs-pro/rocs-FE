@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Building2, User, Mail, Phone, BadgeId, Lock, Eye, EyeOff, CheckCircle, ShieldCheck, ArrowRight, Loader2 
+    Building2, User, Mail, Phone, IdCard, Lock, Eye, EyeOff, CheckCircle, ShieldCheck, ArrowRight, Loader2 
 } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export default function RegisterScreen() {
-  // STATE
+  // STATE 
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -23,9 +23,11 @@ export default function RegisterScreen() {
       password: ""
   });
 
-  // Load Branches on Mount
+  // LOAD BRANCHES
   useEffect(() => {
-      authService.getBranches().then(data => setBranches(data));
+      authService.getBranches()
+        .then(data => setBranches(data))
+        .catch(err => console.error("Failed to load branches", err));
   }, []);
 
   // HANDLERS
@@ -36,7 +38,7 @@ export default function RegisterScreen() {
   const handleSubmit = async (e) => {
       e.preventDefault();
       
-      // Basic Validation
+      // Validation
       if (formData.password !== confirmPass) {
           alert("Passwords do not match!");
           return;
@@ -51,12 +53,12 @@ export default function RegisterScreen() {
           await authService.registerUser(formData);
           setIsSuccess(true);
       } catch (error) {
-          alert("Registration Failed.");
+          alert("Registration Failed: " + (error.message || "Unknown Error"));
       }
       setLoading(false);
   };
 
-  // SUCCESS VIEW
+  // SUCCESS STATE 
   if (isSuccess) {
       return (
           <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -77,14 +79,13 @@ export default function RegisterScreen() {
       );
   }
 
-  // REGISTRATION FORM VIEW
+  // Registration Form
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans">
         
-        {/* Card Container */}
         <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
             
-            {/* Left Side: Brand/Visuals (Hidden on mobile) */}
+            {/* Left Side: Branding */}
             <div className="hidden md:flex w-5/12 bg-blue-600 p-8 flex-col justify-between text-white relative overflow-hidden">
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 mb-6">
@@ -96,13 +97,9 @@ export default function RegisterScreen() {
                         Create your secure account to access the Retail Operations Control System.
                     </p>
                 </div>
-                {/* Decorative Circles */}
+                {/* Decorative Background Circles */}
                 <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-blue-500 rounded-full opacity-50"></div>
                 <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 bg-blue-400 rounded-full opacity-50"></div>
-                
-                <div className="relative z-10 text-xs text-blue-200 mt-auto">
-                    &copy; 2026 Retail Ops. Secure System.
-                </div>
             </div>
 
             {/* Right Side: Form */}
@@ -111,7 +108,7 @@ export default function RegisterScreen() {
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     
-                    {/* 1. Branch Selection */}
+                    {/* 1. Branch Selection (Populated by Mock Service) */}
                     <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Assigned Branch</label>
                         <div className="relative">
@@ -181,7 +178,8 @@ export default function RegisterScreen() {
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Employee ID</label>
                             <div className="relative">
-                                <BadgeId className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                {/* FIXED ICON HERE */}
+                                <IdCard className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                                 <input 
                                     type="text" name="employeeId" required
                                     placeholder="EMP-001"
@@ -252,5 +250,4 @@ export default function RegisterScreen() {
         </div>
     </div>
   );
-
 }
