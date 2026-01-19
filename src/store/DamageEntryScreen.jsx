@@ -1,0 +1,113 @@
+import React from 'react';
+
+const DamageEntryScreen = ({
+    damageForm,
+    setDamageForm,
+    damageEntries,
+    setDamageEntries,
+    items,
+    batches
+}) => {
+    const handleAddDamage = () => {
+        if (damageForm.product_id && damageForm.quantity && damageForm.reason) {
+            const item = items.find(i => i.product_id === damageForm.product_id);
+            const batch = batches.find(b => b.batch_id === damageForm.batch_id);
+            const newDmg = {
+                id: `DMG${Date.now()}`,
+                product_id: damageForm.product_id,
+                product_name: item?.name || '',
+                batch_code: batch?.batch_code || '',
+                quantity: parseInt(damageForm.quantity),
+                reason: damageForm.reason,
+                date: damageForm.date || new Date().toISOString().split('T')[0],
+                note: damageForm.note
+            };
+            setDamageEntries([...damageEntries, newDmg]);
+            setDamageForm({ product_id: '', batch_id: '', quantity: '', reason: '', date: '', note: '' });
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-2xl font-bold text-gray-900">Damage / Wastage Entry</h2>
+                <p className="text-gray-600 mt-1">Log damaged or wasted stock</p>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Damage Entry</h3>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                        <select value={damageForm.product_id} onChange={(e) => setDamageForm({ ...damageForm, product_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">Select Product</option>
+                            {items.map((item) => <option key={item.product_id} value={item.product_id}>{item.name}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Batch</label>
+                        <select value={damageForm.batch_id} onChange={(e) => setDamageForm({ ...damageForm, batch_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">Select Batch</option>
+                            {batches.filter(b => !damageForm.product_id || b.product_id === parseInt(damageForm.product_id)).map((batch) => <option key={batch.batch_id} value={batch.batch_id}>{batch.batch_code}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                        <input value={damageForm.quantity} onChange={(e) => setDamageForm({ ...damageForm, quantity: e.target.value })} type="number" placeholder="0" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                        <select value={damageForm.reason} onChange={(e) => setDamageForm({ ...damageForm, reason: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">Select Reason</option>
+                            <option value="Breakage">Breakage</option>
+                            <option value="Expiry">Expiry</option>
+                            <option value="Spillage">Spillage</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <input value={damageForm.date} onChange={(e) => setDamageForm({ ...damageForm, date: e.target.value })} type="date" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    </div>
+                    <div></div>
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Supporting Note</label>
+                    <textarea value={damageForm.note} onChange={(e) => setDamageForm({ ...damageForm, note: e.target.value })} placeholder="Enter details..." className="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="2"></textarea>
+                </div>
+                <button onClick={handleAddDamage} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Log Damage Entry</button>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Item</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Batch</th>
+                            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Quantity</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Reason</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Note</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {damageEntries.map((dmg) => (
+                            <tr key={dmg.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 text-sm font-medium text-gray-900">{dmg.product_name}</td>
+                                <td className="px-6 py-4 text-sm font-mono text-gray-600">{dmg.batch_code}</td>
+                                <td className="px-6 py-4 text-center text-sm font-semibold text-red-600">{dmg.quantity}</td>
+                                <td className="px-6 py-4 text-sm text-gray-600">{dmg.reason}</td>
+                                <td className="px-6 py-4 text-sm text-gray-600">{dmg.date}</td>
+                                <td className="px-6 py-4 text-sm text-gray-600">{dmg.note}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+export default DamageEntryScreen;
