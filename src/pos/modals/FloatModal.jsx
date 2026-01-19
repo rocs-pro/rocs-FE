@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { Lock, User, ShieldCheck, ChevronDown } from 'lucide-react';
 
-export default function FloatModal({ onApprove }) {
-  const [cashier, setCashier] = useState("Cashier 01");
+const CASHIERS = [
+  { id: 1, name: "Cashier 01 - John" },
+  { id: 2, name: "Cashier 02 - Sarah" },
+  { id: 3, name: "Cashier 03 - Mike" }
+];
+
+export default function FloatModal({ onApprove, branchId, terminalId }) {
+  const [selectedCashierId, setSelectedCashierId] = useState(CASHIERS[0].id);
   const [amount, setAmount] = useState("");
   // STATE FOR SUPERVISOR
   const [supUser, setSupUser] = useState("");
@@ -20,8 +26,12 @@ export default function FloatModal({ onApprove }) {
     }
 
     setIsLoading(true);
+
+    // Find full cashier object to pass back
+    const selectedCashier = CASHIERS.find(c => c.id === Number(selectedCashierId));
+    
     // Send all data including supervisor creds
-    onApprove(cashier, amount, { username: supUser, password: supPass });
+    onApprove(selectedCashier, amount, { username: supUser, password: supPass });
   };
 
   return (
@@ -31,16 +41,24 @@ export default function FloatModal({ onApprove }) {
                 <h2 className="text-white font-bold text-lg tracking-wide uppercase flex items-center justify-center gap-2">
                     <Lock className="w-5 h-5 text-yellow-400" /> Open Terminal
                 </h2>
-                <p className="text-slate-400 text-xs mt-1">Float Declaration Required</p>
+                <div className="flex justify-center gap-4 mt-2 text-[13px] text-slate-400 font-mono uppercase">
+                    <span>Branch: <span className="text-white">{branchId}</span></span>
+                    <span>Terminal: <span className="text-white">{terminalId}</span></span>
+                </div>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Select Cashier</label>
                     <div className="flex items-center border border-slate-300 rounded bg-slate-50 px-3 py-2 relative">
                         <User className="w-4 h-4 text-slate-400 mr-2" />
-                        <select value={cashier} onChange={e => setCashier(e.target.value)} className="bg-transparent w-full text-sm font-bold text-slate-800 focus:outline-none appearance-none cursor-pointer">
-                            <option>Cashier 01</option>
-                            <option>Cashier 02</option>
+                        <select 
+                            value={selectedCashierId} 
+                            onChange={e => setSelectedCashierId(e.target.value)} 
+                            className="bg-transparent w-full text-sm font-bold text-slate-800 focus:outline-none appearance-none cursor-pointer"
+                        >
+                            {CASHIERS.map(c => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
                         </select>
                         <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 pointer-events-none" />
                     </div>

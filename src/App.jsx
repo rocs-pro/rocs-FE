@@ -1,21 +1,41 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Import POS Screen from the 'pos' feature folder
+// Import Pages
 import POSScreen from './pos/POSScreen';
+import Login from './auth/Login';
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* REDIRECT: Automatically go to /pos when the app starts */}
+        <Route path="/login" element={<Login />} />
+        
+        {/* REDIRECT: Default to POS if logged in, else Login */}
         <Route path="/" element={<Navigate to="/pos" replace />} />
         
-        {/* TERMINAL ROUTE: This is your isolated workspace */}
-        <Route path="/pos" element={<POSScreen />} />
+        {/* TERMINAL ROUTE: Protected */}
+        <Route 
+          path="/pos" 
+          element={
+            <ProtectedRoute>
+              <POSScreen />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </Router>
   );
 }
+
 
 export default App;

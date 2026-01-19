@@ -15,6 +15,10 @@ import ListModal from './modals/ListModal';
 import FloatModal from './modals/FloatModal'; 
 import EndShiftModal from './modals/EndShiftModal';
 
+// CONSTANTS - Ideally these come from env or config
+const BRANCH_ID = 1;
+const TERMINAL_ID = 101; 
+
 export default function POSScreen() {
   const [session, setSession] = useState({ isOpen: false, cashier: "--", shiftId: null });
   const [cart, setCart] = useState([]);
@@ -47,17 +51,19 @@ export default function POSScreen() {
   //API ACTIONS
   
   // 1. LOGIN (Start Shift)
-  const handleLogin = async (cashierName, amount, supervisorCreds) => {
+  const handleLogin = async (cashierObj, amount, supervisorCreds) => {
       try {
           // Send Cashier + Float + Supervisor Creds to Backend
           const payload = {
-              cashier: cashierName, 
-              float: amount,
+              cashierId: cashierObj.id, 
+              branchId: BRANCH_ID,
+              terminalId: TERMINAL_ID,
+              openingCash: parseFloat(amount),
               supervisor: supervisorCreds // { username: '...', password: '...' }
           };
           
           const res = await posService.openShift(payload);
-          setSession({ isOpen: true, cashier: cashierName, shiftId: res.data.shiftId });
+          setSession({ isOpen: true, cashier: cashierObj.name, shiftId: res.data.shiftId });
           setActiveModal(null);
       } catch (err) {
           // The backend should return 401/403 if supervisor password is wrong
@@ -237,7 +243,7 @@ export default function POSScreen() {
         </div>
 
         {/* MODALS */}
-        {activeModal === 'FLOAT' && <FloatModal onApprove={handleLogin} />}
+        {activeModal === 'FLOAT' && <FloatModal onApprove={handleLogin} branchId={BRANCH_ID} terminalId={TERMINAL_ID} />}
         {activeModal === 'END_SHIFT' && <EndShiftModal cashierName={session.cashier} onClose={() => setActiveModal(null)} onConfirm={handleLogout} />}
         {activeModal === 'PRICE_CHECK' && <PriceCheckModal onClose={() => setActiveModal(null)} />}
         {activeModal === 'LOYALTY' && <LoyaltyModal onClose={() => setActiveModal(null)} onAttach={(c) => { setCustomer(c); setActiveModal(null); }} />}
