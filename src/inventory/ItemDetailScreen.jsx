@@ -1,4 +1,5 @@
 import React from 'react';
+import { Printer } from 'lucide-react';
 import { getStatusColor } from '../utils/helpers';
 
 const ItemDetailScreen = ({
@@ -15,6 +16,221 @@ const ItemDetailScreen = ({
     const itemId = selectedItemId || items[0]?.product_id;
     const item = items.find(i => i.product_id === itemId);
     const detail = itemDetails[itemId];
+
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Item Details - ${item.name}</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+                        margin: 20px;
+                        padding: 0;
+                        background: white;
+                        color: #111827;
+                    }
+                    .container {
+                        max-width: 900px;
+                        margin: 0 auto;
+                    }
+                    h1, h2, h3 {
+                        margin-top: 20px;
+                        margin-bottom: 10px;
+                    }
+                    .info-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 20px;
+                        margin-bottom: 30px;
+                    }
+                    .info-card {
+                        border: 1px solid #d1d5db;
+                        padding: 15px;
+                        border-radius: 4px;
+                    }
+                    .info-label {
+                        font-size: 12px;
+                        color: #6b7280;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        margin-bottom: 5px;
+                    }
+                    .info-value {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #1f2937;
+                        word-break: break-word;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 20px 0;
+                    }
+                    th {
+                        background-color: #f3f4f6;
+                        border: 1px solid #d1d5db;
+                        padding: 10px;
+                        text-align: left;
+                        font-weight: 600;
+                        font-size: 12px;
+                    }
+                    td {
+                        border: 1px solid #d1d5db;
+                        padding: 10px;
+                    }
+                    .quick-stats {
+                        display: grid;
+                        grid-template-columns: repeat(5, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .stat-box {
+                        border: 1px solid #d1d5db;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 4px;
+                    }
+                    .stat-label {
+                        font-size: 11px;
+                        color: #6b7280;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                    }
+                    .stat-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                        margin-top: 5px;
+                    }
+                    .section-title {
+                        font-size: 14px;
+                        font-weight: 700;
+                        margin-top: 30px;
+                        margin-bottom: 15px;
+                        border-bottom: 2px solid #2563eb;
+                        padding-bottom: 10px;
+                    }
+                    .badge {
+                        display: inline-block;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 12px;
+                        font-weight: 600;
+                    }
+                    .badge-active {
+                        background-color: #dbeafe;
+                        color: #1e40af;
+                    }
+                    .badge-inactive {
+                        background-color: #fee2e2;
+                        color: #991b1b;
+                    }
+                    @media print {
+                        body {
+                            margin: 0;
+                            padding: 10px;
+                        }
+                        table {
+                            page-break-inside: avoid;
+                        }
+                        tr {
+                            page-break-inside: avoid;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>${item.name}</h1>
+                    
+                    <div class="quick-stats">
+                        <div class="stat-box">
+                            <div class="stat-label">SKU</div>
+                            <div class="stat-value">${item.sku}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Cost Price</div>
+                            <div class="stat-value">LKR ${item.cost_price.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Selling Price</div>
+                            <div class="stat-value">LKR ${item.selling_price.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Reorder Level</div>
+                            <div class="stat-value">${item.reorder_level}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Status</div>
+                            <div class="stat-value">
+                                <span class="badge ${item.is_active ? 'badge-active' : 'badge-inactive'}">
+                                    ${item.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Item Information</div>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-label">Product ID</div>
+                            <div class="info-value">${item.product_id}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Barcode</div>
+                            <div class="info-value">${item.barcode}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Category ID</div>
+                            <div class="info-value">${item.category_id}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Brand ID</div>
+                            <div class="info-value">${item.brand_id}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Unit ID</div>
+                            <div class="info-value">${item.unit_id}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Tax Rate</div>
+                            <div class="info-value">${item.tax_rate}%</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Pricing Details</div>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-label">Cost Price</div>
+                            <div class="info-value">LKR ${item.cost_price.toFixed(2)}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Selling Price</div>
+                            <div class="info-value">LKR ${item.selling_price.toFixed(2)}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">MRP</div>
+                            <div class="info-value">LKR ${item.mrp.toFixed(2)}</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Description</div>
+                    <div class="info-card">
+                        <div class="info-value">${item.description || 'N/A'}</div>
+                    </div>
+                </div>
+                <script>
+                    window.print();
+                    window.close();
+                </script>
+            </body>
+            </html>
+        `;
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+    };
 
     if (!item || !detail) {
         return (
@@ -35,7 +251,10 @@ const ItemDetailScreen = ({
                     ← Back to List
                 </button>
                 <h2 className="text-2xl font-bold text-gray-900">{item.name}</h2>
-                <div></div>
+                <button onClick={handlePrint} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2" title="Print Item Details">
+                    <Printer size={20} />
+                    <span className="text-sm">Print</span>
+                </button>
             </div>
 
             {/* Quick Info Cards */}
