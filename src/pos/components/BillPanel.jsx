@@ -1,7 +1,8 @@
 import React, { useRef, useEffect } from 'react';
-import { ShoppingCart, X, Crown } from 'lucide-react';
+import { ShoppingCart, X, Crown, Edit3 } from 'lucide-react';
 
-export default function BillPanel({ cart, customer, onRemoveItem, onDetachCustomer }) {
+// Added 'onItemClick' prop
+export default function BillPanel({ cart, customer, onItemClick, onDetachCustomer }) {
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -46,12 +47,23 @@ export default function BillPanel({ cart, customer, onRemoveItem, onDetachCustom
           </div>
         ) : (
           cart.map((item, index) => (
-            <div key={index} onClick={() => onRemoveItem(index)} className="grid grid-cols-12 gap-1 px-3 py-2.5 border-b border-slate-100 text-sm items-center hover:bg-red-50 cursor-pointer group transition-colors">
-              <div className="col-span-1 text-center text-slate-400 font-mono text-xs group-hover:text-red-500">{index + 1}</div>
-              <div className="col-span-4 font-semibold text-slate-800 truncate leading-tight group-hover:text-red-700">{item.name}</div>
-              <div className="col-span-2 text-center"><span className="bg-slate-100 px-2 py-0.5 rounded font-mono font-bold text-xs group-hover:bg-red-200 group-hover:text-red-800">{item.qty}</span></div>
+            <div 
+                key={index} 
+                onClick={() => onItemClick(index)} // Trigger Edit on Click
+                className="grid grid-cols-12 gap-1 px-3 py-2.5 border-b border-slate-100 text-sm items-center hover:bg-blue-50 cursor-pointer group transition-colors"
+            >
+              <div className="col-span-1 text-center text-slate-400 font-mono text-xs group-hover:text-blue-500">{index + 1}</div>
+              <div className="col-span-4 font-semibold text-slate-800 truncate leading-tight group-hover:text-blue-700">{item.name}</div>
+              
+              {/* Qty Column with Icon Hint */}
+              <div className="col-span-2 text-center relative">
+                  <span className="bg-slate-100 px-2 py-0.5 rounded font-mono font-bold text-xs group-hover:bg-blue-200 group-hover:text-blue-800 transition-colors">
+                    {item.qty}
+                  </span>
+              </div>
+              
               <div className="col-span-2 text-right font-mono text-slate-600 text-xs">{item.price.toFixed(2)}</div>
-              <div className="col-span-3 text-right font-mono font-bold text-slate-900 group-hover:text-red-700">{((item.price * item.qty)).toFixed(2)}</div>
+              <div className="col-span-3 text-right font-mono font-bold text-slate-900 group-hover:text-blue-700">{((item.price * item.qty)).toFixed(2)}</div>
             </div>
           ))
         )}
