@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -64,5 +65,16 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+=======
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Optional: keep a nice default font + background */
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text;
+>>>>>>> b211661 (manager: dashboard)
   }
 }
