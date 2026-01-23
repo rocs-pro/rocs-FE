@@ -21,7 +21,7 @@ const SupplierManagementScreen = ({
                     <h2 className="text-2xl font-bold text-gray-900">Supplier Management</h2>
                     <p className="text-gray-600 mt-1">Manage your suppliers</p>
                 </div>
-                <button onClick={() => setIsAddSupplierOpen(true)} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors">
+                <button onClick={() => setIsAddSupplierOpen(true)} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors btn-hover-scale btn-interactive">
                     <Plus size={20} />
                     Add Supplier
                 </button>
@@ -53,8 +53,8 @@ const SupplierManagementScreen = ({
 
             {/* Add Supplier Modal */}
             {isAddSupplierOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black opacity-40" onClick={() => setIsAddSupplierOpen(false)}></div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center animate-modal-blur">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddSupplierOpen(false)}></div>
                     <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
                         <div className="p-4 sm:p-6">
                             <div className="space-y-6">

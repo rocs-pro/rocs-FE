@@ -24,7 +24,7 @@ const ItemListScreen = ({
                     <h2 className="text-2xl font-bold text-gray-900">Item List</h2>
                     <p className="text-gray-600 mt-1">Manage your inventory items</p>
                 </div>
-                <button onClick={() => setIsAddModalOpen(true)} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors">
+                <button onClick={() => setIsAddModalOpen(true)} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors btn-hover-scale btn-interactive">
                     <Plus size={20} />
                     Add New Item
                 </button>

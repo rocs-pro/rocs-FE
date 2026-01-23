@@ -20,7 +20,7 @@ const CategoryManagementScreen = ({
                     <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
                     <p className="text-gray-600 mt-1">Organize your inventory categories</p>
                 </div>
-                <button onClick={() => setIsAddCategoryOpen(true)} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors">
+                <button onClick={() => setIsAddCategoryOpen(true)} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors btn-hover-scale btn-interactive">
                     <Plus size={20} />
                     Add Category
                 </button>
@@ -53,8 +53,8 @@ const CategoryManagementScreen = ({
 
             {/* Add/Edit Category Modal */}
             {isAddCategoryOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-blur">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-100 opacity-100">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gray-900">{isEditMode ? 'Edit Category' : 'Add New Category'}</h3>
                             <button onClick={() => setIsAddCategoryOpen(false)} className="text-gray-500 hover:text-gray-700">

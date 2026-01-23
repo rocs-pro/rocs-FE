@@ -40,7 +40,7 @@ const App = () => {
     <div className="flex flex-col items-center justify-center h-screen bg-gray-50 relative">
       <button
         onClick={() => setActiveModule(null)}
-        className="absolute top-6 left-6 text-gray-600 hover:text-gray-900 flex items-center gap-2"
+        className="absolute top-6 left-6 text-gray-600 hover:text-gray-900 flex items-center gap-2 btn-hover-lift"
       >
         <LayoutGrid size={20} />
         <span>Back to Dashboard</span>
@@ -53,7 +53,7 @@ const App = () => {
         <p className="text-gray-500 mb-8">This module is currently under development. Please check back later.</p>
         <button
           onClick={() => setActiveModule(null)}
-          className="w-full bg-gray-900 text-white py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium"
+          className="w-full bg-gray-900 text-white py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium btn-hover-scale btn-interactive"
         >
           Return to Dashboard
         </button>
@@ -105,7 +105,7 @@ const App = () => {
           {/* Inventory Module Card */}
           <button
             onClick={() => setActiveModule('inventory')}
-            className="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all border border-gray-100 text-left hover:-translate-y-1"
+            className="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all border border-gray-100 text-left btn-hover-lift btn-hover-glow"
           >
             <div className="absolute top-6 right-6 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full">
               ACTIVE
@@ -125,7 +125,7 @@ const App = () => {
           {/* POS Module Card */}
           <button
             onClick={() => setActiveModule('pos')}
-            className="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all border border-gray-100 text-left hover:-translate-y-1"
+            className="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all border border-gray-100 text-left btn-hover-lift btn-hover-glow"
           >
             <div className="absolute top-6 right-6 bg-gray-100 text-gray-500 text-xs font-bold px-2 py-1 rounded-full">
               SOON
@@ -145,7 +145,7 @@ const App = () => {
           {/* Reports Module Card */}
           <button
             onClick={() => setActiveModule('reports')}
-            className="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all border border-gray-100 text-left hover:-translate-y-1"
+            className="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all border border-gray-100 text-left btn-hover-lift btn-hover-glow"
           >
             <div className="absolute top-6 right-6 bg-gray-100 text-gray-500 text-xs font-bold px-2 py-1 rounded-full">
               SOON

@@ -457,8 +457,8 @@ const InventorySystem = () => {
                 <nav className="p-4">
                     {navigation.map((section) => (
                         <div key={section.id} className="mb-6">
-                            <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-400 uppercase">
-                                <section.icon size={16} />
+                            <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-400 uppercase transition-all duration-200 hover:text-gray-200 hover:translate-x-0.5 cursor-default">
+                                <section.icon size={16} className="transition-transform duration-200" />
                                 {section.label}
                             </div>
                             <div className="mt-2 space-y-1">
@@ -466,12 +466,12 @@ const InventorySystem = () => {
                                     <button
                                         key={screen.id}
                                         onClick={() => setActiveScreen(screen.id)}
-                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${activeScreen === screen.id
-                                            ? 'bg-brand-primary text-white'
-                                            : 'text-gray-300 hover:bg-gray-800'
+                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${activeScreen === screen.id
+                                            ? 'bg-brand-primary text-white shadow-lg translate-x-1'
+                                            : 'text-gray-300 hover:bg-gray-800 hover:translate-x-1 hover:text-white'
                                             }`}
                                     >
-                                        <screen.icon size={18} />
+                                        <screen.icon size={18} className="transition-transform duration-200 group-hover:scale-110" />
                                         <span className="text-sm">{screen.label}</span>
                                     </button>
                                 ))}
@@ -507,8 +507,8 @@ const InventorySystem = () => {
 
             {/* Add Item Modal */}
             {isAddModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black opacity-40" onClick={() => setIsAddModalOpen(false)}></div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center animate-modal-blur">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)}></div>
                     <div className="relative bg-white rounded-lg shadow-lg w-full max-w-full sm:max-w-2xl md:max-w-3xl mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
                         <div className="p-4 sm:p-6">
                             <AddItemScreen onClose={() => setIsAddModalOpen(false)} setActiveScreen={setActiveScreen} />
