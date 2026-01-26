@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import ShieldIcon from "../components/icons/ShieldIcon";
 import BoltIcon from "../components/icons/BoltIcon";
 import UserIcon from "../components/icons/UserIcon";
@@ -96,13 +97,14 @@ export default function Login() {
                 Forgot password?
               </a>
             </div>
-          </form>
 
-          <div className="mt-8 text-center">
-            <a href="#" className="text-blue-600 hover:text-blue-700 transition font-semibold hover:underline hover:scale-105 inline-block duration-200">
-              Don't have an account? Register
-            </a>
-          </div>
+            <div className="mt-6 text-center text-sm text-slate-500">
+              Don't have an account?{' '}
+              <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition hover:scale-105 inline-block duration-200">
+                Register
+              </Link>
+            </div>
+          </form>
         </div>
       </div>
     </div>
