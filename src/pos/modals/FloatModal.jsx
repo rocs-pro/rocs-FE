@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Lock, User, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Lock, User, ShieldCheck, ChevronDown, Banknote } from 'lucide-react';
+// Correct path to context
+import { useNotification } from '../context/NotificationContext';
 
 const CASHIERS = [
   { id: 1, name: "Cashier 01 - John" },
@@ -15,23 +17,37 @@ export default function FloatModal({ onApprove, branchId, terminalId }) {
   const [supPass, setSupPass] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const { addNotification } = useNotification();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if(!amount) return;
+    
+    // Validation
+    if (!amount || parseFloat(amount) <= 0) {
+        addNotification('warning', 'Float Required', 'Please enter the opening cash amount.');
+        return;
+    }
     
     // Validate that supervisor details are entered
     if(!supUser || !supPass) {
-        alert("Supervisor credentials are required to open the terminal.");
+        addNotification('warning', 'Supervisor Required', 'Supervisor credentials are required to open the terminal.');
         return;
     }
 
     setIsLoading(true);
 
-    // Find full cashier object to pass back
-    const selectedCashier = CASHIERS.find(c => c.id === Number(selectedCashierId));
-    
-    // Send all data including supervisor creds
-    onApprove(selectedCashier, amount, { username: supUser, password: supPass });
+    try {
+        // Find full cashier object to pass back
+        const selectedCashier = CASHIERS.find(c => c.id === Number(selectedCashierId));
+        
+        // Send all data including supervisor creds (awaiting response)
+        await onApprove(selectedCashier, amount, { username: supUser, password: supPass });
+        
+        // Success: Modal closes automatically via parent state change
+    } catch (error) {
+        // Reset loading so user can retry
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -54,6 +70,7 @@ export default function FloatModal({ onApprove, branchId, terminalId }) {
                         <select 
                             value={selectedCashierId} 
                             onChange={e => setSelectedCashierId(e.target.value)} 
+                            disabled={isLoading}
                             className="bg-transparent w-full text-sm font-bold text-slate-800 focus:outline-none appearance-none cursor-pointer"
                         >
                             {CASHIERS.map(c => (
@@ -67,7 +84,15 @@ export default function FloatModal({ onApprove, branchId, terminalId }) {
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Opening Float Amount</label>
                     <div className="flex items-center border border-blue-300 rounded bg-white px-3 py-2 shadow-sm">
                         <span className="text-slate-400 font-mono mr-2">LKR</span>
-                        <input autoFocus type="number" value={amount} onChange={e => setAmount(e.target.value)} className="bg-transparent w-full text-lg font-mono font-bold text-slate-900 focus:outline-none" placeholder="0.00" />
+                        <input 
+                            autoFocus 
+                            type="number" 
+                            value={amount} 
+                            onChange={e => setAmount(e.target.value)} 
+                            disabled={isLoading}
+                            className="bg-transparent w-full text-lg font-mono font-bold text-slate-900 focus:outline-none" 
+                            placeholder="0.00" 
+                        />
                     </div>
                 </div>
                 <div className="h-px bg-slate-200 my-2"></div>
@@ -82,6 +107,7 @@ export default function FloatModal({ onApprove, branchId, terminalId }) {
                             type="text" 
                             value={supUser}
                             onChange={(e) => setSupUser(e.target.value)}
+                            disabled={isLoading}
                             className="w-full border border-yellow-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-yellow-400" 
                             placeholder="Supervisor Username" 
                         />
@@ -89,13 +115,18 @@ export default function FloatModal({ onApprove, branchId, terminalId }) {
                             type="password" 
                             value={supPass}
                             onChange={(e) => setSupPass(e.target.value)}
+                            disabled={isLoading}
                             className="w-full border border-yellow-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-yellow-400" 
                             placeholder="Password" 
                         />
                     </div>
                 </div>
 
-                <button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded shadow-md uppercase tracking-wider text-sm transition-all">
+                <button 
+                    type="submit" 
+                    disabled={isLoading} 
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-bold py-3 rounded shadow-md uppercase tracking-wider text-sm transition-all"
+                >
                     {isLoading ? "Verifying..." : "Approve & Open"}
                 </button>
             </form>

@@ -81,7 +81,10 @@ function POSContent() {
           setActiveModal(null);
           addNotification('success', 'Shift Opened', `Cashier ${cashierObj.name} logged in successfully.`);
       } catch (err) {
+          // 1. Notify the user
           addNotification('error', 'Login Failed', 'Invalid credentials or server error.');
+          // 2. IMPORTANT: Throw error so FloatModal knows to stop loading
+          throw err;
       }
   };
 
