@@ -27,6 +27,15 @@ import StockAgingScreen from '../reports/StockAgingScreen';
 
 const InventorySystem = () => {
     const [activeScreen, setActiveScreen] = useState('item-list');
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    React.useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
     const [isAddBrandOpen, setIsAddBrandOpen] = useState(false);
@@ -480,7 +489,7 @@ const InventorySystem = () => {
             {/* Sidebar */}
             <div className="w-72 bg-gray-900 text-white overflow-y-auto">
                 <div className="p-6 border-b border-gray-800">
-                    <h1 className="text-xl font-bold">SmartRetail Pro</h1>
+                    <h1 className="text-xl font-bold">SmartRetail <span className="text-emerald-400">Pro</span></h1>
                     <p className="text-sm text-gray-400 mt-1">Inventory Management</p>
                 </div>
 
@@ -520,9 +529,15 @@ const InventorySystem = () => {
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="px-3 py-1 bg-slate-100 rounded text-xs font-medium text-gray-600">
-                            {new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                            {currentTime.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                         </div>
-                        <button className="px-3 py-1 bg-brand-primary hover:bg-brand-secondary text-white text-xs rounded transition-colors">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded text-xs font-medium text-gray-600">
+                            <Clock size={14} />
+                            <span className="font-mono">
+                                {currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </span>
+                        </div>
+                        <button className="px-3 py-1 bg-brand-primary hover:bg-brand-secondary text-white text-xs rounded transition-colors shadow-sm">
                             Logout
                         </button>
                     </div>
