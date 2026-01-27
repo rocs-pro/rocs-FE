@@ -7,6 +7,22 @@ import { authService } from '../services/authService';
 // IMPORT: The new background image
 import bgImage from '../assets/images/registration-bg.png';
 
+// COMPONENT: Background Wrapper with Blur
+const BackgroundWrapper = ({ children }) => (
+    <div className="relative min-h-screen flex items-center justify-center p-4 font-sans overflow-hidden">
+        {/* 1. Background Image Layer */}
+        <div className="absolute inset-0 z-0">
+            <img src={bgImage} alt="Background" className="w-full h-full object-cover blur-sm scale-110" />
+            <div className="absolute inset-0 bg-brand-deep/80 mix-blend-multiply"></div>
+        </div>
+
+        {/* 2. Content Layer */}
+        <div className="relative z-10 w-full flex justify-center">
+            {children}
+        </div>
+    </div>
+);
+
 export default function RegisterScreen() {
     const [branches, setBranches] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -40,22 +56,6 @@ export default function RegisterScreen() {
         }
         setLoading(false);
     };
-
-    // COMPONENT: Background Wrapper with Blur
-    const BackgroundWrapper = ({ children }) => (
-        <div className="relative min-h-screen flex items-center justify-center p-4 font-sans overflow-hidden">
-            {/* 1. Background Image Layer */}
-            <div className="absolute inset-0 z-0">
-                <img src={bgImage} alt="Background" className="w-full h-full object-cover blur-sm scale-110" />
-                <div className="absolute inset-0 bg-brand-deep/80 mix-blend-multiply"></div>
-            </div>
-
-            {/* 2. Content Layer */}
-            <div className="relative z-10 w-full flex justify-center">
-                {children}
-            </div>
-        </div>
-    );
 
     if (isSuccess) {
         return (
@@ -123,7 +123,7 @@ export default function RegisterScreen() {
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
                                 <div className="relative group">
                                     <User className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                                    <input type="text" name="fullName" required placeholder="John Doe" onChange={handleChange}
+                                    <input type="text" name="fullName" value={formData.fullName} required placeholder="John Doe" onChange={handleChange}
                                         className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm" />
                                 </div>
                             </div>
@@ -131,7 +131,7 @@ export default function RegisterScreen() {
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
                                 <div className="relative group">
                                     <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                                    <input type="email" name="email" required placeholder="john@rocs.com" onChange={handleChange}
+                                    <input type="email" name="email" value={formData.email} required placeholder="john@rocs.com" onChange={handleChange}
                                         className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm" />
                                 </div>
                             </div>
@@ -139,7 +139,7 @@ export default function RegisterScreen() {
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Phone</label>
                                 <div className="relative group">
                                     <Phone className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                                    <input type="text" name="phone" required placeholder="077XXXXXXX" onChange={handleChange}
+                                    <input type="text" name="phone" value={formData.phone} required placeholder="077XXXXXXX" onChange={handleChange}
                                         className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm font-mono" />
                                 </div>
                             </div>
@@ -153,7 +153,7 @@ export default function RegisterScreen() {
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Employee ID</label>
                                 <div className="relative group">
                                     <IdCard className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                                    <input type="text" name="employeeId" required placeholder="EMP-001" onChange={handleChange}
+                                    <input type="text" name="employeeId" value={formData.employeeId} required placeholder="EMP-001" onChange={handleChange}
                                         className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm font-mono uppercase" />
                                 </div>
                             </div>
@@ -161,7 +161,7 @@ export default function RegisterScreen() {
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
                                 <div className="relative group">
                                     <User className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                                    <input type="text" name="username" required placeholder="johnd" onChange={handleChange}
+                                    <input type="text" name="username" value={formData.username} required placeholder="johnd" onChange={handleChange}
                                         className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm" />
                                 </div>
                             </div>
@@ -173,7 +173,7 @@ export default function RegisterScreen() {
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
                                 <div className="relative group">
                                     <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                                    <input type={showPass ? "text" : "password"} name="password" required placeholder="••••••••" onChange={handleChange}
+                                    <input type={showPass ? "text" : "password"} name="password" value={formData.password} required placeholder="••••••••" onChange={handleChange}
                                         className="w-full pl-10 pr-10 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm font-mono" />
                                     <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
                                         {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -184,7 +184,7 @@ export default function RegisterScreen() {
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Confirm Password</label>
                                 <div className="relative group">
                                     <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                                    <input type="password" required placeholder="••••••••" onChange={(e) => setConfirmPass(e.target.value)}
+                                    <input type="password" required placeholder="••••••••" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)}
                                         className={`w-full pl-10 pr-4 py-3 bg-white border rounded-lg focus:outline-none transition-all text-sm font-mono ${confirmPass && confirmPass !== formData.password ? 'border-pos-danger focus:border-pos-danger' : 'border-slate-300 focus:border-brand'}`} />
                                     {confirmPass && confirmPass === formData.password && (
                                         <CheckCircle className="absolute right-3 top-3 w-4 h-4 text-pos-success" />
