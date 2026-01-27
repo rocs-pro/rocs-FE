@@ -6,7 +6,7 @@ export const authService = {
     // Fetch Branch List from Backend
     getBranches: async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/branches`);
+            const response = await fetch(`${API_BASE_URL}/auth/branches`);
             
             if (!response.ok) {
                 throw new Error("Failed to fetch branch list");

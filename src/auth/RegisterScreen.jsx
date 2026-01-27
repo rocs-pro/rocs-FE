@@ -36,7 +36,16 @@ export default function RegisterScreen() {
 
     useEffect(() => {
         authService.getBranches()
-            .then(data => setBranches(data))
+            .then(data => {
+                console.log("Loaded branches:", data);
+                // Ensure data is an array before setting
+                if (Array.isArray(data)) {
+                    setBranches(data);
+                } else {
+                    console.error("Expected array of branches but got:", data);
+                    setBranches([]);
+                }
+            })
             .catch(err => console.error("Failed to load branches", err));
     }, []);
 
@@ -112,7 +121,11 @@ export default function RegisterScreen() {
                                 <select name="branchId" value={formData.branchId} onChange={handleChange}
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand focus:ring-2 focus:ring-blue-100 transition-all appearance-none text-slate-700 font-medium">
                                     <option value="">Select Branch...</option>
-                                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                    {branches.map(b => (
+                                        <option key={b.branchId || b.branch_id || b.id} value={b.branchId || b.branch_id || b.id}>
+                                            {b.name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
