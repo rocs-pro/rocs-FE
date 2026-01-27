@@ -3,29 +3,42 @@ import { Link } from "react-router-dom";
 import { ShieldCheck, User, Lock, ArrowRight, Loader2, Shield } from 'lucide-react';
 import bgImage from "../assets/images/registration-bg.png";
 
+const BackgroundWrapper = ({ children }) => (
+  <div className="relative min-h-screen flex items-center justify-center p-4 font-sans overflow-hidden">
+    {/* 1. Background Image Layer */}
+    <div className="absolute inset-0 z-0">
+      <img src={bgImage} alt="Background" className="w-full h-full object-cover blur-sm scale-110" />
+      <div className="absolute inset-0 bg-brand-deep/80 mix-blend-multiply"></div>
+    </div>
+
+    {/* 2. Content Layer */}
+    <div className="relative z-10 w-full flex justify-center">
+      {children}
+    </div>
+  </div>
+);
+
 export default function Login() {
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
+
+  const { username, password } = formData;
+
+  const onChange = (e) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   const onSubmit = (e) => {
     e.preventDefault();
+    console.log(formData);
     // TODO: handle login
   };
-
-  // COMPONENT: Background Wrapper with Blur
-  const BackgroundWrapper = ({ children }) => (
-    <div className="relative min-h-screen flex items-center justify-center p-4 font-sans overflow-hidden">
-      {/* 1. Background Image Layer */}
-      <div className="absolute inset-0 z-0">
-        <img src={bgImage} alt="Background" className="w-full h-full object-cover blur-sm scale-110" />
-        <div className="absolute inset-0 bg-brand-deep/80 mix-blend-multiply"></div>
-      </div>
-
-      {/* 2. Content Layer */}
-      <div className="relative z-10 w-full flex justify-center">
-        {children}
-      </div>
-    </div>
-  );
 
   return (
     <BackgroundWrapper>
@@ -61,8 +74,15 @@ export default function Login() {
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
               <div className="relative group">
                 <User className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                <input type="text" required placeholder="Enter username"
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm" />
+                <input
+                  type="text"
+                  name="username"
+                  value={username}
+                  onChange={onChange}
+                  required
+                  placeholder="Enter username"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm"
+                />
               </div>
             </div>
 
@@ -71,8 +91,15 @@ export default function Login() {
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
               <div className="relative group">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
-                <input type="password" required placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm font-mono" />
+                <input
+                  type="password"
+                  name="password"
+                  value={password}
+                  onChange={onChange}
+                  required
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm font-mono"
+                />
               </div>
             </div>
 
