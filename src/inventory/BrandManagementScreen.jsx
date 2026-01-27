@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 
 const BrandManagementScreen = ({
     brands,
@@ -14,14 +14,31 @@ const BrandManagementScreen = ({
     isEditMode,
     handleSaveEdit
 }) => {
+    const [searchQuery, setSearchQuery] = React.useState('');
+
+    const filteredBrands = brands.filter(b =>
+        b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900">Brand Management</h2>
                     <p className="text-gray-600 mt-1">Manage brand list, suppliers and units</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Search brands..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary w-full sm:w-64"
+                        />
+                    </div>
                     <button onClick={() => setIsAddBrandOpen(true)} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors">
                         <Plus size={20} /> Add Brand
                     </button>
@@ -40,7 +57,7 @@ const BrandManagementScreen = ({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {brands.map((b) => (
+                        {filteredBrands.map((b) => (
                             <tr key={b.brand_id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 text-sm font-mono text-gray-900">{b.brand_id}</td>
                                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{b.name}</td>
@@ -74,7 +91,7 @@ const BrandManagementScreen = ({
                                 </div>
 
                                 <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Brand Name *</label>
                                             <input value={brandForm.name} onChange={(e) => setBrandForm({ ...brandForm, name: e.target.value })} type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Brand name" />
