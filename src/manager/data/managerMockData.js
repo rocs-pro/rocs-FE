@@ -80,7 +80,15 @@ export const branchActivityLog = [
   { time: "2026-01-09 10:55", user: "John", action: "Price Override", details: "Requested override for INV-88912", severity: "Warning" },
 ];
 
-export const chartOfAccounts = [];
+export const chartOfAccounts = [
+  { code: "1000", name: "Cash", type: "Asset" },
+  { code: "1100", name: "Accounts Receivable", type: "Asset" },
+  { code: "2000", name: "Accounts Payable", type: "Liability" },
+  { code: "3000", name: "Owner's Equity", type: "Equity" },
+  { code: "4000", name: "Sales Revenue", type: "Revenue" },
+  { code: "5000", name: "Cost of Goods Sold", type: "Expense" },
+  { code: "5100", name: "Salaries Expense", type: "Expense" },
+];
 
 export const journalEntries = [
   {
