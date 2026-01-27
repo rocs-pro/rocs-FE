@@ -1,112 +1,104 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import ShieldIcon from "../components/icons/ShieldIcon";
-import BoltIcon from "../components/icons/BoltIcon";
-import UserIcon from "../components/icons/UserIcon";
-import LockIcon from "../components/icons/LockIcon";
-import Feature from "../components/auth/Feature";
-import Field from "../components/auth/Field";
-import Cred from "../components/auth/Cred";
+import { ShieldCheck, User, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import bgImage from "../assets/images/registration-bg.png";
 
 export default function Login() {
+  const [loading, setLoading] = useState(false);
+
   const onSubmit = (e) => {
     e.preventDefault();
     // TODO: handle login
   };
 
-  return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-      <div className="w-full max-w-5xl rounded-2xl overflow-hidden bg-white shadow-xl grid grid-cols-1 md:grid-cols-2">
-        {/* LEFT PANEL */}
-        <div className="relative bg-slate-950 text-white p-10 flex flex-col justify-between">
-          {/* Grid background */}
-          <div
-            className="absolute inset-0 opacity-25"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
-            }}
-          />
+  // COMPONENT: Background Wrapper with Blur
+  const BackgroundWrapper = ({ children }) => (
+    <div className="relative min-h-screen flex items-center justify-center p-4 font-sans overflow-hidden">
+      {/* 1. Background Image Layer */}
+      <div className="absolute inset-0 z-0">
+        <img src={bgImage} alt="Background" className="w-full h-full object-cover blur-sm scale-110" />
+        <div className="absolute inset-0 bg-brand-deep/80 mix-blend-multiply"></div>
+      </div>
 
+      {/* 2. Content Layer */}
+      <div className="relative z-10 w-full flex justify-center">
+        {children}
+      </div>
+    </div>
+  );
+
+  return (
+    <BackgroundWrapper>
+      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+
+        {/* SIDE BAR */}
+        <div className="hidden md:flex w-5/12 bg-brand-deep p-8 flex-col justify-between text-white relative overflow-hidden">
           <div className="relative z-10">
-            <h1 className="text-3xl font-extrabold tracking-wider">
-              SMARTRETAIL <span className="text-emerald-400">PRO</span>
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Retail Operations Control System (ROCS)
+            <div className="flex items-center gap-2 mb-6">
+              <ShieldCheck className="w-8 h-8" />
+              <span className="font-bold text-xl tracking-tight">Smart Retail <span style={{ color: 'rgb(52 211 153 / var(--tw-text-opacity, 1))' }}>Pro</span></span>
+            </div>
+            <h2 className="text-3xl font-bold mb-4">Welcome Back.</h2>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Sign in to secure terminal to access store operations and reporting.
             </p>
           </div>
 
-          <div className="relative z-10 space-y-8 my-16">
-            <Feature
-              icon={<ShieldIcon className="h-6 w-6 text-emerald-400" />}
-              title="Role-Based Security"
-              desc="Granular access control for every employee tier."
-              iconBg="bg-emerald-500/20 ring-emerald-400/30"
-            />
-
-            <Feature
-              icon={<BoltIcon className="h-6 w-6 text-sky-400" />}
-              title="High-Speed POS"
-              desc="Keyboard-driven interface for rapid billing."
-              iconBg="bg-sky-500/20 ring-sky-400/30"
-            />
-          </div>
-
-          <div className="relative z-10 text-xs text-slate-500">
-            Build v2.1.0-RC1 | SRS Compliant
-          </div>
+          {/* CIRCLES SIDES BAR*/}
+          <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-brand/20 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 bg-brand/20 rounded-full blur-xl"></div>
         </div>
 
-        {/* RIGHT PANEL */}
-        <div className="p-10">
-          <h2 className="text-4xl font-extrabold tracking-tight text-slate-900">
-            Welcome Back
-          </h2>
-          <p className="mt-2 text-slate-500">
-            Please enter your credentials to access the system.
-          </p>
+        {/* FORM AREA */}
+        <div className="w-full md:w-7/12 p-8 md:p-10 bg-pos-bg">
+          <h3 className="text-2xl font-bold text-pos-text mb-6">Login to Account</h3>
 
-          <form onSubmit={onSubmit} className="mt-8 space-y-5">
-            <Field label="Username" icon={<UserIcon className="h-5 w-5" />}>
-              <input
-                type="text"
-                placeholder="Enter username"
-                className="w-full bg-transparent outline-none text-slate-900 placeholder:text-slate-400"
-              />
-            </Field>
+          <form onSubmit={onSubmit} className="space-y-4">
 
-            <Field label="Password" icon={<LockIcon className="h-5 w-5" />}>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full bg-transparent outline-none text-slate-900 placeholder:text-slate-400"
-              />
-            </Field>
+            {/* Username */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
+              <div className="relative group">
+                <User className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
+                <input type="text" required placeholder="Enter username"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm" />
+              </div>
+            </div>
 
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 active:bg-blue-800 transition hover:shadow-md hover:scale-105 duration-200"
-            >
-              Login to ROCS
+            {/* Password */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400 transition-all duration-300 group-focus-within:text-brand group-focus-within:scale-110" />
+                <input type="password" required placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-brand transition-all text-sm font-mono" />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button type="submit" disabled={loading}
+              className="w-full bg-brand hover:bg-brand-hover text-white font-bold py-4 rounded-xl shadow-lg mt-4 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Login to ROCS"}
             </button>
 
             <div className="mt-4 text-center">
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-700 transition hover:underline hover:scale-105 inline-block duration-200">
-                Forgot password?
+              <a href="#" className="text-xs font-bold text-slate-400 hover:text-brand transition-colors">
+                Forgot Password?
               </a>
             </div>
 
-            <div className="mt-6 text-center text-sm text-slate-500">
+            <div className="h-px bg-slate-200 my-6"></div>
+
+            <div className="text-center text-sm text-slate-500">
               Don't have an account?{' '}
-              <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition hover:scale-105 inline-block duration-200">
-                Register
+              <Link to="/register" className="font-bold text-brand hover:underline">
+                Register New ID
               </Link>
             </div>
+
           </form>
         </div>
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 }
