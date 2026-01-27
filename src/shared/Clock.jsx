@@ -14,15 +14,12 @@ export default function Clock({ timeZone = "Asia/Colombo" }) {
     minute: "2-digit",
     second: "2-digit",
   });
-
-  // return (
-  //   <span className="text-xs px-3 py-1 rounded-full bg-slate-100 border border-brand-border">
-  //     {time}
-  //   </span>
-
-  return (
-  <span className="text-xs leading-none px-3 py-1.5 rounded-full bg-slate-100 border border-brand-border">
-    {time}
+return (
+  <span className="inline-flex items-center gap-2 text-xs leading-none px-3 py-2 rounded-full bg-blue-50 border border-blue-200">
+    <span className="text-blue-600">🕒</span>
+    <span className="font-semibold tabular-nums tracking-wide text-blue-900">
+      {time}
+    </span>
   </span>
-  );
+);
 }
