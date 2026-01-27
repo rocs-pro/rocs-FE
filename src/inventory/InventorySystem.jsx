@@ -46,26 +46,13 @@ const InventorySystem = () => {
     const [editingId, setEditingId] = useState(null);
     const [editingType, setEditingType] = useState(null); // 'category', 'brand', 'supplier', 'item'
 
-    const [suppliers, setSuppliers] = useState([
-        { supplier_id: 1, code: 'SUP001', name: 'Coca Cola Distributors', company_name: 'Coca Cola Lanka', contact_person: 'John Smith', phone: '011-1234567', mobile: '0771234567', email: 'sales@cocacola.lk', address_line1: '123 Main St', city: 'Colombo', country: 'Sri Lanka', supplier_type: 'DISTRIBUTOR', supplier_category: 'PRIMARY', is_active: true, is_verified: true },
-        { supplier_id: 2, code: 'SUP002', name: 'PepsiCo Lanka', company_name: 'PepsiCo Distribution', contact_person: 'Jane Doe', phone: '011-2345678', mobile: '0772345678', email: 'info@pepsico.lk', address_line1: '456 Oak Ave', city: 'Colombo', country: 'Sri Lanka', supplier_type: 'DISTRIBUTOR', supplier_category: 'PRIMARY', is_active: true, is_verified: true },
-        { supplier_id: 3, code: 'SUP003', name: 'Anchor Foods', company_name: 'Anchor Dairy Products', contact_person: 'Mike Johnson', phone: '011-3456789', mobile: '0773456789', email: 'contact@anchor.lk', address_line1: '789 Dairy Ln', city: 'Colombo', country: 'Sri Lanka', supplier_type: 'MANUFACTURER', supplier_category: 'PRIMARY', is_active: true, is_verified: true },
-        { supplier_id: 4, code: 'SUP004', name: 'Sunrice Suppliers', company_name: 'Sunrice Agricultural Ltd', contact_person: 'Sarah Wilson', phone: '011-4567890', mobile: '0774567890', email: 'sales@sunrice.lk', address_line1: '321 Rice Farm Rd', city: 'Colombo', country: 'Sri Lanka', supplier_type: 'DISTRIBUTOR', supplier_category: 'PRIMARY', is_active: true, is_verified: true },
-    ]);
+    const [suppliers, setSuppliers] = useState([]);
     const [supplierForm, setSupplierForm] = useState({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false });
 
-    const [brands, setBrands] = useState([
-        { brand_id: 1, name: 'Coca Cola', description: 'Popular beverage brand', is_active: true, created_at: '2025-01-01' },
-        { brand_id: 2, name: 'Lays', description: 'Snack brand', is_active: true, created_at: '2025-01-01' },
-    ]);
+    const [brands, setBrands] = useState([]);
     const [brandForm, setBrandForm] = useState({ brand_id: '', name: '', description: '', is_active: true });
 
-    const [categories, setCategories] = useState([
-        { category_id: 1, name: 'Beverages', description: 'Drinks and beverages', is_active: true, created_at: '2025-01-01' },
-        { category_id: 2, name: 'Snacks', description: 'Snack items', is_active: true, created_at: '2025-01-01' },
-        { category_id: 3, name: 'Dairy', description: 'Dairy products', is_active: true, created_at: '2025-01-01' },
-        { category_id: 4, name: 'Grains', description: 'Rice and grain products', is_active: true, created_at: '2025-01-01' },
-    ]);
+    const [categories, setCategories] = useState([]);
     const [categoryForm, setCategoryForm] = useState({ category_id: '', name: '', description: '', is_active: true });
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
@@ -167,122 +154,34 @@ const InventorySystem = () => {
     const [stockFilterWarehouse, setStockFilterWarehouse] = useState('');
     const [stockFilterDate, setStockFilterDate] = useState('');
 
-    const branches = [
-        { branch_id: 1, code: 'BRN001', name: 'Main Warehouse', address: '123 Main St, Colombo', phone: '011-1111111', is_active: true },
-        { branch_id: 2, code: 'BRN002', name: 'Store A', address: '456 Oak Ave, Colombo', phone: '011-2222222', is_active: true },
-        { branch_id: 3, code: 'BRN003', name: 'Store B', address: '789 Elm St, Colombo', phone: '011-3333333', is_active: true },
-        { branch_id: 4, code: 'BRN004', name: 'Store C', address: '321 Pine Rd, Colombo', phone: '011-4444444', is_active: true },
-    ];
+    const branches = [];
 
     // Sample data
-    const items = [
-        { product_id: 1, sku: 'BEV-CC-001', barcode: '9800123456789', name: 'Coca Cola 330ml', description: 'Carbonated beverage', category_id: 1, brand_id: 1, unit_id: 1, cost_price: 300.00, selling_price: 450.00, mrp: 500.00, reorder_level: 50, tax_rate: 8.00, is_active: true },
-        { product_id: 2, sku: 'SNK-LC-001', barcode: '9800234567890', name: 'Lays Chips Classic', description: 'Fried snack chips', category_id: 2, brand_id: 2, unit_id: 2, cost_price: 75.00, selling_price: 120.00, mrp: 150.00, reorder_level: 30, tax_rate: 8.00, is_active: true },
-        { product_id: 3, sku: 'DAI-MF-001', barcode: '9800345678901', name: 'Milk Fresh 1L', description: 'Pasteurized fresh milk', category_id: 3, brand_id: 3, unit_id: 3, cost_price: 250.00, selling_price: 380.00, mrp: 420.00, reorder_level: 20, tax_rate: 0.00, is_active: true },
-        { product_id: 4, sku: 'GRN-RB-001', barcode: '9800456789012', name: 'Rice Basmati 5kg', description: 'Premium basmati rice', category_id: 4, brand_id: 4, unit_id: 4, cost_price: 1800.00, selling_price: 2500.00, mrp: 2800.00, reorder_level: 25, tax_rate: 0.00, is_active: true },
-    ];
+    const [items, setItems] = useState([]);
 
-    const batches = [
-        { batch_id: 1, product_id: 1, branch_id: 1, batch_code: 'CC-2025-001', manufacturing_date: '2025-06-15', expiry_date: '2026-06-15', qty: 100, cost_price: 300.00, created_at: '2025-06-15' },
-        { batch_id: 2, product_id: 1, branch_id: 1, batch_code: 'CC-2025-002', manufacturing_date: '2025-08-28', expiry_date: '2026-02-28', qty: 145, cost_price: 300.00, created_at: '2025-08-28' },
-        { batch_id: 3, product_id: 2, branch_id: 2, batch_code: 'LC-2025-045', manufacturing_date: '2025-09-10', expiry_date: '2026-03-10', qty: 12, cost_price: 75.00, created_at: '2025-09-10' },
-        { batch_id: 4, product_id: 3, branch_id: 1, batch_code: 'MF-2026-001', manufacturing_date: '2025-12-15', expiry_date: '2026-01-15', qty: 0, cost_price: 250.00, created_at: '2025-12-15' },
-        { batch_id: 5, product_id: 3, branch_id: 1, batch_code: 'MF-2026-002', manufacturing_date: '2025-12-08', expiry_date: '2026-01-08', qty: 0, cost_price: 250.00, created_at: '2025-12-08' },
-        { batch_id: 6, product_id: 4, branch_id: 3, batch_code: 'RB-2025-012', manufacturing_date: '2025-12-31', expiry_date: '2026-12-31', qty: 89, cost_price: 1800.00, created_at: '2025-12-31' },
-    ];
+    const batches = [];
     const [batchFilterItem, setBatchFilterItem] = useState('');
 
     // State for Stock Adjustment
     const [adjustmentForm, setAdjustmentForm] = useState({ itemId: '', batchId: '', currentQty: '', physicalQty: '', adjustmentType: 'Increase', reason: 'Audit', approvedBy: '' });
-    const [adjustments, setAdjustments] = useState([
-        { id: 'ADJ001', itemName: 'Coca Cola 330ml', batchNumber: 'CC-2025-001', previousQty: 100, currentQty: 105, adjustmentType: 'Increase', reason: 'Audit', approvedBy: 'John Doe', date: '2026-01-10' },
-        { id: 'ADJ002', itemName: 'Lays Chips Classic', batchNumber: 'LC-2025-045', previousQty: 15, currentQty: 12, adjustmentType: 'Decrease', reason: 'Damage', approvedBy: 'Jane Smith', date: '2026-01-09' },
-    ]);
+    const [adjustments, setAdjustments] = useState([]);
 
     // State for Damage Entry
     const [damageForm, setDamageForm] = useState({ itemId: '', batchId: '', quantity: '', reason: '', date: '', note: '' });
-    const [damageEntries, setDamageEntries] = useState([
-        { id: 'DMG001', itemName: 'Coca Cola 330ml', batchNumber: 'CC-2025-002', quantity: 5, reason: 'Breakage', date: '2026-01-10', note: 'Bottle damaged during unloading' },
-        { id: 'DMG002', itemName: 'Lays Chips Classic', batchNumber: 'LC-2025-045', quantity: 3, reason: 'Expiry', date: '2026-01-08', note: 'Expired stock disposal' },
-    ]);
+    const [damageEntries, setDamageEntries] = useState([]);
 
     // State for Stock Transfer Create
     const [transferForm, setTransferForm] = useState({ fromBranch: '', toBranch: '', product_id: '', quantity: '', batch_id: '', transferDate: '', remarks: '', status: 'Draft' });
-    const [transfers, setTransfers] = useState([
-        { id: 'TRF001', fromWarehouse: 'Main Warehouse', toWarehouse: 'Store A', itemName: 'Coca Cola 330ml', quantity: 50, batchNumber: 'CC-2025-001', date: '2026-01-07', remarks: 'Stock replenishment', status: 'Draft', requestedBy: 'Manager 1' },
-        { id: 'TRF002', fromWarehouse: 'Store A', toWarehouse: 'Store B', itemName: 'Lays Chips Classic', quantity: 20, batchNumber: 'LC-2025-045', date: '2026-01-06', remarks: 'Stock movement', status: 'Submitted', requestedBy: 'Manager 2' },
-        { id: 'TRF003', fromWarehouse: 'Main Warehouse', toWarehouse: 'Store C', itemName: 'Rice Basmati 5kg', quantity: 30, batchNumber: 'RB-2025-012', date: '2026-01-05', remarks: 'Monthly distribution', status: 'Approved', requestedBy: 'Manager 3' },
-    ]);
+    const [transfers, setTransfers] = useState([]);
 
     // State for Item Detail
     const [selectedItemId, setSelectedItemId] = useState(null);
     const [selectedItemTab, setSelectedItemTab] = useState('summary');
 
     // Detailed item data for Item Detail screen
-    const itemDetails = {
-        1: {
-            product_id: 1,
-            sku: 'BEV-CC-001',
-            barcode: '9800123456789',
-            name: 'Coca Cola 330ml',
-            priceHistory: [
-                { date: '2025-12-15', selling_price: 450.00, change: '+5%', reason: 'Price increase due to inflation' },
-                { date: '2025-11-01', selling_price: 428.57, change: '-2%', reason: 'Promotional discount' },
-                { date: '2025-10-15', selling_price: 437.50, change: '+0%', reason: 'Stable' },
-            ],
-            stockHistory: [
-                { date: '2026-01-10', type: 'GRN', reference: 'GRN-001', quantity: 100, notes: 'Goods received from Coca Cola Distributors' },
-                { date: '2026-01-08', type: 'Sales', reference: 'INV-089', quantity: -50, notes: 'Sales to retail store A' },
-                { date: '2026-01-05', type: 'Adjustment', reference: 'ADJ-001', quantity: 5, notes: 'Stock audit correction' },
-                { date: '2026-01-02', type: 'Transfer', reference: 'TRF-001', quantity: -30, notes: 'Transfer to Store A' },
-            ],
-            supplierHistory: [
-                { supplier_id: 1, name: 'Coca Cola Distributors', lastPO: 'PO-2026-001', lastDelivery: '2026-01-10', leadTime: '3 days', cost_price: 300.00, reliability: '98%' },
-            ],
-            reorderLevel: 50,
-            reorderQuantity: 500,
-        },
-        2: {
-            product_id: 2,
-            sku: 'SNK-LC-001',
-            barcode: '9800234567890',
-            name: 'Lays Chips Classic',
-            priceHistory: [
-                { date: '2025-12-20', selling_price: 120.00, change: '+0%', reason: 'Stable' },
-                { date: '2025-11-15', selling_price: 120.00, change: '+3%', reason: 'Manufacturing cost increase' },
-            ],
-            reorderLevel: 30,
-            reorderQuantity: 200,
-        },
-        3: {
-            product_id: 3,
-            sku: 'DAI-MF-001',
-            barcode: '9800345678901',
-            name: 'Milk Fresh 1L',
-            priceHistory: [
-                { date: '2025-12-25', selling_price: 380.00, change: '+2%', reason: 'Premium pricing' },
-            ],
-            reorderLevel: 20,
-            reorderQuantity: 150,
-        },
-        4: {
-            product_id: 4,
-            sku: 'GRN-RB-001',
-            barcode: '9800456789012',
-            name: 'Rice Basmati 5kg',
-            priceHistory: [
-                { date: '2025-12-18', selling_price: 2500.00, change: '+0%', reason: 'Stable' },
-            ],
-            reorderLevel: 25,
-            reorderQuantity: 100,
-        },
-    };
+    const itemDetails = {};
 
-    const stockTransfers = [
-        { id: 'TRF001', fromBranch: 1, toBranch: 2, product_name: 'Laptop', quantity: 12, status: 'Pending', date: '2026-01-07' },
-        { id: 'TRF002', fromBranch: 2, toBranch: 3, product_name: 'Desktop', quantity: 8, status: 'Approved', date: '2026-01-06' },
-        { id: 'TRF003', fromBranch: 1, toBranch: 3, product_name: 'Monitor', quantity: 15, status: 'Completed', date: '2026-01-05' },
-    ];
+    const stockTransfers = [];
 
     const navigation = [
         {
@@ -537,7 +436,7 @@ const InventorySystem = () => {
                                 {currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </span>
                         </div>
-                        <button className="px-3 py-1 bg-brand-primary hover:bg-brand-secondary text-white text-xs rounded transition-colors shadow-sm">
+                        <button className="px-3 py-1 bg-brand-primary hover:bg-brand-secondary text-white text-xs rounded transition-colors shadow-sm btn-hover-scale btn-interactive">
                             Logout
                         </button>
                     </div>

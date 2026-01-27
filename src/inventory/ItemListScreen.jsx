@@ -45,7 +45,37 @@ const ItemListScreen = ({
                     <Filter size={20} />
                     Filters
                 </button>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50">
+                <button
+                    onClick={() => {
+                        const headers = ['SKU', 'Name', 'Category', 'Selling Price', 'MRP', 'Reorder Level', 'Tax Rate', 'Status'];
+                        const csvContent = [
+                            headers.join(','),
+                            ...filteredItems.map(item => [
+                                item.sku,
+                                `"${item.name.replace(/"/g, '""')}"`, // Handle commas in name
+                                `"${(categories?.find(c => c.category_id === item.category_id)?.name || item.category_id || '').replace(/"/g, '""')}"`,
+                                item.selling_price.toFixed(2),
+                                item.mrp.toFixed(2),
+                                item.reorder_level,
+                                `${item.tax_rate}%`,
+                                item.is_active ? 'Active' : 'Inactive'
+                            ].join(','))
+                        ].join('\n');
+
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement('a');
+                        if (link.download !== undefined) {
+                            const url = URL.createObjectURL(blob);
+                            link.setAttribute('href', url);
+                            link.setAttribute('download', `item_list_${new Date().toISOString().split('T')[0]}.csv`);
+                            link.style.visibility = 'hidden';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+                >
                     <Download size={20} />
                     Export
                 </button>
