@@ -20,6 +20,7 @@ import FloatModal from './modals/FloatModal';
 import EndShiftModal from './modals/EndShiftModal';
 import PaymentModal from './modals/PaymentModal';
 import QuantityModal from './modals/QuantityModal'; 
+import QuickAddModal from './modals/QuickAddModal'; 
 
 const BRANCH_ID = 1;
 const TERMINAL_ID = 101; 
@@ -38,6 +39,9 @@ function POSContent() {
   
   // Track which item is being edited
   const [selectedCartIndex, setSelectedCartIndex] = useState(null);
+
+  // Trigger to refresh product grid
+  const [quickGridRefresh, setQuickGridRefresh] = useState(0);
 
   const [time, setTime] = useState(new Date());
   
@@ -189,6 +193,22 @@ function POSContent() {
     });
   };
 
+  // Quick add handlers
+  const handleOpenQuickAdd = () => {
+      setActiveModal('QUICK_ADD');
+  };
+
+  const handleAddQuickItem = async (product) => {
+      try {
+          await posService.addQuickItem(product);
+          setQuickGridRefresh(prev => prev + 1);
+          addNotification('success', 'Quick Item Added', `${product.name} added to grid.`);
+          setActiveModal(null);
+      } catch (err) {
+          addNotification('error', 'Save Failed', 'Could not add item to quick list.');
+      }
+  };
+
   const handleComplexAction = async (action) => {
       if(action === 'HOLD') {
           if(cart.length === 0) return;
@@ -311,7 +331,11 @@ function POSContent() {
         <div className={`flex flex-1 overflow-hidden transition-all duration-500 ${!session.isOpen || activeModal ? 'blur-[3px] brightness-90' : ''}`}>
             <BillPanel cart={cart} customer={customer} onItemClick={handleCartItemClick} onDetachCustomer={() => setCustomer(null)}/>
             <ControlPanel inputRef={inputRef} inputBuffer={inputBuffer} setInputBuffer={setInputBuffer} onScan={handleScan} onOpenModal={setActiveModal} onAction={handleComplexAction} onVoid={() => handleVoidItem()} isEnabled={session.isOpen}/>
-            <ProductGrid onAddToCart={handleAddToCart}/>
+            <ProductGrid 
+                onAddToCart={handleAddToCart} 
+                onAddQuickItemClick={handleOpenQuickAdd}
+                refreshTrigger={quickGridRefresh}
+            />
         </div>
 
         {/* Modals & Notifications */}
@@ -334,6 +358,13 @@ function POSContent() {
                 item={cart[selectedCartIndex]}
                 onClose={() => setActiveModal(null)}
                 onConfirm={handleQuantityUpdate}
+            />
+        )}
+
+        {activeModal === 'QUICK_ADD' && (
+            <QuickAddModal 
+                onClose={() => setActiveModal(null)} 
+                onProductSelected={handleAddQuickItem} 
             />
         )}
         

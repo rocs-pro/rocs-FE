@@ -28,9 +28,13 @@ export const posService = {
     // Using the configured api instance ensures auth headers are sent
     getShiftTotals: (shiftId) => api.get(`/shifts/${shiftId}/totals`),
 
+    //Search entire inventory (returns a list)
+    searchInventory: (query) => api.get(`/products/search?q=${query}`),
+
     // Products
     getProduct: (id) => api.get(`/products/${id}`),
     getQuickItems: () => api.get('/products/quick'),
+    
 
     // Customers
     findCustomer: (phone) => api.get(`/customers?phone=${phone}`),
