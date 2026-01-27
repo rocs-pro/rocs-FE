@@ -1,23 +1,46 @@
-import { useMemo, useState } from "react";
-import { salesReports } from "../data/managerMockData";
+import { useEffect, useMemo, useState } from "react";
+import { getSalesReports } from "../../services/managerService";
 
 export default function SalesReports() {
+  const [reports, setReports] = useState([]);
   const [q, setQ] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const filters = {
+          ...(from && { from }),
+          ...(to && { to }),
+        };
+        const data = await getSalesReports(filters);
+        setReports(data || []);
+      } catch (err) {
+        console.error("Error fetching sales reports:", err);
+        setError("Failed to load sales reports");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [from, to]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return salesReports.filter((r) => {
-      const okFrom = from ? r.date >= from : true;
-      const okTo = to ? r.date <= to : true;
-      const okQ = s ? r.date.toLowerCase().includes(s) : true;
-      return okFrom && okTo && okQ;
+    return reports.filter((r) => {
+      const okQ = s ? r.date?.toLowerCase().includes(s) : true;
+      return okQ;
     });
-  }, [q, from, to]);
+  }, [q, reports]);
 
   function exportCSV() {
-    const header = ["Date","Invoices","Revenue","Profit"].join(",");
+    const header = ["Date", "Invoices", "Revenue", "Profit"].join(",");
     const lines = filtered.map((r) => [r.date, r.invoices, r.revenue, r.profit].join(","));
     const csv = [header, ...lines].join("\n");
 
@@ -32,12 +55,23 @@ export default function SalesReports() {
 
   const totals = filtered.reduce(
     (acc, r) => ({
-      invoices: acc.invoices + r.invoices,
-      revenue: acc.revenue + r.revenue,
-      profit: acc.profit + r.profit,
+      invoices: acc.invoices + (r.invoices || 0),
+      revenue: acc.revenue + (r.revenue || 0),
+      profit: acc.profit + (r.profit || 0),
     }),
     { invoices: 0, revenue: 0, profit: 0 }
   );
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-xl font-extrabold">Sales Reports</h1>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -50,7 +84,8 @@ export default function SalesReports() {
             <button
               type="button"
               onClick={exportCSV}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-100 border border-brand-border hover:bg-slate-200 transition text-sm font-bold"
+              disabled={loading}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-100 border border-brand-border hover:bg-slate-200 transition text-sm font-bold disabled:opacity-50"
             >
               Export CSV
             </button>
@@ -95,27 +130,35 @@ export default function SalesReports() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((r) => (
-                <tr key={r.date} className="border-t hover:bg-slate-50">
-                  <td className="p-3 font-mono text-xs">{r.date}</td>
-                  <td className="p-3 text-right">{r.invoices}</td>
-                  <td className="p-3 text-right font-bold">{r.revenue.toLocaleString()}</td>
-                  <td className="p-3 text-right">{r.profit.toLocaleString()}</td>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="p-6 text-center text-brand-muted">
+                    Loading reports...
+                  </td>
                 </tr>
-              ))}
-              <tr className="border-t bg-slate-50">
-                <td className="p-3 font-bold">TOTAL</td>
-                <td className="p-3 text-right font-bold">{totals.invoices}</td>
-                <td className="p-3 text-right font-extrabold">{totals.revenue.toLocaleString()}</td>
-                <td className="p-3 text-right font-bold">{totals.profit.toLocaleString()}</td>
-              </tr>
-
-              {filtered.length === 0 && (
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td className="p-6 text-center text-brand-muted" colSpan={4}>
                     No records
                   </td>
                 </tr>
+              ) : (
+                <>
+                  {filtered.map((r) => (
+                    <tr key={r.date} className="border-t hover:bg-slate-50">
+                      <td className="p-3 font-mono text-xs">{r.date}</td>
+                      <td className="p-3 text-right">{r.invoices}</td>
+                      <td className="p-3 text-right font-bold">{(r.revenue || 0).toLocaleString()}</td>
+                      <td className="p-3 text-right">{(r.profit || 0).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t bg-slate-50">
+                    <td className="p-3 font-bold">TOTAL</td>
+                    <td className="p-3 text-right font-bold">{totals.invoices}</td>
+                    <td className="p-3 text-right font-extrabold">{totals.revenue.toLocaleString()}</td>
+                    <td className="p-3 text-right font-bold">{totals.profit.toLocaleString()}</td>
+                  </tr>
+                </>
               )}
             </tbody>
           </table>

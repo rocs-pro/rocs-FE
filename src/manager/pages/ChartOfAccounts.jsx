@@ -1,6 +1,29 @@
-import { chartOfAccounts } from "../data/managerMockData";
+import { useEffect, useState } from "react";
+import { getChartOfAccounts } from "../../services/managerService";
 
 export default function ChartOfAccounts() {
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getChartOfAccounts();
+        setAccounts(data || []);
+      } catch (err) {
+        console.error("Error fetching chart of accounts:", err);
+        setError("Failed to load chart of accounts");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccounts();
+  }, []);
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-extrabold">Chart of Accounts</h1>
@@ -18,19 +41,32 @@ export default function ChartOfAccounts() {
               </tr>
             </thead>
             <tbody>
-              {chartOfAccounts.map((a) => (
-                <tr key={a.code} className="border-t hover:bg-slate-50">
-                  <td className="p-3 font-mono text-xs">{a.code}</td>
-                  <td className="p-3 font-semibold">{a.name}</td>
-                  <td className="p-3">{a.type}</td>
+              {loading ? (
+                <tr>
+                  <td colSpan={3} className="p-6 text-center text-brand-muted">
+                    Loading accounts...
+                  </td>
                 </tr>
-              ))}
-              {chartOfAccounts.length === 0 && (
+              ) : error ? (
+                <tr>
+                  <td colSpan={3} className="p-6 text-center text-red-600">
+                    {error}
+                  </td>
+                </tr>
+              ) : accounts.length === 0 ? (
                 <tr>
                   <td className="p-6 text-center text-brand-muted" colSpan={3}>
                     No accounts
                   </td>
                 </tr>
+              ) : (
+                accounts.map((a) => (
+                  <tr key={a.code} className="border-t hover:bg-slate-50">
+                    <td className="p-3 font-mono text-xs">{a.code}</td>
+                    <td className="p-3 font-semibold">{a.name}</td>
+                    <td className="p-3">{a.type}</td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

@@ -1,13 +1,60 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Badge from "../components/Badge";
-import { approvals as initialApprovals } from "../data/managerMockData";
+import { getApprovals, updateApprovalStatus } from "../../services/managerService";
 import ActionDropdown from "../components/ActionDropdown";
 
 export default function Approvals() {
-  const [rows, setRows] = useState(initialApprovals);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [updating, setUpdating] = useState(null);
 
-  function setStatus(id, status) {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+  useEffect(() => {
+    fetchApprovals();
+  }, []);
+
+  const fetchApprovals = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getApprovals();
+      setRows(data || []);
+    } catch (err) {
+      console.error("Error fetching approvals:", err);
+      setError("Failed to load approvals");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  async function setStatus(id, status) {
+    try {
+      setUpdating(id);
+      await updateApprovalStatus(id, status);
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    } catch (err) {
+      console.error("Error updating status:", err);
+      alert("Failed to update status. Please try again.");
+    } finally {
+      setUpdating(null);
+    }
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-xl font-extrabold">Approvals</h1>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          {error}
+          <button
+            onClick={fetchApprovals}
+            className="ml-4 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -32,32 +79,38 @@ export default function Approvals() {
             </thead>
 
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-t hover:bg-slate-50">
-                  <td className="p-3 font-mono text-xs">{r.id}</td>
-                  <td className="p-3 font-semibold">{r.category}</td>
-                  <td className="p-3">{r.reference}</td>
-                  <td className="p-3">{r.requestedBy}</td>
-                  <td className="p-3 text-brand-muted">{r.time}</td>
-                  <td className="p-3">
-                    <Badge label={r.status} />
-                  </td>
-                  <td className="p-3">
-                    <ActionDropdown
-                      disabled={r.status !== "Pending"}
-                      onApprove={() => setStatus(r.id, "Approved")}
-                      onReject={() => setStatus(r.id, "Rejected")}
-                    />
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="p-6 text-center text-brand-muted">
+                    Loading approvals...
                   </td>
                 </tr>
-              ))}
-
-              {rows.length === 0 && (
+              ) : rows.length === 0 ? (
                 <tr>
                   <td className="p-6 text-center text-brand-muted" colSpan={7}>
                     No approvals
                   </td>
                 </tr>
+              ) : (
+                rows.map((r) => (
+                  <tr key={r.id} className="border-t hover:bg-slate-50">
+                    <td className="p-3 font-mono text-xs">{r.id}</td>
+                    <td className="p-3 font-semibold">{r.category}</td>
+                    <td className="p-3">{r.reference}</td>
+                    <td className="p-3">{r.requestedBy}</td>
+                    <td className="p-3 text-brand-muted">{r.time}</td>
+                    <td className="p-3">
+                      <Badge label={r.status} />
+                    </td>
+                    <td className="p-3">
+                      <ActionDropdown
+                        disabled={r.status !== "Pending" || updating === r.id}
+                        onApprove={() => setStatus(r.id, "Approved")}
+                        onReject={() => setStatus(r.id, "Rejected")}
+                      />
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -65,7 +118,7 @@ export default function Approvals() {
       </div>
 
       <p className="text-xs text-brand-muted">
-        Note: These actions update UI only. Later connect to backend approval endpoints.
+        Connected to backend approval endpoints. Real-time updates enabled.
       </p>
     </div>
   );

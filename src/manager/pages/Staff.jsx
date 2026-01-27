@@ -1,7 +1,30 @@
+import { useEffect, useState } from "react";
 import Badge from "../components/Badge";
-import { staffSummary } from "../data/managerMockData";
+import { getStaffSummary } from "../../services/managerService";
 
 export default function Staff() {
+  const [staff, setStaff] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getStaffSummary();
+        setStaff(data || []);
+      } catch (err) {
+        console.error("Error fetching staff:", err);
+        setError("Failed to load staff data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStaff();
+  }, []);
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-extrabold">Staff</h1>
@@ -18,14 +41,34 @@ export default function Staff() {
               </tr>
             </thead>
             <tbody>
-              {staffSummary.map((s) => (
-                <tr key={s.name} className="border-t hover:bg-slate-50">
-                  <td className="p-3 font-bold">{s.name}</td>
-                  <td className="p-3">{s.role}</td>
-                  <td className="p-3 text-brand-muted">{s.lastLogin}</td>
-                  <td className="p-3"><Badge label={s.status} /></td>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="p-6 text-center text-brand-muted">
+                    Loading staff data...
+                  </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan={4} className="p-6 text-center text-red-600">
+                    {error}
+                  </td>
+                </tr>
+              ) : staff.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-6 text-center text-brand-muted">
+                    No staff members
+                  </td>
+                </tr>
+              ) : (
+                staff.map((s) => (
+                  <tr key={s.name} className="border-t hover:bg-slate-50">
+                    <td className="p-3 font-bold">{s.name}</td>
+                    <td className="p-3">{s.role}</td>
+                    <td className="p-3 text-brand-muted">{s.lastLogin}</td>
+                    <td className="p-3"><Badge label={s.status} /></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

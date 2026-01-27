@@ -1,17 +1,42 @@
 import { useEffect, useMemo, useState } from "react";
-import { salesTarget } from "../data/managerMockData";
+import { getDashboardStats } from "../../services/managerService";
 import SetTargetModal from "./SetTargetModal";
 
-// Persist per-day target per-branch (no backend yet)
+// Persist per-day target per-branch
 const BRANCH = "Colombo Main";
 
 export default function TargetProgress() {
-  const { targetToday: defaultTarget, achievedToday } = salesTarget;
+  const [targetToday, setTargetToday] = useState(250000);
+  const [achievedToday, setAchievedToday] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const storageKey = `srp_target_${BRANCH.replace(/\s+/g, "_")}_${dayKey}`;
 
-  const [targetToday, setTargetToday] = useState(defaultTarget);
-  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const data = await getDashboardStats();
+        // Extract achieved value from stats (assuming first stat is today's sales)
+        if (data && data.length > 0) {
+          const salesStat = data.find(s => s.title?.includes("Sales"));
+          if (salesStat) {
+            // Parse the value (format: "LKR 214,600")
+            const value = parseInt(salesStat.value?.replace(/\D/g, "") || 0);
+            setAchievedToday(value);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);

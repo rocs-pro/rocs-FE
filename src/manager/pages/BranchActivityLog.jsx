@@ -1,7 +1,30 @@
-import { branchActivityLog } from "../data/managerMockData";
+import { useEffect, useState } from "react";
+import { getBranchActivityLog } from "../../services/managerService";
 import Badge from "../components/Badge";
 
 export default function BranchActivityLog() {
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getBranchActivityLog(20);
+        setActivities(data || []);
+      } catch (err) {
+        console.error("Error fetching activity log:", err);
+        setError("Failed to load activity log");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-extrabold">Branch Activity Log</h1>
@@ -21,21 +44,34 @@ export default function BranchActivityLog() {
               </tr>
             </thead>
             <tbody>
-              {branchActivityLog.map((e, i) => (
-                <tr key={i} className="border-t hover:bg-slate-50">
-                  <td className="p-3 text-brand-muted">{e.time}</td>
-                  <td className="p-3 font-semibold">{e.user}</td>
-                  <td className="p-3">{e.action}</td>
-                  <td className="p-3">{e.details}</td>
-                  <td className="p-3"><Badge label={e.severity} /></td>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-6 text-center text-brand-muted">
+                    Loading activity log...
+                  </td>
                 </tr>
-              ))}
-              {branchActivityLog.length === 0 && (
+              ) : error ? (
+                <tr>
+                  <td colSpan={5} className="p-6 text-center text-red-600">
+                    {error}
+                  </td>
+                </tr>
+              ) : activities.length === 0 ? (
                 <tr>
                   <td className="p-6 text-center text-brand-muted" colSpan={5}>
                     No activity
                   </td>
                 </tr>
+              ) : (
+                activities.map((e, i) => (
+                  <tr key={i} className="border-t hover:bg-slate-50">
+                    <td className="p-3 text-brand-muted">{e.time}</td>
+                    <td className="p-3 font-semibold">{e.user}</td>
+                    <td className="p-3">{e.action}</td>
+                    <td className="p-3">{e.details}</td>
+                    <td className="p-3"><Badge label={e.severity} /></td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
