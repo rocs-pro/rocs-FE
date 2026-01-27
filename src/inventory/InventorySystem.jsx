@@ -457,8 +457,7 @@ const InventorySystem = () => {
                 <nav className="p-4">
                     {navigation.map((section) => (
                         <div key={section.id} className="mb-6">
-                            <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-400 uppercase transition-all duration-200 hover:text-gray-200 hover:translate-x-0.5 cursor-default">
-                                <section.icon size={16} className="transition-transform duration-200" />
+                            <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
                                 {section.label}
                             </div>
                             <div className="mt-2 space-y-1">
