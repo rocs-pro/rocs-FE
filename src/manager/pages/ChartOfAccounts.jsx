@@ -18,20 +18,6 @@ export default function ChartOfAccounts() {
               </tr>
             </thead>
             <tbody>
-              {chartOfAccounts.map((a) => (
-                <tr key={a.code} className="border-t hover:bg-slate-50">
-                  <td className="p-3 font-mono text-xs">{a.code}</td>
-                  <td className="p-3 font-semibold">{a.name}</td>
-                  <td className="p-3">{a.type}</td>
-                </tr>
-              ))}
-              {chartOfAccounts.length === 0 && (
-                <tr>
-                  <td className="p-6 text-center text-brand-muted" colSpan={3}>
-                    No accounts
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
