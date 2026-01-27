@@ -3,7 +3,7 @@ import {
     Package, Plus, Search, Filter, Edit, Trash2, Printer,
     BarChart3, Tag, Box, Calendar, AlertTriangle, ArrowRightLeft,
     CheckCircle, FileText, TrendingUp, Clock, ChevronRight,
-    Download, Upload, RefreshCw, Archive
+    Download, Upload, RefreshCw, Archive, X
 } from 'lucide-react';
 
 import ItemListScreen from './ItemListScreen';
@@ -541,6 +541,203 @@ const InventorySystem = () => {
                     <div className="relative bg-white rounded-lg shadow-lg w-full max-w-full sm:max-w-2xl md:max-w-3xl mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
                         <div className="p-4 sm:p-6">
                             <AddItemScreen onClose={() => setIsAddModalOpen(false)} setActiveScreen={setActiveScreen} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add/Edit Category Modal */}
+            {isAddCategoryOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center animate-modal-blur">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddCategoryOpen(false)}></div>
+                    <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
+                        <div className="p-4 sm:p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">{isEditMode ? 'Edit Category' : 'Add New Category'}</h3>
+                                <button onClick={() => setIsAddCategoryOpen(false)} className="text-gray-500 hover:text-gray-700">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+                                    <input
+                                        type="text"
+                                        value={categoryForm.name}
+                                        onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                                        placeholder="e.g., Beverages"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <textarea
+                                        value={categoryForm.description}
+                                        onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+                                        placeholder="e.g., Drinks and beverages"
+                                        rows="3"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={categoryForm.is_active}
+                                        onChange={(e) => setCategoryForm({ ...categoryForm, is_active: e.target.checked })}
+                                        id="isActive"
+                                        className="rounded"
+                                    />
+                                    <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Active</label>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 mt-6">
+                                <button
+                                    onClick={() => setIsAddCategoryOpen(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={isEditMode ? handleSaveEdit : handleAddCategory}
+                                    className="flex-1 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary"
+                                >
+                                    {isEditMode ? 'Save Changes' : 'Add Category'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Brand Modal */}
+            {isAddBrandOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center animate-modal-blur">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddBrandOpen(false)}></div>
+                    <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
+                        <div className="p-4 sm:p-6">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-gray-900">Add Brand</h2>
+                                        <p className="text-gray-600 mt-1">Create a new brand</p>
+                                    </div>
+                                    <button onClick={() => setIsAddBrandOpen(false)} className="text-gray-500 hover:text-gray-700">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Brand Name *</label>
+                                            <input value={brandForm.name} onChange={(e) => setBrandForm({ ...brandForm, name: e.target.value })} type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Brand name" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                            <textarea value={brandForm.description} onChange={(e) => setBrandForm({ ...brandForm, description: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Short description" rows="2" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                            <select value={brandForm.is_active} onChange={(e) => setBrandForm({ ...brandForm, is_active: e.target.value === 'true' })} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="true">Active</option>
+                                                <option value="false">Inactive</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                                        <button onClick={() => { setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                                        <button onClick={() => { if (!brandForm.name) { alert('Please fill required fields'); return; } setBrands([...brands, { ...brandForm, brand_id: Math.max(...brands.map(b => b.brand_id), 0) + 1, created_at: new Date().toISOString().split('T')[0] }]); setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true }); }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">Save Brand</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Supplier Modal */}
+            {isAddSupplierOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center animate-modal-blur">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddSupplierOpen(false)}></div>
+                    <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
+                        <div className="p-4 sm:p-6">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-gray-900">Add Supplier</h2>
+                                        <p className="text-gray-600 mt-1">Create a new supplier</p>
+                                    </div>
+                                    <button onClick={() => setIsAddSupplierOpen(false)} className="text-gray-500 hover:text-gray-700">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Code *</label>
+                                            <input value={supplierForm.code} onChange={(e) => setSupplierForm({ ...supplierForm, code: e.target.value })} type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="SUP001" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name *</label>
+                                            <input value={supplierForm.name} onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })} type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Supplier name" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                                            <input value={supplierForm.company_name} onChange={(e) => setSupplierForm({ ...supplierForm, company_name: e.target.value })} type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Company name" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
+                                            <input value={supplierForm.contact_person} onChange={(e) => setSupplierForm({ ...supplierForm, contact_person: e.target.value })} type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Contact person" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                            <input value={supplierForm.phone} onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })} type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="011-1234567" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                            <input value={supplierForm.email} onChange={(e) => setSupplierForm({ ...supplierForm, email: e.target.value })} type="email" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="email@example.com" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                            <input value={supplierForm.city} onChange={(e) => setSupplierForm({ ...supplierForm, city: e.target.value })} type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Colombo" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Type</label>
+                                            <select value={supplierForm.supplier_type} onChange={(e) => setSupplierForm({ ...supplierForm, supplier_type: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="LOCAL">Local</option>
+                                                <option value="INTERNATIONAL">International</option>
+                                                <option value="DISTRIBUTOR">Distributor</option>
+                                                <option value="MANUFACTURER">Manufacturer</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Category</label>
+                                            <select value={supplierForm.supplier_category} onChange={(e) => setSupplierForm({ ...supplierForm, supplier_category: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="PRIMARY">Primary</option>
+                                                <option value="SECONDARY">Secondary</option>
+                                                <option value="OCCASIONAL">Occasional</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                                        <button onClick={() => { setIsAddSupplierOpen(false); setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                            Cancel
+                                        </button>
+                                        <button onClick={() => { if (!supplierForm.code || !supplierForm.name) { alert('Please fill required fields'); return; } setSuppliers([...suppliers, { ...supplierForm, supplier_id: Math.max(...suppliers.map(s => s.supplier_id), 0) + 1 }]); setIsAddSupplierOpen(false); setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false }); }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">
+                                            Save Supplier
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
                 </div>

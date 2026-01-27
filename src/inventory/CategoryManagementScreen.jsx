@@ -70,69 +70,7 @@ const CategoryManagementScreen = ({
                 ))}
             </div>
 
-            {/* Add/Edit Category Modal */}
-            {isAddCategoryOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-blur">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-100 opacity-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900">{isEditMode ? 'Edit Category' : 'Add New Category'}</h3>
-                            <button onClick={() => setIsAddCategoryOpen(false)} className="text-gray-500 hover:text-gray-700">
-                                <X size={20} />
-                            </button>
-                        </div>
 
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
-                                <input
-                                    type="text"
-                                    value={categoryForm.name}
-                                    onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                                    placeholder="e.g., Beverages"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                <textarea
-                                    value={categoryForm.description}
-                                    onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
-                                    placeholder="e.g., Drinks and beverages"
-                                    rows="3"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={categoryForm.is_active}
-                                    onChange={(e) => setCategoryForm({ ...categoryForm, is_active: e.target.checked })}
-                                    id="isActive"
-                                    className="rounded"
-                                />
-                                <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Active</label>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-2 mt-6">
-                            <button
-                                onClick={() => setIsAddCategoryOpen(false)}
-                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={isEditMode ? handleSaveEdit : handleAddCategory}
-                                className="flex-1 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary"
-                            >
-                                {isEditMode ? 'Save Changes' : 'Add Category'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
