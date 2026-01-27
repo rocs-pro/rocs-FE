@@ -432,6 +432,36 @@ const InventorySystem = () => {
                 return <StockValuationScreen batches={batches} items={items} />;
             case 'stock-aging':
                 return <StockAgingScreen batches={batches} />;
+            case 'barcode-print':
+                return (
+                    <div className="flex flex-col items-center justify-center h-full bg-gray-50/50">
+                        <div className="text-center p-12 bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 max-w-lg mx-auto transform hover:scale-105 transition-transform duration-500">
+                            <div className="relative mb-8 inline-block">
+                                <div className="absolute inset-0 bg-blue-400/30 rounded-full blur-2xl animate-pulse"></div>
+                                <div className="relative z-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                    <Printer size={64} className="text-brand-primary animate-bounce duration-3000" />
+                                </div>
+                            </div>
+
+                            <h2 className="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-blue-600 animate-pulse">
+                                    Coming Soon
+                                </span>
+                            </h2>
+
+                            <p className="text-gray-500 text-lg mb-8 leading-relaxed">
+                                We're working hard to bring you a powerful Barcode Printing module.
+                                <br />Get ready to print custom labels effortlessly!
+                            </p>
+
+                            <div className="flex items-center justify-center gap-3">
+                                <div className="w-2.5 h-2.5 bg-brand-primary rounded-full animate-bounce border border-brand-primary/50" style={{ animationDelay: '0ms' }}></div>
+                                <div className="w-2.5 h-2.5 bg-brand-primary/70 rounded-full animate-bounce border border-brand-primary/50" style={{ animationDelay: '150ms' }}></div>
+                                <div className="w-2.5 h-2.5 bg-brand-primary/40 rounded-full animate-bounce border border-brand-primary/50" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                        </div>
+                    </div>
+                );
             default:
                 return (
                     <div className="flex items-center justify-center h-full">
