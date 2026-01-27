@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, User, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { ShieldCheck, User, Lock, ArrowRight, Loader2, Shield } from 'lucide-react';
 import bgImage from "../assets/images/registration-bg.png";
 
 export default function Login() {
@@ -53,6 +53,7 @@ export default function Login() {
         <div className="w-full md:w-7/12 p-8 md:p-10 bg-pos-bg">
           <h3 className="text-2xl font-bold text-pos-text mb-6">Login to Account</h3>
 
+
           <form onSubmit={onSubmit} className="space-y-4">
 
             {/* Username */}
@@ -94,6 +95,13 @@ export default function Login() {
               <Link to="/register" className="font-bold text-brand hover:underline">
                 Register New ID
               </Link>
+            </div>
+
+            <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <p className="text-xs text-slate-600 text-center">
+                <Shield className="inline h-4 w-4 text-blue-600 mr-1" />
+                This is a secure system. All activities are logged and monitored.
+              </p>
             </div>
 
           </form>
