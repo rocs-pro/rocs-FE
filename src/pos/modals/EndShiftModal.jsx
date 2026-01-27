@@ -59,7 +59,7 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
                 </div>
             </div>
 
-            {/* STEP 1: COUNTING (Always Works) */}
+            {/* COUNTING (Always Works) */}
             {step === 1 && (
                 <div className="flex-1 overflow-hidden flex flex-col">
                     <div className="bg-slate-50 p-3 border-b border-slate-200">
@@ -71,7 +71,8 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
                     <div className="overflow-y-auto p-4 custom-scroll grid grid-cols-2 gap-3">
                         {DENOMINATIONS.map(denom => (
                             <div key={denom} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-2 hover:border-blue-300">
-                                <div className="w-12 font-mono font-bold text-slate-700 text-right">{denom}</div>
+                                {/* Fixed width w-16 and shrink-0 ensures perfect vertical alignment */}
+                                <div className="w-16 shrink-0 font-mono font-bold text-slate-700 text-right">{denom}</div>
                                 <span className="text-slate-400 text-xs">x</span>
                                 <input 
                                     type="number" 
@@ -101,12 +102,12 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
                 </div>
             )}
 
-            {/* STEP 2: SUMMARY (Handles Missing Data) */}
+            {/* SUMMARY (Handles Missing Data) */}
             {step === 2 && (
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scroll">
                         
-                        {/* 1. VARIANCE CARD */}
+                        {/* VARIANCE CARD */}
                         {/* If API is down, we show Neutral Grey state instead of Red/Green */}
                         <div className={`rounded-xl border p-4 ${!hasData ? 'bg-slate-50 border-slate-200' : isBalanced ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                             <div className="flex justify-between items-start mb-2">
@@ -133,7 +134,7 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
                             </div>
                         </div>
 
-                        {/* 2. CASH FLOW (Hide if no data) */}
+                        {/* CASH FLOW (Hide if no data) */}
                         {hasData ? (
                         <div>
                             <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cash Flow</h4>
@@ -162,7 +163,7 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
                             </div>
                         )}
 
-                        {/* 3. CARD DETAILS (Hide if no data) */}
+                        {/* CARD DETAILS (Hide if no data) */}
                         {hasData && (
                         <div>
                             <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
@@ -186,7 +187,7 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
                         </div>
                         )}
 
-                        {/* 4. APPROVAL */}
+                        {/* APPROVAL */}
                         <div className="bg-amber-50 rounded-xl border border-amber-200 p-4">
                             <h3 className="text-xs font-bold text-amber-800 uppercase mb-3 flex items-center gap-2">
                                 <ShieldCheck className="w-4 h-4" /> Supervisor Approval
