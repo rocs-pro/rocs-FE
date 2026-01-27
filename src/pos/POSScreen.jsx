@@ -53,6 +53,41 @@ function POSContent() {
     return () => clearInterval(timer);
   }, []);
 
+  // PREVENT REFRESH LOGIC
+  useEffect(() => {
+    // Block Keyboard Shortcuts (F5, Ctrl+R)
+    const handleKeyDownBlocker = (e) => {
+        if (!session.isOpen) return; // Allow refresh if not logged in
+
+        // Check for F5 or Ctrl+R or Cmd+R (Mac)
+        if (
+            e.key === 'F5' || 
+            ((e.ctrlKey || e.metaKey) && e.key === 'r')
+        ) {
+            e.preventDefault();
+            addNotification('warning', 'Action Blocked', 'Refreshing is disabled while the shift is open.');
+        }
+    };
+
+    // Block Browser Button / Tab Close
+    const handleBeforeUnload = (e) => {
+        if (!session.isOpen) return;
+
+        // Standard way to trigger the "Leave Site?" dialog
+        e.preventDefault();
+        e.returnValue = ''; 
+        return '';
+    };
+
+    window.addEventListener('keydown', handleKeyDownBlocker);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+        window.removeEventListener('keydown', handleKeyDownBlocker);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [session.isOpen, addNotification]); // Re-run if login state changes
+
   // Alert helper
   const showAlert = (title, message, onOk = () => {}) => {
       setConfirmConfig({ title, message, onYes: () => { onOk(); setActiveModal(null); }, isAlert: true });
@@ -81,10 +116,8 @@ function POSContent() {
           setActiveModal(null);
           addNotification('success', 'Shift Opened', `Cashier ${cashierObj.name} logged in successfully.`);
       } catch (err) {
-          // 1. Notify the user
           addNotification('error', 'Login Failed', 'Invalid credentials or server error.');
-          // 2. IMPORTANT: Throw error so FloatModal knows to stop loading
-          throw err;
+          throw err; 
       }
   };
 
@@ -93,6 +126,10 @@ function POSContent() {
       try {
           const payload = { shiftId: session.shiftId, amount: closingAmount, supervisor: supervisorCreds };
           await posService.closeShift(payload);
+          
+          // Manually close session before reload to allow the refresh
+          setSession({ isOpen: false, cashier: "--", shiftId: null }); 
+          
           addNotification('success', 'Shift Closed', 'System shutting down...');
           setTimeout(() => window.location.reload(), 1500);
       } catch (err) {
@@ -247,7 +284,6 @@ function POSContent() {
              }
           } catch(e) {
              console.error("Failed to fetch shift totals", e);
-             // Modal handles missing data gracefully
           }
       }
       else if (action === 'PAY_CASH') { openPaymentModal('CASH'); }
