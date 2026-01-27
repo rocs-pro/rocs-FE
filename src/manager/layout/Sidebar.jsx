@@ -10,7 +10,9 @@ export default function Sidebar() {
     <aside className="w-60 shrink-0 bg-brand-sidebar text-white p-5 flex flex-col h-screen min-h-0">
 
       <div className="mb-6">
-        <div className="text-xl font-extrabold tracking-wide">Smart Retail Pro</div>
+        <div className="text-xl font-extrabold tracking-wide">
+          Smart Retail <span className="text-green-500">Pro</span>
+        </div>
         <div className="text-xs text-slate-300">Manager Dashboard • Colombo Main</div>
       </div>
 
