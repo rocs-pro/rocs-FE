@@ -43,7 +43,7 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
-        <div className="bg-white w-[600px] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="bg-white w-[700px] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
             {/* HEADER */}
             <div className="bg-slate-900 p-4 shrink-0 flex justify-between items-center">
@@ -68,7 +68,8 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
                         </h3>
                     </div>
                     
-                    <div className="overflow-y-auto p-4 custom-scroll grid grid-cols-2 gap-3">
+                    {/* Added overflow-x-hidden to prevent horizontal scrollbar */}
+                    <div className="overflow-y-auto overflow-x-hidden p-4 custom-scroll grid grid-cols-2 gap-3">
                         {DENOMINATIONS.map(denom => (
                             <div key={denom} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-2 hover:border-blue-300">
                                 {/* Fixed width w-16 and shrink-0 ensures perfect vertical alignment */}
@@ -77,7 +78,7 @@ export default function EndShiftModal({ cashierName, expectedTotals, onClose, on
                                 <input 
                                     type="number" 
                                     min="0"
-                                    className="flex-1 bg-slate-50 border border-slate-300 rounded px-2 py-1 text-center font-bold text-slate-900 focus:outline-none focus:border-blue-500"
+                                    className="flex-1 min-w-0 bg-slate-50 border border-slate-300 rounded px-2 py-1 text-center font-bold text-slate-900 focus:outline-none focus:border-blue-500"
                                     placeholder="0"
                                     value={counts[denom] || ""}
                                     onChange={(e) => handleCountChange(denom, e.target.value)}
