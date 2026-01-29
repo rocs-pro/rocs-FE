@@ -1,9 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './screens/Login';
-import RegisterScreen from './auth/RegisterScreen';
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import RegisterScreen from './auth/RegisterScreen';
 
 // Import Pages
 import POSScreen from './pos/POSScreen';
