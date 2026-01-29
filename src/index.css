@@ -1,6 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, sans-serif;
+}
 
 * {
   margin: 0;
@@ -36,7 +42,7 @@ body {
   .sidebar-item-hover {
     @apply hover:translate-x-1 hover:shadow-md transition-all duration-200;
   }
-
+  
   .sidebar-section-hover {
     @apply hover:translate-x-0.5 transition-all duration-200;
   }
