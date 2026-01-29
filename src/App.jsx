@@ -1,4 +1,17 @@
 import React from 'react';
+<<<<<<< HEAD
+=======
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+import Login from './screens/Login';
+import RegisterScreen from './auth/RegisterScreen';
+import Dashboard from './dashboard/Dashboard';
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from './screens/Login';
+import RegisterScreen from './auth/RegisterScreen';
+
+>>>>>>> c92f983fe384dd3b9771aa0c58e4399afeede9e5
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import RegisterScreen from './auth/RegisterScreen';
 
@@ -19,6 +32,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Navigate to="/dashboard/inventory" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<RegisterScreen />} />
+        <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<RegisterScreen />} />
         <Route path="/login" element={<Login />} />
