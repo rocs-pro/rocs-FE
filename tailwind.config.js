@@ -6,24 +6,27 @@ export default {
   ],
   theme: {
     extend: {
+      // Typography
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'], 
         mono: ['JetBrains Mono', 'monospace'],
       },
-      // RESTORE THIS SECTION:
+      // Color Palette
       colors: {
         brand: {
-          DEFAULT: '#2563EB', // Primary Blue [cite: 5]
-          hover:   '#1D4ED8', // Primary Dark [cite: 7]
-          deep:    '#0F172A', // Brand Black [cite: 10]
-          soft:    '#EFF6FF', 
+          DEFAULT: '#2563EB', // Primary Blue
+          hover:   '#1D4ED8', // Primary Dark (Standard Blue-700)
+          deep:    '#0F172A', // Brand Black / Header
+          soft:    '#EFF6FF', // Light Blue Accents
         },
         pos: {
-          bg:      '#F8FAFC', // Background Surface [cite: 12]
-          success: '#22C55E', // Success/Online [cite: 14]
-          danger:  '#EF4444', // Error [cite: 18]
-          warning: '#F97316', // Warning [cite: 19]
-          text:    '#0F172A', // POS Text [cite: 34]
+          bg:      '#F8FAFC', // Background Surface
+          success: '#22C55E', // Success/Online
+          danger:  '#EF4444', // Error/Void
+          warning: '#F97316', // Warning/Action
+          highlight: '#FACC15', // Discount/Highlight
+          text:    '#0F172A', // Primary Text
+          muted:   '#94A3B8', // Muted Text
         }
       }
     },

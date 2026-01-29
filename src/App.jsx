@@ -1,4 +1,8 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from './screens/Login';
+import RegisterScreen from './auth/RegisterScreen';
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Import Pages
@@ -18,6 +22,8 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<RegisterScreen />} />
         <Route path="/login" element={<Login />} />
         
         {/* REDIRECT: Default to POS if logged in, else Login */}
@@ -36,6 +42,5 @@ function App() {
     </Router>
   );
 }
-
 
 export default App;
