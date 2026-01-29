@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, User, Lock, ArrowRight, Loader2, Shield, AlertCircle } from 'lucide-react';
+import { ShieldCheck, User, Lock, Loader2, Shield, AlertCircle } from 'lucide-react';
 import bgImage from "../assets/images/registration-bg.png";
 import { authService } from '../services/authService';
 
@@ -46,19 +46,30 @@ export default function Login() {
 
     try {
       const data = await authService.login(formData);
-      // Assuming the backend returns { token: "...", user: ... }
+      
+      // The backend returns a flat object: { token, role, username, ... }
       if (data.token) {
         localStorage.setItem('token', data.token);
-        // Optional: Store user info if needed
-        if (data.user) {
-            localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Store the full user object for easy access later
+        localStorage.setItem('user', JSON.stringify(data));
+        
+        // --- ROLE BASED REDIRECT LOGIC ---
+        // We check data.role directly because your Java DTO puts it at the top level
+        const role = data.role; 
+
+        if (role === 'ADMIN' || role === 'BRANCH_MANAGER') {
+            navigate('/dashboard');
+        } else {
+            // Default for CASHIER or undefined roles
+            navigate('/pos');
         }
-        navigate('/pos');
       } else {
          setError("Login failed: No token received.");
       }
     } catch (err) {
       console.error(err);
+      // Display specific error message if available (e.g. "Account status not active")
       setError(err.message || "Invalid credentials");
     } finally {
       setLoading(false);

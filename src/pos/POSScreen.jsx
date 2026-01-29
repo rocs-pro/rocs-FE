@@ -141,7 +141,24 @@ function POSContent() {
   const handleAddToCart = async (productId) => {
     try {
         const res = await posService.getProduct(productId);
-        const product = res.data; 
+        
+        // --- FIX: Extract data correctly from ApiResponse ---
+        // Access res.data.data because res.data is the ApiResponse wrapper
+        const rawData = res.data?.data || res.data; 
+
+        if (!rawData) throw new Error("Product data is empty");
+
+        // --- FIX: Map Backend Fields to Frontend Schema ---
+        // Backend: productId, sellingPrice
+        // Frontend: id, price
+        const product = {
+            id: rawData.productId || rawData.id,
+            name: rawData.name,
+            price: rawData.sellingPrice !== undefined ? rawData.sellingPrice : rawData.price,
+            sku: rawData.sku,
+            barcode: rawData.barcode,
+            qty: 1
+        };
         
         setCart(prev => {
             const existing = prev.find(item => item.id === product.id);
@@ -149,6 +166,7 @@ function POSContent() {
             return [...prev, { ...product, qty: 1 }];
         });
     } catch (err) {
+        console.error(err);
         addNotification('error', 'Item Not Found', `Product code '${productId}' does not exist.`);
     }
   };
@@ -240,12 +258,13 @@ function POSContent() {
 
   const handleAddQuickItem = async (product) => {
       try {
-          await posService.addQuickItem(product);
+          // Pass the ID to the main handler so it does the fetching/mapping consistently
+          const idToAdd = product.productId || product.id; 
+          await handleAddToCart(idToAdd);
           setQuickGridRefresh(prev => prev + 1);
-          addNotification('success', 'Quick Item Added', `${product.name} added to grid.`);
           setActiveModal(null);
       } catch (err) {
-          addNotification('error', 'Save Failed', 'Could not add item to quick list.');
+          addNotification('error', 'Add Failed', 'Could not add item to cart.');
       }
   };
 

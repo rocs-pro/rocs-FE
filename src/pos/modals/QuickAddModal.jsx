@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Search, Package, CheckCircle, Loader2 } from 'lucide-react';
+import { Plus, X, Search, Package, Loader2 } from 'lucide-react';
 import { posService } from '../../services/posService';
 
 export default function QuickAddModal({ onClose, onProductSelected }) {
@@ -22,9 +22,22 @@ export default function QuickAddModal({ onClose, onProductSelected }) {
     try {
         // Call the backend inventory search
         const res = await posService.searchInventory(query);
-        // Ensure we handle both array (list) and single object responses
-        const data = Array.isArray(res.data) ? res.data : [res.data];
-        setResults(data);
+        
+        // --- FIX: Extract List from ApiResponse ---
+        // Backend returns: ApiResponse<List<DTO>> -> res.data.data
+        const rawList = res.data?.data || [];
+        
+        const dataList = Array.isArray(rawList) ? rawList : [rawList];
+
+        // --- FIX: Map Keys (sellingPrice -> price) ---
+        const mappedList = dataList.map(item => ({
+             ...item,
+             id: item.productId || item.id,
+             price: item.sellingPrice !== undefined ? item.sellingPrice : item.price
+        }));
+
+        setResults(mappedList);
+
     } catch (err) {
         console.error("Search failed", err);
         setResults([]);

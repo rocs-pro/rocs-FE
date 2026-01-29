@@ -53,6 +53,7 @@ body {
   }
 
   .modal-backdrop {
-    @apply fixed inset-0 z-40 bg-black/40 modal-blur-overlay;
+    @apply fixed inset-0 z-40 animate-modal-blur;
+    background-color: rgb(0 0 0 / 0.4);
   }
 }

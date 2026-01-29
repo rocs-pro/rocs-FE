@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Tag, X, Search, Package, AlertCircle } from 'lucide-react';
-import { posService } from '../../services/posService'; // Import Service
+import { posService } from '../../services/posService'; 
 
 export default function PriceCheckModal({ onClose }) {
   const [query, setQuery] = useState("");
@@ -20,9 +20,20 @@ export default function PriceCheckModal({ onClose }) {
     setResult(null);
 
     try {
-        // API Call: Get Product by ID
+        // API Call
         const res = await posService.getProduct(query);
-        setResult(res.data); 
+        const rawData = res.data?.data || res.data; // Extract actual data
+
+        if (rawData) {
+             // Map to standard object if keys differ
+             setResult({
+                 id: rawData.productId || rawData.id,
+                 name: rawData.name,
+                 price: rawData.sellingPrice !== undefined ? rawData.sellingPrice : rawData.price
+             });
+        } else {
+             setError(true);
+        }
     } catch (err) {
         setError(true);
     }
