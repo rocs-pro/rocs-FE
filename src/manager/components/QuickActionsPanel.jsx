@@ -1,5 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { quickActions } from "../data/managerMockData";
+
+const quickActions = [
+  { label: "Create GRN Request", to: "/manager/approvals" },
+  { label: "View Alerts / Low Stock", to: "/manager" },
+  { label: "Sales Reports", to: "/manager/sales-reports" },
+  { label: "New Journal Entry", to: "/manager/journal-entry" },
+];
 
 export default function QuickActionsPanel() {
   const navigate = useNavigate();

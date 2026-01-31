@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Set base URL for API from environment variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+// Set base URL for API - uses Vite proxy in development
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 console.log("API Base URL:", API_BASE_URL);
 
