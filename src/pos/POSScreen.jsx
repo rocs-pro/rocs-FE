@@ -5,7 +5,7 @@ import ControlPanel from './components/ControlPanel';
 import ProductGrid from './components/ProductGrid';
 import { posService } from '../services/posService'; 
 
-// Notification context
+// Context
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import NotificationPanel from './components/NotificationPanel';
 
@@ -26,23 +26,19 @@ const BRANCH_ID = 1;
 const TERMINAL_ID = 101; 
 
 function POSContent() {
-  const [session, setSession] = useState({ isOpen: false, cashier: "--", shiftId: null });
+  const [session, setSession] = useState({ isOpen: false, cashier: "--", shiftId: null, userId: null });
   const [cart, setCart] = useState([]);
   const [customer, setCustomer] = useState(null);
   const [inputBuffer, setInputBuffer] = useState("");
-  const [invoiceId, setInvoiceId] = useState("INV-PENDING"); 
+  const [invoiceId, setInvoiceId] = useState("INV-READY"); 
   const [shiftTotals, setShiftTotals] = useState(null);
 
   const [activeModal, setActiveModal] = useState('FLOAT'); 
   const [confirmConfig, setConfirmConfig] = useState(null);
   const [listConfig, setListConfig] = useState(null); 
   
-  // Track which item is being edited
   const [selectedCartIndex, setSelectedCartIndex] = useState(null);
-
-  // Trigger to refresh product grid
   const [quickGridRefresh, setQuickGridRefresh] = useState(0);
-
   const [time, setTime] = useState(new Date());
   
   const inputRef = useRef(null);
@@ -53,54 +49,43 @@ function POSContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // PREVENT REFRESH LOGIC
+  // Invoice Logic
   useEffect(() => {
-    // Block Keyboard Shortcuts (F5, Ctrl+R)
-    const handleKeyDownBlocker = (e) => {
-        if (!session.isOpen) return; // Allow refresh if not logged in
+    if (cart.length > 0) {
+        const isProvisional = /^INV-\d{6}-\d{4}$/.test(invoiceId);
+        if (invoiceId === 'INV-READY' || invoiceId === 'INV-PENDING' || !isProvisional) {
+            const datePart = new Date().toISOString().slice(2,10).replace(/-/g,"");
+            const randomPart = Math.floor(1000 + Math.random() * 9000);
+            setInvoiceId(`INV-${datePart}-${randomPart}`);
+        }
+    } 
+  }, [cart.length, invoiceId]);
 
-        // Check for F5 or Ctrl+R or Cmd+R (Mac)
-        if (
-            e.key === 'F5' || 
-            ((e.ctrlKey || e.metaKey) && e.key === 'r')
-        ) {
+  // Block Refresh
+  useEffect(() => {
+    const handleKeyDownBlocker = (e) => {
+        if (!session.isOpen) return; 
+        if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key === 'r')) {
             e.preventDefault();
             addNotification('warning', 'Action Blocked', 'Refreshing is disabled while the shift is open.');
         }
     };
-
-    // Block Browser Button / Tab Close
     const handleBeforeUnload = (e) => {
         if (!session.isOpen) return;
-
-        // Standard way to trigger the "Leave Site?" dialog
         e.preventDefault();
         e.returnValue = ''; 
         return '';
     };
-
     window.addEventListener('keydown', handleKeyDownBlocker);
     window.addEventListener('beforeunload', handleBeforeUnload);
-
     return () => {
         window.removeEventListener('keydown', handleKeyDownBlocker);
         window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [session.isOpen, addNotification]); // Re-run if login state changes
+  }, [session.isOpen, addNotification]); 
 
-  // Alert helper
-  const showAlert = (title, message, onOk = () => {}) => {
-      setConfirmConfig({ title, message, onYes: () => { onOk(); setActiveModal(null); }, isAlert: true });
-      setActiveModal('CONFIRM');
-  };
+  // --- HANDLERS ---
 
-  // Confirm helper
-  const showConfirm = (title, message, onYes) => {
-      setConfirmConfig({ title, message, onYes: onYes, isAlert: false });
-      setActiveModal('CONFIRM');
-  };
-
-  // Login handler
   const handleLogin = async (cashierObj, amount, supervisorCreds) => {
       try {
           const payload = { 
@@ -112,49 +97,63 @@ function POSContent() {
           };
           
           const res = await posService.openShift(payload);
-          setSession({ isOpen: true, cashier: cashierObj.name, shiftId: res.data.shiftId });
+          const data = res.data;
+          
+          let theShiftId = null;
+          if (typeof data === 'number') theShiftId = data;
+          else if (data && typeof data === 'object') {
+             const inner = data.data || data; 
+             theShiftId = inner.shiftId || inner.id || inner;
+          }
+
+          if (!theShiftId) throw new Error("Invalid Shift ID received.");
+
+          setSession({ 
+              isOpen: true, 
+              cashier: cashierObj.name, 
+              shiftId: theShiftId,
+              userId: cashierObj.id 
+          });
+          
           setActiveModal(null);
-          addNotification('success', 'Shift Opened', `Cashier ${cashierObj.name} logged in successfully.`);
+          addNotification('success', 'Terminal Open', `Shift #${theShiftId} started.`);
       } catch (err) {
-          addNotification('error', 'Login Failed', 'Invalid credentials or server error.');
+          const msg = err.response?.data?.message || err.message || 'Login Failed';
+          addNotification('error', 'Login Error', msg);
           throw err; 
       }
   };
 
-  // Logout handler
   const handleLogout = async (closingAmount, supervisorCreds) => {
       try {
-          const payload = { shiftId: session.shiftId, amount: closingAmount, supervisor: supervisorCreds };
-          await posService.closeShift(payload);
-          
-          // Manually close session before reload to allow the refresh
-          setSession({ isOpen: false, cashier: "--", shiftId: null }); 
-          
+          await posService.closeShift({
+              closingCash: parseFloat(closingAmount),
+              notes: "Shift Closed",
+              supervisorUsername: supervisorCreds.username,
+              supervisorPassword: supervisorCreds.password
+          });
+          setSession({ isOpen: false, cashier: "--", shiftId: null, userId: null }); 
           addNotification('success', 'Shift Closed', 'System shutting down...');
           setTimeout(() => window.location.reload(), 1500);
       } catch (err) {
-          throw new Error("Supervisor credentials incorrect.");
+          throw new Error("Logout failed: " + (err.response?.data?.message || err.message));
       }
   };
 
-  // Add item handler
-  const handleAddToCart = async (productId) => {
+  const handleAddToCart = async (productCode) => {
     try {
-        const res = await posService.getProduct(productId);
-        
-        // --- FIX: Extract data correctly from ApiResponse ---
-        // Access res.data.data because res.data is the ApiResponse wrapper
+        // Call the SCAN endpoint (Expects single object)
+        const res = await posService.getProduct(productCode);
         const rawData = res.data?.data || res.data; 
 
-        if (!rawData) throw new Error("Product data is empty");
+        if (!rawData || Array.isArray(rawData)) {
+             throw new Error("Invalid product data received");
+        }
 
-        // --- FIX: Map Backend Fields to Frontend Schema ---
-        // Backend: productId, sellingPrice
-        // Frontend: id, price
         const product = {
-            id: rawData.productId || rawData.id,
+            id: rawData.id || rawData.productId,
             name: rawData.name,
-            price: rawData.sellingPrice !== undefined ? rawData.sellingPrice : rawData.price,
+            price: rawData.price !== undefined ? rawData.price : rawData.sellingPrice,
             sku: rawData.sku,
             barcode: rawData.barcode,
             qty: 1
@@ -165,9 +164,10 @@ function POSContent() {
             if (existing) return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
             return [...prev, { ...product, qty: 1 }];
         });
+        
+        // Success Beep logic could go here
     } catch (err) {
-        console.error(err);
-        addNotification('error', 'Item Not Found', `Product code '${productId}' does not exist.`);
+        addNotification('error', 'Product Not Found', `Code '${productCode}' invalid.`);
     }
   };
 
@@ -180,50 +180,67 @@ function POSContent() {
 
   const openPaymentModal = (mode = 'CASH') => {
       if(cart.length === 0) {
-          addNotification('warning', 'Empty Cart', 'Add items before processing payment.');
+          addNotification('warning', 'Empty Cart', 'Add items first.');
+          return;
+      }
+      if(!session.shiftId) {
+          addNotification('error', 'System Error', 'No Active Shift.');
           return;
       }
       setListConfig({ mode }); 
       setActiveModal('PAYMENT');
   };
 
-  // Payment processing
   const processPayment = async (paymentDetails) => {
+      const mappedItems = cart.map(item => ({
+          productId: item.id,
+          quantity: item.qty,      
+          unitPrice: item.price,   
+          discount: 0,             
+          serialId: null           
+      }));
+
+      const paymentList = [{
+          paymentType: paymentDetails.method,
+          amount: paymentDetails.tendered, 
+          referenceNo: paymentDetails.cardRef || null,
+          bankName: paymentDetails.bank || null,
+          cardLast4: null
+      }];
+
       const orderData = {
-          items: cart,
-          total: paymentDetails.amount,
-          customer: customer ? customer.id : null,
-          paymentMethod: paymentDetails.method,
-          tendered: paymentDetails.tendered,
-          change: paymentDetails.change,
+          customerId: customer ? customer.id : null,
+          items: mappedItems,
+          payments: paymentList,
+          status: "PAID",
+          notes: "",
+          discount: 0,
           shiftId: session.shiftId,
-          // Card specific data
-          bank: paymentDetails.bank,
-          cardRef: paymentDetails.cardRef
+          cashierId: session.userId,
+          branchId: BRANCH_ID
       };
 
       try {
           const res = await posService.submitOrder(orderData);
-          const newInvId = res.data.invoiceId || "INV-COMPLETED"; 
+          const data = res.data?.data || res.data;
+          const finalInvoiceId = data?.invoiceNo || data?.invoiceId || "INV-DONE";
           
-          addNotification('success', 'Payment Successful', `Invoice: ${newInvId} | Change: ${paymentDetails.change.toFixed(2)}`);
+          setInvoiceId(finalInvoiceId); 
+          addNotification('success', 'Sale Complete', `Invoice: ${finalInvoiceId}`);
           
           setCart([]);
           setCustomer(null);
           setActiveModal(null);
           
-          setInvoiceId("Calculating...");
-          setTimeout(() => setInvoiceId("INV-PENDING"), 500); 
+          setTimeout(() => { setInvoiceId("INV-READY"); }, 3000);
       } catch (err) {
-          addNotification('error', 'Payment Failed', 'Transaction could not be processed.');
+          const msg = err.response?.data?.message || "Transaction failed";
+          addNotification('error', 'Payment Failed', msg);
       }
   };
 
-  const handleCartItemClick = (index) => {
-      setSelectedCartIndex(index);
-      setActiveModal('QUANTITY');
-  };
-
+  // ... (Keep existing helpers: handleCartItemClick, handleQuantityUpdate, handleVoidItem)
+  const handleCartItemClick = (index) => { setSelectedCartIndex(index); setActiveModal('QUANTITY'); };
   const handleQuantityUpdate = (newQty) => {
       if (selectedCartIndex !== null && newQty > 0) {
           setCart(prev => {
@@ -231,41 +248,21 @@ function POSContent() {
               newCart[selectedCartIndex] = { ...newCart[selectedCartIndex], qty: newQty };
               return newCart;
           });
-          addNotification('info', 'Quantity Updated', `Item qty changed to ${newQty}`);
       }
       setActiveModal(null);
       setSelectedCartIndex(null);
   };
-
   const handleVoidItem = (index) => {
     const targetIndex = index !== undefined ? index : cart.length - 1;
     if(targetIndex < 0 || targetIndex >= cart.length) return;
-
     const item = cart[targetIndex];
     showConfirm("Void Item", `Remove "${item.name}"?`, () => {
         const newCart = [...cart];
         newCart.splice(targetIndex, 1);
         setCart(newCart);
         setActiveModal(null);
-        addNotification('info', 'Item Voided', `${item.name} removed from bill.`);
+        addNotification('info', 'Item Voided', `${item.name} removed.`);
     });
-  };
-
-  // Quick add handlers
-  const handleOpenQuickAdd = () => {
-      setActiveModal('QUICK_ADD');
-  };
-
-  const handleAddQuickItem = async (product) => {
-      try {
-          // Pass the ID to the main handler so it does the fetching/mapping consistently
-          const idToAdd = product.productId || product.id; 
-          await handleAddToCart(idToAdd);
-          setQuickGridRefresh(prev => prev + 1);
-          setActiveModal(null);
-      } catch (err) {
-          addNotification('error', 'Add Failed', 'Could not add item to cart.');
-      }
   };
 
   const handleComplexAction = async (action) => {
@@ -273,25 +270,22 @@ function POSContent() {
           if(cart.length === 0) return;
           showConfirm("Suspend Transaction", "Park this transaction?", () => {
               setCart([]); setCustomer(null); setActiveModal(null);
-              addNotification('info', 'Bill Held', 'Transaction parked successfully.');
+              addNotification('info', 'Bill Held', 'Transaction parked.');
           });
       } 
       else if (action === 'CANCEL') {
           if(cart.length === 0) return;
           showConfirm("Cancel Transaction", "Void entire bill?", () => {
               setCart([]); setCustomer(null); setActiveModal(null);
-              addNotification('warning', 'Bill Cancelled', 'Current transaction cleared.');
+              setInvoiceId("INV-READY"); 
+              addNotification('warning', 'Bill Cancelled', 'Transaction cleared.');
           });
       }
       else if (action === 'RECALL') {
-          showConfirm("Recall Bill", "Open Held Bills list?", () => {
-              setListConfig({ type: 'RECALL' }); setActiveModal('LIST'); 
-          });
+          showConfirm("Recall Bill", "Open Held Bills list?", () => { setListConfig({ type: 'RECALL' }); setActiveModal('LIST'); });
       }
       else if (action === 'RETURN') {
-          showConfirm("Return Bill", "Enter Return mode?", () => {
-              setListConfig({ type: 'RETURN' }); setActiveModal('LIST'); 
-          });
+          showConfirm("Return Bill", "Enter Return mode?", () => { setListConfig({ type: 'RETURN' }); setActiveModal('LIST'); });
       }
       else if (action === 'EXIT') {
           setShiftTotals(null); 
@@ -299,18 +293,15 @@ function POSContent() {
           try {
              if(session.shiftId) {
                  const res = await posService.getShiftTotals(session.shiftId);
-                 setShiftTotals(res.data);
+                 setShiftTotals(res.data?.data || res.data);
              }
-          } catch(e) {
-             console.error("Failed to fetch shift totals", e);
-          }
+          } catch(e) { console.error(e); }
       }
       else if (action === 'PAY_CASH') { openPaymentModal('CASH'); }
       else if (action === 'PAY_CARD') { openPaymentModal('CARD'); }
       else if (action === 'PAY_QR') { openPaymentModal('QR'); }
   };
 
-  // Keyboard listeners
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (activeModal && activeModal !== 'FLOAT') {
@@ -322,11 +313,7 @@ function POSContent() {
       if (e.key === 'F4') { e.preventDefault(); handleComplexAction('CANCEL'); }
       if (e.key === 'F6') { e.preventDefault(); setActiveModal('PAID_IN'); }
       if (e.key === 'F7') { e.preventDefault(); setActiveModal('PAID_OUT'); }
-      
-      if (e.key === ' ' || e.code === 'Space') { 
-          e.preventDefault(); 
-          handleComplexAction('PAY_CASH'); 
-      }
+      if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); handleComplexAction('PAY_CASH'); }
       if (e.key === 'F10') { e.preventDefault(); handleComplexAction('PAY_CARD'); }
       if (e.key === 'F11') { e.preventDefault(); handleComplexAction('PAY_QR'); }
 
@@ -340,8 +327,6 @@ function POSContent() {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans relative">
-        
-        {/* Header */}
         <header className="bg-slate-900 text-white h-16 shrink-0 flex items-center justify-between px-4 shadow-md z-30 border-b border-slate-800">
             <div className="flex items-center gap-6">
                 <div className="flex flex-col leading-none">
@@ -372,80 +357,36 @@ function POSContent() {
                         {time.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}
                     </div>
                 </div>
-                
-                {/* Online Dot */}
-                <div className="relative flex items-center justify-center mx-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_8px_#22c55e]"></div>
-                    <div className="absolute w-3 h-3 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                </div>
-
                 <button onClick={() => handleComplexAction('EXIT')} className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md text-xs font-bold uppercase tracking-widest border border-red-800 shadow-lg active:scale-95 transition-all w-auto">
                     EXIT <LogOut className="w-4 h-4" />
                 </button>
             </div>
         </header>
 
-        {/* Workspace */}
         <div className={`flex flex-1 overflow-hidden transition-all duration-500 ${!session.isOpen || activeModal ? 'blur-[3px] brightness-90' : ''}`}>
             <BillPanel cart={cart} customer={customer} onItemClick={handleCartItemClick} onDetachCustomer={() => setCustomer(null)}/>
             <ControlPanel inputRef={inputRef} inputBuffer={inputBuffer} setInputBuffer={setInputBuffer} onScan={handleScan} onOpenModal={setActiveModal} onAction={handleComplexAction} onVoid={() => handleVoidItem()} isEnabled={session.isOpen}/>
             <ProductGrid 
                 onAddToCart={handleAddToCart} 
-                onAddQuickItemClick={handleOpenQuickAdd}
+                onAddQuickItemClick={() => setActiveModal('QUICK_ADD')} 
                 refreshTrigger={quickGridRefresh}
             />
         </div>
 
-        {/* Modals & Notifications */}
         <NotificationPanel />
 
         {activeModal === 'FLOAT' && <FloatModal onApprove={handleLogin} branchId={BRANCH_ID} terminalId={TERMINAL_ID} />}
         {activeModal === 'END_SHIFT' && <EndShiftModal cashierName={session.cashier} expectedTotals={shiftTotals} onClose={() => setActiveModal(null)} onConfirm={handleLogout} />}
-        
-        {activeModal === 'PAYMENT' && (
-            <PaymentModal 
-                total={cart.reduce((a,c)=>a+c.price*c.qty,0)} 
-                initialMethod={listConfig?.mode || 'CASH'}
-                onClose={() => setActiveModal(null)} 
-                onProcess={processPayment} 
-            />
-        )}
-
-        {activeModal === 'QUANTITY' && selectedCartIndex !== null && (
-            <QuantityModal 
-                item={cart[selectedCartIndex]}
-                onClose={() => setActiveModal(null)}
-                onConfirm={handleQuantityUpdate}
-            />
-        )}
-
-        {activeModal === 'QUICK_ADD' && (
-            <QuickAddModal 
-                onClose={() => setActiveModal(null)} 
-                onProductSelected={handleAddQuickItem} 
-            />
-        )}
-        
+        {activeModal === 'PAYMENT' && <PaymentModal total={cart.reduce((a,c)=>a+c.price*c.qty,0)} initialMethod={listConfig?.mode || 'CASH'} onClose={() => setActiveModal(null)} onProcess={processPayment} />}
+        {activeModal === 'QUANTITY' && selectedCartIndex !== null && <QuantityModal item={cart[selectedCartIndex]} onClose={() => setActiveModal(null)} onConfirm={handleQuantityUpdate} />}
+        {activeModal === 'QUICK_ADD' && <QuickAddModal onClose={() => setActiveModal(null)} onProductSelected={async (item) => { await handleAddToCart(item.id || item.productId); setActiveModal(null); }} />}
         {activeModal === 'PAID_IN' && <IOModal type="PAID_IN" onClose={() => setActiveModal(null)} onNotify={addNotification} />}
         {activeModal === 'PAID_OUT' && <IOModal type="PAID_OUT" onClose={() => setActiveModal(null)} onNotify={addNotification} />}
         {activeModal === 'PRICE_CHECK' && <PriceCheckModal onClose={() => setActiveModal(null)} />}
         {activeModal === 'LOYALTY' && <LoyaltyModal onClose={() => setActiveModal(null)} onAttach={(c) => { setCustomer(c); setActiveModal(null); }} />}
         {activeModal === 'REGISTER' && <RegisterModal onClose={() => setActiveModal(null)} />}
         {activeModal === 'CONFIRM' && confirmConfig && <ConfirmModal title={confirmConfig.title} message={confirmConfig.message} onConfirm={confirmConfig.onYes} onCancel={() => setActiveModal(null)} isAlert={confirmConfig.isAlert} />}
-        
-        {activeModal === 'LIST' && listConfig && (
-            <ListModal 
-                type={listConfig.type} 
-                onClose={() => setActiveModal(null)} 
-                onSelect={async (item) => { 
-                    try {
-                        const res = await posService.getBillById(item.id);
-                        setListConfig(null); 
-                        addNotification('success', 'Bill Loaded', `Bill #${item.id} retrieved.`);
-                    } catch(e) { addNotification('error', 'Error', 'Failed to load bill.'); }
-                }} 
-            />
-        )}
+        {activeModal === 'LIST' && listConfig && <ListModal type={listConfig.type} onClose={() => setActiveModal(null)} onSelect={async (item) => { try { await posService.getBillById(item.id); setListConfig(null); addNotification('success', 'Bill Loaded', `Bill #${item.id} retrieved.`); } catch(e) { addNotification('error', 'Error', 'Failed to load bill.'); } }} />}
     </div>
   );
 }
