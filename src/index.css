@@ -28,3 +28,43 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.18) transparent;
 }
+
+/* Futuristic button animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(37, 99, 235, 0.3), inset 0 0 5px rgba(37, 99, 235, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.6), inset 0 0 10px rgba(37, 99, 235, 0.2);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.add-button-futuristic {
+  position: relative;
+  overflow: hidden;
+  animation: pulse-glow 2.5s ease-in-out infinite, float 3s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background-size: 1000px 100%;
+}
+
+.add-button-futuristic:hover {
+  animation: pulse-glow 1.5s ease-in-out infinite, float 2s ease-in-out infinite, shimmer 0.6s ease-in-out;
+}
