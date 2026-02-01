@@ -1,8 +1,27 @@
 import { NavLink } from "react-router-dom";
+import {
+  LayoutGrid,
+  CheckCircle,
+  Activity,
+  ShoppingCart,
+  BarChart3,
+  BookOpen,
+  PenTool,
+  TrendingUp,
+  Users,
+  FileText,
+} from "lucide-react";
 
 const base =
-  "block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition";
+  "flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition";
 const active = "bg-brand-primary text-white";
+
+const NavItemLink = ({ to, icon: Icon, label, isActive }) => (
+  <NavLink to={to} className={({ isActive: active }) => `${base} ${active ? active : ""}`}>
+    <Icon size={20} className="shrink-0" />
+    <span className="truncate">{label}</span>
+  </NavLink>
+);
 
 export default function Sidebar() {
   return (
@@ -19,51 +38,31 @@ export default function Sidebar() {
 
       {/* Scroll Area */}
       <nav className="sidebar-scroll space-y-2 flex-1 min-h-0 overflow-y-auto px-5">
-        <NavLink to="/manager" end className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Overview
-        </NavLink>
+        <NavItemLink to="/manager" end icon={LayoutGrid} label="Overview" />
 
         <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Operations</div>
 
-        <NavLink to="/manager/approvals" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Approvals
-        </NavLink>
-        <NavLink to="/manager/branch-activity" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Branch Activity Log
-        </NavLink>
+        <NavItemLink to="/manager/approvals" icon={CheckCircle} label="Approvals" />
+        <NavItemLink to="/manager/branch-activity" icon={Activity} label="Branch Activity Log" />
 
         <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Sales</div>
 
-        <NavLink to="/manager/sales" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Sales
-        </NavLink>
-        <NavLink to="/manager/sales-reports" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Sales Reports
-        </NavLink>
+        <NavItemLink to="/manager/sales" icon={ShoppingCart} label="Sales" />
+        <NavItemLink to="/manager/sales-reports" icon={BarChart3} label="Sales Reports" />
 
         <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Accounting</div>
 
-        <NavLink to="/manager/chart-of-accounts" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Chart of Accounts
-        </NavLink>
-        <NavLink to="/manager/journal-entry" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Journal Entry
-        </NavLink>
-        <NavLink to="/manager/profit-loss" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Profit & Loss
-        </NavLink>
+        <NavItemLink to="/manager/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
+        <NavItemLink to="/manager/journal-entry" icon={PenTool} label="Journal Entry" />
+        <NavItemLink to="/manager/profit-loss" icon={TrendingUp} label="Profit & Loss" />
 
         <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Staff</div>
 
-        <NavLink to="/manager/staff" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Staff
-        </NavLink>
+        <NavItemLink to="/manager/staff" icon={Users} label="Staff" />
 
         <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Reports</div>
 
-        <NavLink to="/manager/reports" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Other Reports
-        </NavLink>
+        <NavItemLink to="/manager/reports" icon={FileText} label="Other Reports" />
       </nav>
 
       {/* Footer */}
