@@ -51,10 +51,13 @@ const DashboardGrid = () => {
   return (
     <div
       style={{
-        display: 'flex',
-        gap: '28px',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '50px',
         justifyContent: 'center',
         marginTop: '40px',
+        maxWidth: '1000px',
+        margin: '40px auto 0',
       }}
     >
       {cards.map((card, index) => (

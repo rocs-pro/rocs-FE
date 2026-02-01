@@ -15,7 +15,7 @@ const DashboardCard = ({
     <div
       onClick={() => !disabled && navigate(path)}
       style={{
-        width: '240px',              // smaller card
+        width: '400px',              // bigger card
         borderRadius: '18px',
         background: '#1e293b',
         cursor: disabled ? 'not-allowed' : 'pointer',

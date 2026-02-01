@@ -7,11 +7,32 @@ const MainLayout = ({ children }) => {
   return (
     <div
       style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(180deg, #020617 0%, #020617 100%)',
+        height: '100vh',
+        width: '100%',
+        backgroundImage: 'url(/retail-bg.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
         color: '#fff',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
       }}
     >
+      {/* DARK OVERLAY */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.85)',
+          zIndex: 0,
+        }}
+      ></div>
+
       {/* TOP BAR */}
       <div
         style={{
@@ -19,7 +40,10 @@ const MainLayout = ({ children }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottom: '1px solid #1e293b',
+          borderBottom: '1px solid rgba(30, 41, 59, 0.3)',
+          backgroundColor: '#0f172a',
+          position: 'relative',
+          zIndex: 2,
         }}
       >
         {/* LEFT BRAND */}
@@ -111,7 +135,19 @@ const MainLayout = ({ children }) => {
       </div>
 
       {/* PAGE CONTENT */}
-      <div style={{ padding: '40px 60px' }}>{children}</div>
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        zIndex: 2,
+      }}>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {children}
+        </div>
+      </div>
     </div>
   );
 };
