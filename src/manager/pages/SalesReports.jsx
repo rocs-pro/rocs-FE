@@ -40,15 +40,71 @@ export default function SalesReports() {
   }, [q, reports]);
 
   function exportCSV() {
-    const header = ["Date", "Invoices", "Revenue", "Profit"].join(",");
-    const lines = filtered.map((r) => [r.date, r.invoices, r.revenue, r.profit].join(","));
-    const csv = [header, ...lines].join("\n");
+    // Helper function to escape CSV fields
+    const escapeCSV = (field) => {
+      if (field === null || field === undefined) return "";
+      const str = String(field);
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
 
+    // Build CSV with header metadata and emojis
+    const lines = [];
+    lines.push("📊 SMART RETAIL PRO - SALES REPORT");
+    lines.push("=".repeat(60));
+    lines.push(`📅 Generated: ${new Date().toLocaleString()}`);
+    lines.push(`🏢 Branch: Colombo Main`);
+    lines.push(`📆 Period: ${from ? `From ${from}` : "All"} ${to ? `To ${to}` : ""}`);
+    lines.push("=".repeat(60));
+    lines.push(""); // Empty line
+    
+    // Column headers with emojis
+    lines.push(["📅 Date", "📄 Invoices", "💰 Revenue (LKR)", "📈 Profit (LKR)"].map(escapeCSV).join(","));
+    lines.push("-".repeat(60));
+    
+    // Data rows with alternating indicators
+    filtered.forEach((r, idx) => {
+      const emoji = idx % 2 === 0 ? "✓" : "→";
+      lines.push(
+        [
+          `${emoji} ${r.date}`,
+          r.invoices,
+          r.revenue || 0,
+          r.profit || 0,
+        ]
+          .map(escapeCSV)
+          .join(",")
+      );
+    });
+    
+    // Separator for totals
+    lines.push("-".repeat(60));
+    lines.push("");
+    
+    // Totals row with emoji
+    lines.push(
+      [
+        "🎯 TOTAL",
+        totals.invoices,
+        totals.revenue,
+        totals.profit,
+      ]
+        .map(escapeCSV)
+        .join(",")
+    );
+    
+    lines.push("=".repeat(60));
+    lines.push("✅ End of Report");
+
+    // Add BOM for Excel compatibility
+    const csv = "\uFEFF" + lines.join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `sales-report-${from || "all"}-${to || "all"}.csv`;
+    a.download = `sales-report-${from || "all"}-${to || "all"}-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
