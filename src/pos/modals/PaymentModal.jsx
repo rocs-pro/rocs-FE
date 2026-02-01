@@ -1,283 +1,162 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { CreditCard, Banknote, QrCode, X, CheckCircle, Wallet, Loader2, Building2, Hash } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CreditCard, Banknote, X, CheckCircle, Trash2, Plus } from 'lucide-react';
 
-const LKR_DENOMINATIONS = [5000, 1000, 500, 100, 50, 20];
-const SRI_LANKAN_BANKS = [
-    { id: 'COM', name: 'Commercial Bank', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-    { id: 'HNB', name: 'Hatton National', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-    { id: 'SAMPATH', name: 'Sampath Bank', color: 'bg-orange-100 text-orange-700 border-orange-200' },
-    { id: 'AMEX', name: 'Nations Trust (Amex)', color: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
-    { id: 'PEOPLES', name: 'Peoples Bank', color: 'bg-red-100 text-red-700 border-red-200' },
-    { id: 'BOC', name: 'Bank of Ceylon', color: 'bg-amber-100 text-amber-700 border-amber-200' }
-];
-
-export default function PaymentModal({ total, initialMethod = 'CASH', onClose, onProcess }) {
-  const [activeTab, setActiveTab] = useState(initialMethod); 
+export default function PaymentModal({ total, onClose, onProcess }) {
+  // We now track a LIST of payments, not just one
+  const [payments, setPayments] = useState([]);
+  const [currentAmount, setCurrentAmount] = useState("");
+  const [method, setMethod] = useState("CASH");
   const [processing, setProcessing] = useState(false);
-  
-  // Cash state
-  const [tendered, setTendered] = useState("");
-  
-  // Card state
-  const [selectedBank, setSelectedBank] = useState(null);
-  const [cardRef, setCardRef] = useState("");
-  const [lastFour, setLastFour] = useState("");
 
-  const inputRef = useRef(null);
-  const cardRefInput = useRef(null);
+  // Calculate totals
+  const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  const remaining = total - totalPaid;
+  const change = totalPaid > total ? totalPaid - total : 0;
 
+  // Auto-fill remaining amount when modal opens or payments change
   useEffect(() => {
-    if (activeTab === 'CASH') inputRef.current?.focus();
-  }, [activeTab]);
+      if (remaining > 0) setCurrentAmount(remaining.toFixed(2));
+      else setCurrentAmount("");
+  }, [payments, total]);
 
-  // Actions
-  const addCash = (amount) => {
-    setTendered(prev => {
-        const current = parseFloat(prev) || 0;
-        return (current + amount).toString();
-    });
-    inputRef.current?.focus();
+  const addPayment = () => {
+      const amt = parseFloat(currentAmount);
+      if (!amt || amt <= 0) return;
+
+      setPayments([...payments, { 
+          type: method, 
+          amount: amt,
+          ref: method === 'CARD' ? `Ref-${Date.now().toString().slice(-4)}` : null 
+      }]);
+      setMethod("CASH"); // Reset to default
   };
 
-  const handleConfirm = () => {
-    // Cash validation
-    if (activeTab === 'CASH') {
-        if ((parseFloat(tendered) || 0) < total) {
-            alert("Insufficient cash tendered!");
-            return;
-        }
-    }
-
-    // Card validation
-    if (activeTab === 'CARD') {
-        if (!selectedBank) {
-            alert("Please select a Bank.");
-            return;
-        }
-        if (!cardRef) {
-            alert("Please enter the POS Trace/Reference Number.");
-            return;
-        }
-    }
-
-    setProcessing(true);
-    
-    // Simulate API delay
-    setTimeout(() => {
-        const paymentDetails = {
-            method: activeTab,
-            amount: total,
-            tendered: activeTab === 'CASH' ? parseFloat(tendered) : total,
-            change: activeTab === 'CASH' ? (parseFloat(tendered) - total) : 0,
-            // Card Specifics
-            bank: selectedBank?.name || null,
-            cardRef: cardRef || null,
-            lastFour: lastFour || null
-        };
-        onProcess(paymentDetails);
-    }, 1000);
+  const removePayment = (index) => {
+      const newPayments = [...payments];
+      newPayments.splice(index, 1);
+      setPayments(newPayments);
   };
 
-  const changeDue = (parseFloat(tendered) || 0) - total;
+  const handleFinalize = () => {
+      if (remaining > 0.01) {
+          alert(`Cannot finalize. LKR ${remaining.toFixed(2)} still pending.`);
+          return;
+      }
+      setProcessing(true);
+      // Send the ARRAY of payments to parent
+      onProcess({ 
+          payments: payments, 
+          totalPaid: totalPaid,
+          change: change 
+      });
+  };
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
-        <div className="bg-white w-[900px] h-[600px] rounded-2xl shadow-2xl overflow-hidden flex animate-in zoom-in-95 duration-200">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+        <div className="bg-white w-[800px] h-[600px] rounded-2xl shadow-2xl flex overflow-hidden">
             
-            {/* Left side summary */}
-            <div className="w-4/12 bg-slate-900 text-white p-8 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute top-[-40px] left-[-40px] w-48 h-48 bg-blue-600/20 rounded-full blur-3xl"></div>
+            {/* Left: Summary */}
+            <div className="w-1/3 bg-slate-50 border-r border-slate-200 p-6 flex flex-col">
+                <h2 className="text-xl font-bold text-slate-800 mb-6">Payment Summary</h2>
                 
-                <div className="relative z-10">
-                    <h2 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Total Amount</h2>
-                    <div className="text-5xl font-mono font-bold text-white mb-8 tracking-tighter">
-                        <span className="text-xl text-slate-500 mr-2 align-top">LKR</span>
-                        {total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                <div className="space-y-4 flex-1">
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div className="text-xs text-slate-500 font-bold uppercase">Total Due</div>
+                        <div className="text-3xl font-mono font-bold text-slate-900">{total.toFixed(2)}</div>
+                    </div>
+                    
+                    <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                        <div className="text-xs text-green-700 font-bold uppercase">Paid So Far</div>
+                        <div className="text-2xl font-mono font-bold text-green-700">{totalPaid.toFixed(2)}</div>
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3 text-sm text-slate-300 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                            <Wallet className="w-5 h-5 text-blue-400" />
-                            <span>Net Payable: <span className="text-white font-bold">{total.toLocaleString()}</span></span>
+                    {remaining > 0 ? (
+                        <div className="bg-red-50 p-4 rounded-xl border border-red-100 animate-pulse">
+                            <div className="text-xs text-red-700 font-bold uppercase">Remaining</div>
+                            <div className="text-2xl font-mono font-bold text-red-700">{remaining.toFixed(2)}</div>
                         </div>
-                        
-                        {/* Dynamic summary based on active tab */}
-                        {activeTab === 'CASH' && (
-                            <div className="animate-in fade-in slide-in-from-left duration-300">
-                                <h3 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Change Due</h3>
-                                <div className={`text-4xl font-mono font-bold ${changeDue >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    {changeDue > 0 ? changeDue.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'CARD' && selectedBank && (
-                            <div className="animate-in fade-in slide-in-from-left duration-300 bg-slate-800 p-3 rounded-lg border border-slate-700">
-                                <h3 className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Selected Bank</h3>
-                                <div className="text-lg font-bold text-white flex items-center gap-2">
-                                    <Building2 className="w-4 h-4 text-yellow-400"/> {selectedBank.name}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    ) : (
+                        <div className="bg-blue-600 p-4 rounded-xl border border-blue-500 shadow-lg text-white">
+                            <div className="text-xs text-blue-100 font-bold uppercase">Change Due</div>
+                            <div className="text-4xl font-mono font-bold">{change.toFixed(2)}</div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Right side interface */}
-            <div className="w-8/12 flex flex-col">
-                
-                {/* Tabs header */}
-                <div className="flex border-b border-slate-100">
-                    {['CASH', 'CARD', 'QR'].map((mode) => (
+            {/* Right: Payment Entry */}
+            <div className="w-2/3 p-6 flex flex-col">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-bold text-lg text-slate-700">Add Payment</h3>
+                    <button onClick={onClose}><X className="w-6 h-6 text-slate-400 hover:text-red-500"/></button>
+                </div>
+
+                {/* Input Area */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="col-span-2 flex gap-2">
+                        {['CASH', 'CARD', 'QR', 'TRANSFER'].map(m => (
+                            <button 
+                                key={m}
+                                onClick={() => setMethod(m)}
+                                className={`flex-1 py-3 rounded-lg font-bold text-sm border-2 transition-all ${
+                                    method === m ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-300'
+                                }`}
+                            >
+                                {m}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="col-span-2 relative">
+                        <span className="absolute left-4 top-3.5 text-slate-400 font-bold">LKR</span>
+                        <input 
+                            type="number" 
+                            autoFocus
+                            value={currentAmount}
+                            onChange={e => setCurrentAmount(e.target.value)}
+                            className="w-full pl-14 pr-4 py-3 text-2xl font-bold font-mono border-2 border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="0.00"
+                        />
                         <button 
-                            key={mode}
-                            onClick={() => setActiveTab(mode)} 
-                            className={`flex-1 py-5 text-sm font-bold uppercase tracking-wide flex items-center justify-center gap-2 transition-all
-                            ${activeTab === mode ? 'bg-white border-b-4 border-blue-600 text-blue-700 shadow-inner' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                            onClick={addPayment}
+                            disabled={!currentAmount}
+                            className="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg font-bold flex items-center gap-2 disabled:opacity-50"
                         >
-                            {mode === 'CASH' && <Banknote className="w-4 h-4" />}
-                            {mode === 'CARD' && <CreditCard className="w-4 h-4" />}
-                            {mode === 'QR' && <QrCode className="w-4 h-4" />}
-                            {mode} Payment
+                            <Plus className="w-4 h-4" /> Add
                         </button>
+                    </div>
+                </div>
+
+                {/* Payment List Table */}
+                <div className="flex-1 overflow-y-auto bg-slate-50 rounded-xl border border-slate-200 p-2 mb-4">
+                    {payments.length === 0 && <div className="text-center text-slate-400 py-10 text-sm">No payments added yet.</div>}
+                    {payments.map((p, i) => (
+                        <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm mb-2 border border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-slate-100 p-2 rounded-full">
+                                    {p.type === 'CASH' ? <Banknote className="w-4 h-4 text-green-600"/> : <CreditCard className="w-4 h-4 text-purple-600"/>}
+                                </div>
+                                <div>
+                                    <div className="font-bold text-sm text-slate-800">{p.type}</div>
+                                    <div className="text-[10px] text-slate-400">{p.ref || 'No Ref'}</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="font-mono font-bold text-slate-700">{p.amount.toFixed(2)}</span>
+                                <button onClick={() => removePayment(i)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4"/></button>
+                            </div>
+                        </div>
                     ))}
                 </div>
 
-                {/* Main content */}
-                <div className="flex-1 p-8 bg-white overflow-y-auto custom-scroll">
-                    
-                    {/* Cash UI */}
-                    {activeTab === 'CASH' && (
-                        <div className="space-y-8 animate-in fade-in duration-300">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Amount Tendered</label>
-                                <div className="flex items-center bg-white border-2 border-blue-100 rounded-2xl px-4 py-4 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-50 transition-all">
-                                    <span className="text-slate-400 font-bold mr-3 text-xl">LKR</span>
-                                    <input 
-                                        ref={inputRef}
-                                        type="number" 
-                                        value={tendered}
-                                        onChange={(e) => setTendered(e.target.value)}
-                                        className="w-full text-4xl font-mono font-bold text-slate-800 focus:outline-none placeholder-slate-200"
-                                        placeholder="0.00"
-                                        onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-3">Quick Denominations</label>
-                                <div className="grid grid-cols-3 gap-4">
-                                    {LKR_DENOMINATIONS.map(amount => (
-                                        <button 
-                                            key={amount}
-                                            onClick={() => addCash(amount)}
-                                            className="py-4 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition-all font-mono font-bold text-lg text-slate-600 shadow-sm"
-                                        >
-                                            {amount}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Card UI */}
-                    {activeTab === 'CARD' && (
-                        <div className="space-y-6 animate-in slide-in-from-right duration-300">
-                            
-                            {/* Bank selection grid */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-3">Select Bank / Terminal</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {SRI_LANKAN_BANKS.map(bank => (
-                                        <button
-                                            key={bank.id}
-                                            onClick={() => setSelectedBank(bank)}
-                                            className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between
-                                            ${selectedBank?.id === bank.id ? `ring-2 ring-offset-1 ring-blue-500 ${bank.color}` : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600'}`}
-                                        >
-                                            <span className="font-bold text-sm">{bank.name}</span>
-                                            {selectedBank?.id === bank.id && <CheckCircle className="w-4 h-4" />}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Card details inputs */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Trace / Ref No</label>
-                                    <div className="relative">
-                                        <Hash className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                        <input 
-                                            ref={cardRefInput}
-                                            type="text" 
-                                            value={cardRef}
-                                            onChange={(e) => setCardRef(e.target.value)}
-                                            className="w-full border border-slate-300 rounded-lg py-2.5 pl-9 pr-3 text-sm font-mono font-bold focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-50 transition-all"
-                                            placeholder="XXXXXX"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Last 4 Digits (Opt)</label>
-                                    <div className="relative">
-                                        <CreditCard className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                        <input 
-                                            type="text" 
-                                            maxLength="4"
-                                            value={lastFour}
-                                            onChange={(e) => setLastFour(e.target.value)}
-                                            className="w-full border border-slate-300 rounded-lg py-2.5 pl-9 pr-3 text-sm font-mono font-bold focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-50 transition-all"
-                                            placeholder="1234"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* QR UI */}
-                    {activeTab === 'QR' && (
-                        <div className="flex flex-col items-center justify-center h-full text-center space-y-6 animate-in slide-in-from-right duration-300">
-                            <div className="bg-white p-6 rounded-2xl border-2 border-red-500 shadow-xl relative">
-                                {/* Dummy QR */}
-                                <QrCode className="w-48 h-48 text-slate-900" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="bg-white/90 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest text-red-600 border border-red-100 backdrop-blur-sm">
-                                        LankaQR
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-slate-800 text-lg">Scan to Pay</h3>
-                                <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">Please ask the customer to scan this QR code using their banking app.</p>
-                            </div>
-                        </div>
-                    )}
-
-                </div>
-
-                {/* Footer actions */}
-                <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-                    <button onClick={onClose} className="px-8 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-colors text-sm uppercase">
-                        Cancel
-                    </button>
-                    <button 
-                        onClick={handleConfirm} 
-                        disabled={processing}
-                        className={`px-10 py-4 rounded-xl font-bold text-white shadow-xl flex items-center gap-3 transition-all active:scale-[0.98] ${
-                            activeTab === 'CASH' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200' : 
-                            activeTab === 'CARD' ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-200' : 
-                            'bg-red-600 hover:bg-red-700 shadow-red-200'
-                        }`}
-                    >
-                        {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-                        {processing ? "Processing..." : `Confirm ${activeTab}`}
-                    </button>
-                </div>
-
+                {/* Complete Button */}
+                <button 
+                    onClick={handleFinalize}
+                    disabled={remaining > 0.01 || processing}
+                    className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-bold shadow-xl flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                    {processing ? "Processing Transaction..." : <><CheckCircle className="w-5 h-5"/> Complete Sale</>}
+                </button>
             </div>
         </div>
     </div>

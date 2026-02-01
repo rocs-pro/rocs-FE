@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Configuration
 const API_URL = "http://localhost:8080/api/v1/pos";
 
 const api = axios.create({
@@ -8,41 +7,40 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' }
 });
 
-// Interceptor to add token
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
 }, (error) => Promise.reject(error));
 
 export const posService = {
-    // Shift management
+    // --- NEW: Fetch Next Invoice ---
+    getNextInvoiceNo: () => api.get('/next-invoice'),
+
+    // Updated Submit Order (Handles complex object)
+    submitOrder: (orderData) => {
+        // orderData now matches the CreateSaleRequest DTO with 'payments' list
+        return api.post('/orders', orderData);
+    },
+
+    // Shift
     openShift: (data) => api.post('/shift/open', data),
     closeShift: (data) => api.post('/shift/close', data),
     getShiftTotals: (shiftId) => api.get(`/shift/${shiftId}/totals`),
     getCashiers: () => api.get('/cashiers'),
 
-    // --- PRODUCTS ---
-    // Scan (Exact Match - Returns Single Object)
+    // Products
     getProduct: (code) => api.get(`/products/scan?code=${code}`),
-    
-    // Search (Fuzzy - Returns List)
     searchInventory: (query) => api.get(`/products/search?q=${query}`),
-    
-    // Quick Grid
     getQuickItems: () => api.get('/products/quick'),
 
-    // Transactions
+    // Orders
     submitOrder: (orderData) => api.post('/orders', orderData),
     getBills: (status) => api.get(`/orders?status=${status || ''}`),
     getBillById: (id) => api.get(`/orders/${id}`),
 
-    // Customers
+    // Misc
     findCustomer: (phone) => api.get(`/customers?phone=${phone}`),
     createCustomer: (data) => api.post('/customers', data),
-    
-    // Cash Flow
     recordCashFlow: (data) => api.post('/cash-flow', data)
 };
