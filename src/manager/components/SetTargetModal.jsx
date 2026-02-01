@@ -17,7 +17,7 @@ export default function SetTargetModal({ open, onClose, onSave, initialTarget })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl border border-brand-border">
         <div className="flex items-center justify-between">
           <h3 className="font-extrabold">Set Today’s Sales Target</h3>

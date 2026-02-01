@@ -10,7 +10,7 @@ export default function QuickActionsModal({ open, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl border border-brand-border shadow-xl p-5">
         <div className="flex items-center justify-between">
           <div className="font-extrabold text-lg">Quick Actions</div>
