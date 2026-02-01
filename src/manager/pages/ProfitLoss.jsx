@@ -50,21 +50,89 @@ export default function ProfitLoss() {
   const totalExpenses = plData.expenses?.reduce((sum, e) => sum + e.amount, 0) || 0;
   const netProfit = (plData.grossProfit || 0) - totalExpenses;
 
+  const exportCSV = () => {
+    const escapeCSV = (field) => {
+      if (field === null || field === undefined) return "";
+      const str = String(field);
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const lines = [];
+    lines.push("📈 SMART RETAIL PRO - PROFIT & LOSS REPORT");
+    lines.push("=".repeat(70));
+    lines.push(`📅 Generated: ${new Date().toLocaleString()}`);
+    lines.push(`🏢 Branch: Colombo Main`);
+    lines.push(`📆 Period: ${period.toUpperCase()}`);
+    lines.push(`⏰ Report Date: ${plData.period}`);
+    lines.push("=".repeat(70));
+    lines.push("");
+
+    lines.push("FINANCIAL SUMMARY");
+    lines.push("-".repeat(70));
+    lines.push(["Item", "Amount (LKR)"].map(escapeCSV).join(","));
+    lines.push(["💵 Revenue", plData.revenue || 0].map(escapeCSV).join(","));
+    lines.push(["📦 Cost of Goods Sold", plData.cogs || 0].map(escapeCSV).join(","));
+    lines.push(["📊 Gross Profit", plData.grossProfit || 0].map(escapeCSV).join(","));
+    lines.push("");
+
+    lines.push("EXPENSES BREAKDOWN");
+    lines.push("-".repeat(70));
+    lines.push(["Expense Item", "Amount (LKR)"].map(escapeCSV).join(","));
+    
+    if (plData.expenses && plData.expenses.length > 0) {
+      plData.expenses.forEach((e, idx) => {
+        const emoji = idx % 2 === 0 ? "✓" : "→";
+        lines.push([`${emoji} ${e.name}`, e.amount || 0].map(escapeCSV).join(","));
+      });
+    }
+    
+    lines.push("-".repeat(70));
+    lines.push(["💸 Total Expenses", totalExpenses].map(escapeCSV).join(","));
+    lines.push("");
+
+    lines.push("BOTTOM LINE");
+    lines.push("=".repeat(70));
+    lines.push(["🎯 NET PROFIT/LOSS", netProfit].map(escapeCSV).join(","));
+    lines.push("=".repeat(70));
+    lines.push("✅ End of Report");
+
+    const csv = "\uFEFF" + lines.join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `profit-loss-${period}-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <h1 className="text-xl font-extrabold">Profit & Loss</h1>
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          className="px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
-        >
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="quarterly">Quarterly</option>
-          <option value="yearly">Yearly</option>
-        </select>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
+          >
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+          <button
+            type="button"
+            onClick={exportCSV}
+            className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold transition"
+          >
+            📥 Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="bg-white border border-brand-border rounded-2xl shadow-sm p-5 space-y-4">
