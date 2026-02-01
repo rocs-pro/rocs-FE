@@ -148,11 +148,11 @@ export default function JournalEntry() {
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             type="button"
-            className="add-button-futuristic px-4 py-2 rounded-xl border-2 border-brand-secondary bg-slate-900 text-white font-bold disabled:opacity-50 transition-all duration-300"
+            className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold transition disabled:opacity-50"
             onClick={addLine}
             disabled={loading}
           >
-            ✨ Add Line
+            + Add Line
           </button>
 
           <button
