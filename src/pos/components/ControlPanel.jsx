@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ScanBarcode, Hand, CornerUpLeft, RotateCw, Printer, Percent, Disc } from 'lucide-react';
+import { posService } from '../../services/posService';
 
 export default function ControlPanel({ 
     inputRef, 
@@ -9,13 +10,102 @@ export default function ControlPanel({
     onOpenModal, 
     onVoid,
     onAction,
-    isEnabled 
+    isEnabled,
+    onSelectProduct
 }) {
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const suggestionsRef = useRef(null);
+  const debounceRef = useRef(null);
+
+  // Search for suggestions as user types
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    
+    if (!inputBuffer || inputBuffer.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await posService.searchInventory(inputBuffer.trim());
+        const data = res.data?.data || res.data || [];
+        const items = Array.isArray(data) ? data.slice(0, 8) : [];
+        setSuggestions(items);
+        setShowSuggestions(items.length > 0);
+        setSelectedIndex(-1);
+      } catch (err) {
+        console.error('Search error:', err);
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [inputBuffer]);
+
+  // Scroll selected item into view
+  useEffect(() => {
+    if (selectedIndex >= 0 && suggestionsRef.current) {
+      const container = suggestionsRef.current;
+      const selectedItem = container.children[selectedIndex];
+      if (selectedItem) {
+        selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }, [selectedIndex]);
+
+  const handleKeyDown = (e) => {
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === 'Enter') onScan();
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => {
+        const next = prev + 1;
+        return next >= suggestions.length ? 0 : next; // Wrap around to top
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => {
+        const next = prev - 1;
+        return next < 0 ? suggestions.length - 1 : next; // Wrap around to bottom
+      });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+        handleSelectSuggestion(suggestions[selectedIndex]);
+      } else {
+        onScan();
+      }
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = (product) => {
+    setInputBuffer('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
+    if (onSelectProduct) {
+      onSelectProduct(product);
+    }
+  };
+
   return (
     <div className="w-4/12 bg-slate-50 flex flex-col h-full border-r border-slate-200 z-10">
       
       {/* SCANNER INPUT AREA */}
-      <div className="p-3 bg-white border-b border-slate-200 shrink-0">
+      <div className="p-3 bg-white border-b border-slate-200 shrink-0 relative">
          <div className="flex gap-0 rounded-md shadow-sm border border-blue-300 overflow-hidden h-14">
             <div className="bg-blue-50 px-3 flex items-center border-r border-blue-200">
                 <ScanBarcode className="w-6 h-6 text-blue-700" />
@@ -25,15 +115,51 @@ export default function ControlPanel({
               type="text" 
               value={inputBuffer}
               onChange={(e) => setInputBuffer(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && onScan()}
+              onKeyDown={handleKeyDown}
+              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="flex-1 px-3 text-xl font-mono text-slate-800 focus:outline-none focus:bg-white transition font-bold" 
               placeholder="Scan / PLU..." 
               disabled={!isEnabled}
+              autoComplete="off"
             />
             <button onClick={onScan} className="bg-blue-600 text-white px-5 font-bold hover:bg-blue-700 transition active:bg-blue-800 text-sm tracking-wide">
                 ENTER
             </button>
          </div>
+         
+         {/* Suggestions Dropdown */}
+         {showSuggestions && suggestions.length > 0 && (
+           <div 
+             ref={suggestionsRef}
+             className="absolute left-3 right-3 top-[72px] bg-white border border-slate-300 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto"
+           >
+             {suggestions.map((item, index) => (
+               <div
+                 key={item.productId || item.id || index}
+                 className={`px-3 py-2 cursor-pointer border-b border-slate-100 last:border-0 flex justify-between items-center transition-colors ${
+                   index === selectedIndex ? 'bg-blue-50' : 'hover:bg-slate-50'
+                 }`}
+                 onMouseDown={() => handleSelectSuggestion(item)}
+                 onMouseEnter={() => setSelectedIndex(index)}
+               >
+                 <div className="flex-1 min-w-0">
+                   <div className="font-medium text-slate-800 text-sm truncate">
+                     {item.name || item.productName}
+                   </div>
+                   <div className="text-xs text-slate-500 font-mono">
+                     {item.sku || item.barcode}
+                   </div>
+                 </div>
+                 <div className="text-right ml-2">
+                   <div className="font-bold text-green-600 text-sm">
+                     LKR {parseFloat(item.sellingPrice || item.price || 0).toFixed(2)}
+                   </div>
+                 </div>
+               </div>
+             ))}
+           </div>
+         )}
       </div>
 
       {/* FUNCTION BUTTONS GRID */}
