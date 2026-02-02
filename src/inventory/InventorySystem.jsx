@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Package, Plus, Search, Filter, Edit, Trash2, Printer,
     BarChart3, Tag, Box, Calendar, AlertTriangle, ArrowRightLeft,
@@ -25,6 +25,8 @@ import TransferApprovalScreen from '../store/TransferApprovalScreen';
 import StockValuationScreen from '../reports/StockValuationScreen';
 import StockAgingScreen from '../reports/StockAgingScreen';
 
+import inventoryService from '../services/inventoryService';
+
 const InventorySystem = () => {
     const [activeScreen, setActiveScreen] = useState('item-list');
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -34,6 +36,50 @@ const InventorySystem = () => {
             setCurrentTime(new Date());
         }, 1000);
         return () => clearInterval(timer);
+    }, []);
+
+    // Load inventory data from backend on mount
+    useEffect(() => {
+        const loadInventoryData = async () => {
+            console.log('=== Inventory API called ===');
+            console.log('[InventorySystem] Starting to load inventory data...');
+            try {
+                // Fetch all data in parallel
+                console.log('[InventorySystem] Calling Promise.all for products, categories, brands, suppliers');
+                const [productsData, categoriesData, brandsData, suppliersData] = await Promise.all([
+                    inventoryService.getProducts(),
+                    inventoryService.getCategories(),
+                    inventoryService.getBrands(),
+                    inventoryService.getSuppliers()
+                ]);
+
+                console.log('[InventorySystem] Data received:', {
+                    products: productsData?.length || 0,
+                    categories: categoriesData?.length || 0,
+                    brands: brandsData?.length || 0,
+                    suppliers: suppliersData?.length || 0
+                });
+
+                // Set state with fetched data (already mapped to snake_case by service)
+                setItems(productsData);
+                setCategories(categoriesData);
+                setBrands(brandsData);
+                setSuppliers(suppliersData);
+                
+                console.log('[InventorySystem] State updated successfully');
+            } catch (err) {
+                console.error('[InventorySystem] Inventory API error:', err);
+                console.error('[InventorySystem] Error details:', {
+                    message: err.message,
+                    response: err.response,
+                    status: err.response?.status,
+                    data: err.response?.data
+                });
+                alert('Inventory API error');
+            }
+        };
+
+        loadInventoryData();
     }, []);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -56,42 +102,65 @@ const InventorySystem = () => {
     const [categoryForm, setCategoryForm] = useState({ category_id: '', name: '', description: '', is_active: true });
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
-    const handleAddCategory = () => {
+    const handleAddCategory = async () => {
         if (categoryForm.name.trim()) {
-            const newCategory = {
-                category_id: Math.max(...categories.map(c => c.category_id), 0) + 1,
-                name: categoryForm.name,
-                description: categoryForm.description,
-                is_active: categoryForm.is_active,
-                created_at: new Date().toISOString().split('T')[0]
-            };
-            setCategories([...categories, newCategory]);
-            setCategoryForm({ category_id: '', name: '', description: '', is_active: true });
-            setIsAddCategoryOpen(false);
+            try {
+                const createdCategory = await inventoryService.createCategory(categoryForm);
+                setCategories([...categories, createdCategory]);
+                setCategoryForm({ category_id: '', name: '', description: '', is_active: true });
+                setIsAddCategoryOpen(false);
+            } catch (err) {
+                console.error('Error creating category:', err);
+                alert('Failed to create category');
+            }
         }
     };
 
-    const handleDeleteCategory = (categoryId) => {
+    const handleDeleteCategory = async (categoryId) => {
         if (window.confirm('Are you sure you want to delete this category?')) {
-            setCategories(categories.filter(c => c.category_id !== categoryId));
+            try {
+                await inventoryService.deleteCategory(categoryId);
+                setCategories(categories.filter(c => c.category_id !== categoryId));
+            } catch (err) {
+                console.error('Error deleting category:', err);
+                alert('Failed to delete category');
+            }
         }
     };
 
-    const handleDeleteBrand = (brandId) => {
+    const handleDeleteBrand = async (brandId) => {
         if (window.confirm('Are you sure you want to delete this brand?')) {
-            setBrands(brands.filter(b => b.brand_id !== brandId));
+            try {
+                await inventoryService.deleteBrand(brandId);
+                setBrands(brands.filter(b => b.brand_id !== brandId));
+            } catch (err) {
+                console.error('Error deleting brand:', err);
+                alert('Failed to delete brand');
+            }
         }
     };
 
-    const handleDeleteSupplier = (supplierId) => {
+    const handleDeleteSupplier = async (supplierId) => {
         if (window.confirm('Are you sure you want to delete this supplier?')) {
-            setSuppliers(suppliers.filter(s => s.supplier_id !== supplierId));
+            try {
+                await inventoryService.deleteSupplier(supplierId);
+                setSuppliers(suppliers.filter(s => s.supplier_id !== supplierId));
+            } catch (err) {
+                console.error('Error deleting supplier:', err);
+                alert('Failed to delete supplier');
+            }
         }
     };
 
-    const handleDeleteItem = (productId) => {
+    const handleDeleteItem = async (productId) => {
         if (window.confirm('Are you sure you want to delete this item?')) {
-            setItems(items.filter(i => i.product_id !== productId));
+            try {
+                await inventoryService.deleteProduct(productId);
+                setItems(items.filter(i => i.product_id !== productId));
+            } catch (err) {
+                console.error('Error deleting product:', err);
+                alert('Failed to delete product');
+            }
         }
     };
 
@@ -128,25 +197,33 @@ const InventorySystem = () => {
         }
     };
 
-    const handleSaveEdit = () => {
-        if (editingType === 'category' && categoryForm.name.trim()) {
-            setCategories(categories.map(c => c.category_id === editingId ? categoryForm : c));
-            setIsEditMode(false);
-            setEditingId(null);
-            setEditingType(null);
-            setIsAddCategoryOpen(false);
-        } else if (editingType === 'brand' && brandForm.name.trim()) {
-            setBrands(brands.map(b => b.brand_id === editingId ? brandForm : b));
-            setIsEditMode(false);
-            setEditingId(null);
-            setEditingType(null);
-            setIsAddBrandOpen(false);
-        } else if (editingType === 'supplier' && supplierForm.name.trim()) {
-            setSuppliers(suppliers.map(s => s.supplier_id === editingId ? supplierForm : s));
-            setIsEditMode(false);
-            setEditingId(null);
-            setEditingType(null);
-            setIsAddSupplierOpen(false);
+    const handleSaveEdit = async () => {
+        try {
+            if (editingType === 'category' && categoryForm.name.trim()) {
+                const updatedCategory = await inventoryService.updateCategory(editingId, categoryForm);
+                setCategories(categories.map(c => c.category_id === editingId ? updatedCategory : c));
+                setIsEditMode(false);
+                setEditingId(null);
+                setEditingType(null);
+                setIsAddCategoryOpen(false);
+            } else if (editingType === 'brand' && brandForm.name.trim()) {
+                const updatedBrand = await inventoryService.updateBrand(editingId, brandForm);
+                setBrands(brands.map(b => b.brand_id === editingId ? updatedBrand : b));
+                setIsEditMode(false);
+                setEditingId(null);
+                setEditingType(null);
+                setIsAddBrandOpen(false);
+            } else if (editingType === 'supplier' && supplierForm.name.trim()) {
+                const updatedSupplier = await inventoryService.updateSupplier(editingId, supplierForm);
+                setSuppliers(suppliers.map(s => s.supplier_id === editingId ? updatedSupplier : s));
+                setIsEditMode(false);
+                setEditingId(null);
+                setEditingType(null);
+                setIsAddSupplierOpen(false);
+            }
+        } catch (err) {
+            console.error('Error updating:', err);
+            alert('Failed to update');
         }
     };
 
@@ -243,7 +320,15 @@ const InventorySystem = () => {
                     batches={batches}
                 />;
             case 'add-item':
-                return <AddItemScreen setActiveScreen={setActiveScreen} />;
+                return <AddItemScreen 
+                    setActiveScreen={setActiveScreen}
+                    categories={categories}
+                    brands={brands}
+                    onSaved={(createdItem) => {
+                        setItems([...items, createdItem]);
+                        setActiveScreen('item-list');
+                    }}
+                />;
             case 'stock-overview':
                 return <StockOverviewScreen
                     items={items}
@@ -454,7 +539,15 @@ const InventorySystem = () => {
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)}></div>
                     <div className="relative bg-white rounded-lg shadow-lg w-full max-w-full sm:max-w-2xl md:max-w-3xl mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
                         <div className="p-4 sm:p-6">
-                            <AddItemScreen onClose={() => setIsAddModalOpen(false)} setActiveScreen={setActiveScreen} />
+                            <AddItemScreen 
+                                onClose={() => setIsAddModalOpen(false)} 
+                                setActiveScreen={setActiveScreen}
+                                categories={categories}
+                                brands={brands}
+                                onSaved={(createdItem) => {
+                                    setItems([...items, createdItem]);
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
@@ -565,7 +658,25 @@ const InventorySystem = () => {
 
                                     <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
                                         <button onClick={() => { setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-                                        <button onClick={() => { if (!brandForm.name) { alert('Please fill required fields'); return; } setBrands([...brands, { ...brandForm, brand_id: Math.max(...brands.map(b => b.brand_id), 0) + 1, created_at: new Date().toISOString().split('T')[0] }]); setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true }); }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">Save Brand</button>
+                                        <button onClick={async () => { 
+                                            if (!brandForm.name) { 
+                                                alert('Please fill required fields'); 
+                                                return; 
+                                            }
+                                            if (isEditMode) {
+                                                await handleSaveEdit();
+                                            } else {
+                                                try {
+                                                    const createdBrand = await inventoryService.createBrand(brandForm);
+                                                    setBrands([...brands, createdBrand]);
+                                                    setIsAddBrandOpen(false);
+                                                    setBrandForm({ brand_id: '', name: '', description: '', is_active: true });
+                                                } catch (err) {
+                                                    console.error('Error creating brand:', err);
+                                                    alert('Failed to create brand');
+                                                }
+                                            }
+                                        }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">{isEditMode ? 'Save Changes' : 'Save Brand'}</button>
                                     </div>
                                 </div>
 
@@ -645,8 +756,26 @@ const InventorySystem = () => {
                                         <button onClick={() => { setIsAddSupplierOpen(false); setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                                             Cancel
                                         </button>
-                                        <button onClick={() => { if (!supplierForm.code || !supplierForm.name) { alert('Please fill required fields'); return; } setSuppliers([...suppliers, { ...supplierForm, supplier_id: Math.max(...suppliers.map(s => s.supplier_id), 0) + 1 }]); setIsAddSupplierOpen(false); setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false }); }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">
-                                            Save Supplier
+                                        <button onClick={async () => { 
+                                            if (!supplierForm.code || !supplierForm.name) { 
+                                                alert('Please fill required fields'); 
+                                                return; 
+                                            }
+                                            if (isEditMode) {
+                                                await handleSaveEdit();
+                                            } else {
+                                                try {
+                                                    const createdSupplier = await inventoryService.createSupplier(supplierForm);
+                                                    setSuppliers([...suppliers, createdSupplier]);
+                                                    setIsAddSupplierOpen(false);
+                                                    setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false });
+                                                } catch (err) {
+                                                    console.error('Error creating supplier:', err);
+                                                    alert('Failed to create supplier');
+                                                }
+                                            }
+                                        }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">
+                                            {isEditMode ? 'Save Changes' : 'Save Supplier'}
                                         </button>
                                     </div>
                                 </div>

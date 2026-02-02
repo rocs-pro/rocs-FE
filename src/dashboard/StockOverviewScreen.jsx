@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, TrendingUp, AlertTriangle, Calendar, Download } from 'lucide-react';
 import { getStatusColor } from '../utils/helpers';
+import storeService from '../services/storeService';
 
 const StockOverviewScreen = ({
     items,
@@ -13,6 +14,23 @@ const StockOverviewScreen = ({
     stockFilterDate,
     setStockFilterDate
 }) => {
+    const [stockOverview, setStockOverview] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadStockOverview = async () => {
+            try {
+                const overview = await storeService.getStockOverview();
+                setStockOverview(overview);
+            } catch (err) {
+                console.error('Error loading stock overview:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadStockOverview();
+    }, []);
+
     const filteredItems = items.filter(item => {
         if (stockFilterCategory && item.category_id !== parseInt(stockFilterCategory)) return false;
         // Note: Items don't have branch_id directly, this would need batch/warehouse data to filter properly
@@ -20,10 +38,10 @@ const StockOverviewScreen = ({
         return true;
     });
 
-    const lowStockItems = filteredItems.filter(i => i.reorder_level && i.reorder_level > 0).length;
-    const outOfStockItems = 0;
-    const expiringItems = 0;
-    const totalValue = filteredItems.reduce((sum, i) => sum + (i.selling_price || 0), 0);
+    const lowStockItems = stockOverview?.low_stock_count || filteredItems.filter(i => i.reorder_level && i.reorder_level > 0).length;
+    const outOfStockItems = stockOverview?.out_of_stock_count || 0;
+    const expiringItems = stockOverview?.expiring_soon_count || 0;
+    const totalValue = stockOverview?.total_stock_value || filteredItems.reduce((sum, i) => sum + (i.selling_price || 0), 0);
 
     return (
         <div className="space-y-6">

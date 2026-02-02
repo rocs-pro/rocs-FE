@@ -1,32 +1,73 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import storeService from '../services/storeService';
 
 const StockTransferCreateScreen = ({
     transferForm,
     setTransferForm,
-    transfers,
+    transfers: initialTransfers,
     setTransfers,
     branches,
     items,
     batches
 }) => {
-    const handleCreateTransfer = () => {
+    const [transfers, setLocalTransfers] = useState(initialTransfers || []);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const loadTransfers = async () => {
+            try {
+                const transferData = await storeService.getTransfers();
+                setLocalTransfers(transferData);
+                if (setTransfers) setTransfers(transferData);
+            } catch (err) {
+                console.error('Error loading transfers:', err);
+            }
+        };
+        loadTransfers();
+    }, []);
+
+    const handleCreateTransfer = async (submit = false) => {
         if (transferForm.fromBranch && transferForm.toBranch && transferForm.product_id && transferForm.quantity) {
-            const item = items.find(i => i.product_id === parseInt(transferForm.product_id));
-            const batch = batches.find(b => b.batch_id === parseInt(transferForm.batch_id));
-            const newTransfer = {
-                id: `TRF${Date.now()}`,
-                fromBranch: transferForm.fromBranch,
-                toBranch: transferForm.toBranch,
-                product_name: item?.name || '',
-                quantity: parseInt(transferForm.quantity),
-                batch_code: batch?.batch_code || '',
-                date: transferForm.transferDate || new Date().toISOString().split('T')[0],
-                remarks: transferForm.remarks,
-                status: 'Draft',
-                requestedBy: 'Current User'
-            };
-            setTransfers([...transfers, newTransfer]);
-            setTransferForm({ fromBranch: '', toBranch: '', product_id: '', quantity: '', batch_id: '', transferDate: '', remarks: '', status: 'Draft' });
+            setLoading(true);
+            try {
+                const item = items.find(i => i.product_id === parseInt(transferForm.product_id));
+                const batch = batches.find(b => b.batch_id === parseInt(transferForm.batch_id));
+                
+                const payload = {
+                    from_branch: transferForm.fromBranch,
+                    to_branch: transferForm.toBranch,
+                    product_id: parseInt(transferForm.product_id),
+                    batch_id: transferForm.batch_id ? parseInt(transferForm.batch_id) : null,
+                    quantity: parseInt(transferForm.quantity),
+                    transfer_date: transferForm.transferDate || new Date().toISOString().split('T')[0],
+                    remarks: transferForm.remarks,
+                    transfer_status: submit ? 'PENDING' : 'DRAFT'
+                };
+
+                const createdTransfer = await storeService.createTransfer(payload);
+                
+                const newTransfer = {
+                    ...createdTransfer,
+                    product_name: item?.name || '',
+                    batch_code: batch?.batch_code || '',
+                    requestedBy: 'Current User'
+                };
+                
+                const updatedTransfers = [...transfers, newTransfer];
+                setLocalTransfers(updatedTransfers);
+                if (setTransfers) setTransfers(updatedTransfers);
+                
+                setTransferForm({ fromBranch: '', toBranch: '', product_id: '', quantity: '', batch_id: '', transferDate: '', remarks: '', status: 'Draft' });
+                
+                if (submit) {
+                    alert('Transfer submitted for approval');
+                }
+            } catch (err) {
+                console.error('Error creating transfer:', err);
+                alert('Failed to create transfer');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -86,8 +127,8 @@ const StockTransferCreateScreen = ({
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={handleCreateTransfer} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save as Draft</button>
-                    <button onClick={() => { handleCreateTransfer(); alert('Transfer submitted for approval'); }} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Submit</button>
+                    <button onClick={() => handleCreateTransfer(false)} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Saving...' : 'Save as Draft'}</button>
+                    <button onClick={() => handleCreateTransfer(true)} disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Submitting...' : 'Submit'}</button>
                 </div>
             </div>
 

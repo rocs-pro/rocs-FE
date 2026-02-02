@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import InventorySystem from '../inventory/InventorySystem';
 
 const Dashboard = () => {
+    console.log('[Dashboard] Component mounted - Rendering InventorySystem');
+    
     return (
         <Routes>
             <Route path="inventory" element={<InventorySystem />} />

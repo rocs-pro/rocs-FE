@@ -1,7 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getStatusColor } from '../utils/helpers';
+import storeService from '../services/storeService';
 
-const TransferApprovalScreen = ({ stockTransfers, branches }) => {
+const TransferApprovalScreen = ({ stockTransfers: initialTransfers, branches }) => {
+    const [stockTransfers, setStockTransfers] = useState(initialTransfers || []);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadPendingTransfers();
+    }, []);
+
+    const loadPendingTransfers = async () => {
+        try {
+            const transfers = await storeService.getPendingTransfers();
+            setStockTransfers(transfers);
+        } catch (err) {
+            console.error('Error loading pending transfers:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleApprove = async (transferId) => {
+        try {
+            await storeService.approveTransfer(transferId);
+            await loadPendingTransfers();
+            alert('Transfer approved successfully');
+        } catch (err) {
+            console.error('Error approving transfer:', err);
+            alert('Failed to approve transfer');
+        }
+    };
+
+    const handleReject = async (transferId) => {
+        const reason = prompt('Enter rejection reason:');
+        if (!reason) return;
+        
+        try {
+            await storeService.rejectTransfer(transferId, reason);
+            await loadPendingTransfers();
+            alert('Transfer rejected');
+        } catch (err) {
+            console.error('Error rejecting transfer:', err);
+            alert('Failed to reject transfer');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -41,10 +85,10 @@ const TransferApprovalScreen = ({ stockTransfers, branches }) => {
                                 <td className="px-6 py-4 text-right">
                                     {transfer.status === 'Pending' && (
                                         <div className="flex items-center justify-end gap-2">
-                                            <button className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700">
+                                            <button onClick={() => handleApprove(transfer.transfer_id || transfer.id)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700">
                                                 Approve
                                             </button>
-                                            <button className="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+                                            <button onClick={() => handleReject(transfer.transfer_id || transfer.id)} className="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700">
                                                 Reject
                                             </button>
                                         </div>

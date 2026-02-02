@@ -1,13 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download } from 'lucide-react';
 import { getStatusColor } from '../utils/helpers';
+import storeService from '../services/storeService';
 
 const BatchWiseStockScreen = ({
-    batches,
+    batches: initialBatches,
     items,
     batchFilterItem,
     setBatchFilterItem
 }) => {
+    const [batches, setBatches] = useState(initialBatches || []);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadBatches = async () => {
+            try {
+                const batchData = await storeService.getBatches();
+                setBatches(batchData);
+            } catch (err) {
+                console.error('Error loading batches:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadBatches();
+    }, []);
+
     const today = new Date('2026-01-11');
     const thirtyDaysLater = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 

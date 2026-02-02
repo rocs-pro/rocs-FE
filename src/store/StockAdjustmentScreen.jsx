@@ -1,30 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import storeService from '../services/storeService';
 
 const StockAdjustmentScreen = ({
     adjustmentForm,
     setAdjustmentForm,
-    adjustments,
+    adjustments: initialAdjustments,
     setAdjustments,
     items,
     batches
 }) => {
-    const handleAddAdjustment = () => {
+    const [adjustments, setLocalAdjustments] = useState(initialAdjustments || []);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const loadAdjustments = async () => {
+            try {
+                const adjustmentData = await storeService.getAdjustments();
+                setLocalAdjustments(adjustmentData);
+                if (setAdjustments) setAdjustments(adjustmentData);
+            } catch (err) {
+                console.error('Error loading adjustments:', err);
+            }
+        };
+        loadAdjustments();
+    }, []);
+
+    const handleAddAdjustment = async () => {
         if (adjustmentForm.itemId && adjustmentForm.currentQty && adjustmentForm.physicalQty) {
-            const item = items.find(i => i.product_id === parseInt(adjustmentForm.itemId));
-            const batch = batches.find(b => b.batch_id === parseInt(adjustmentForm.batchId));
-            const newAdj = {
-                id: `ADJ${Date.now()}`,
-                itemName: item?.name || '',
-                batchNumber: batch?.batch_code || '',
-                previousQty: parseInt(adjustmentForm.currentQty),
-                currentQty: parseInt(adjustmentForm.physicalQty),
-                adjustmentType: adjustmentForm.adjustmentType,
-                reason: adjustmentForm.reason,
-                approvedBy: adjustmentForm.approvedBy,
-                date: new Date().toISOString().split('T')[0]
-            };
-            setAdjustments([...adjustments, newAdj]);
-            setAdjustmentForm({ itemId: '', batchId: '', currentQty: '', physicalQty: '', adjustmentType: 'Increase', reason: 'Audit', approvedBy: '' });
+            setLoading(true);
+            try {
+                const item = items.find(i => i.product_id === parseInt(adjustmentForm.itemId));
+                const batch = batches.find(b => b.batch_id === parseInt(adjustmentForm.batchId));
+                
+                const payload = {
+                    product_id: parseInt(adjustmentForm.itemId),
+                    batch_id: adjustmentForm.batchId ? parseInt(adjustmentForm.batchId) : null,
+                    adjustment_type: adjustmentForm.adjustmentType,
+                    quantity_change: parseInt(adjustmentForm.physicalQty) - parseInt(adjustmentForm.currentQty),
+                    reason_code: adjustmentForm.reason,
+                    notes: `Approved by ${adjustmentForm.approvedBy}`,
+                    approved_by: adjustmentForm.approvedBy
+                };
+
+                const createdAdjustment = await storeService.createAdjustment(payload);
+                
+                const newAdj = {
+                    ...createdAdjustment,
+                    itemName: item?.name || '',
+                    batchNumber: batch?.batch_code || '',
+                    previousQty: parseInt(adjustmentForm.currentQty),
+                    currentQty: parseInt(adjustmentForm.physicalQty)
+                };
+                
+                const updatedAdjustments = [...adjustments, newAdj];
+                setLocalAdjustments(updatedAdjustments);
+                if (setAdjustments) setAdjustments(updatedAdjustments);
+                
+                setAdjustmentForm({ itemId: '', batchId: '', currentQty: '', physicalQty: '', adjustmentType: 'Increase', reason: 'Audit', approvedBy: '' });
+            } catch (err) {
+                console.error('Error creating adjustment:', err);
+                alert('Failed to create adjustment');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -82,7 +120,7 @@ const StockAdjustmentScreen = ({
                         <input value={adjustmentForm.approvedBy} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, approvedBy: e.target.value })} type="text" placeholder="Enter name" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                     </div>
                 </div>
-                <button onClick={handleAddAdjustment} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add Adjustment</button>
+                <button onClick={handleAddAdjustment} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Creating...' : 'Add Adjustment'}</button>
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">

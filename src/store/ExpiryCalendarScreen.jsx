@@ -1,6 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import storeService from '../services/storeService';
 
-const ExpiryCalendarScreen = ({ batches }) => {
+const ExpiryCalendarScreen = ({ batches: initialBatches }) => {
+    const [batches, setBatches] = useState(initialBatches || []);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadExpiryData = async () => {
+            try {
+                // Get expiring products for the next 90 days
+                const startDate = new Date().toISOString().split('T')[0];
+                const endDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                const expiryData = await storeService.getExpiryCalendar(startDate, endDate);
+                setBatches(expiryData);
+            } catch (err) {
+                console.error('Error loading expiry data:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadExpiryData();
+    }, []);
+
     const today = new Date('2026-01-11');
     const monthDates = {};
 

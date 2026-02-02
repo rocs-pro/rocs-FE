@@ -1,29 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import storeService from '../services/storeService';
 
 const DamageEntryScreen = ({
     damageForm,
     setDamageForm,
-    damageEntries,
+    damageEntries: initialDamageEntries,
     setDamageEntries,
     items,
     batches
 }) => {
-    const handleAddDamage = () => {
+    const [damageEntries, setLocalDamageEntries] = useState(initialDamageEntries || []);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const loadDamages = async () => {
+            try {
+                const damageData = await storeService.getDamages();
+                setLocalDamageEntries(damageData);
+                if (setDamageEntries) setDamageEntries(damageData);
+            } catch (err) {
+                console.error('Error loading damages:', err);
+            }
+        };
+        loadDamages();
+    }, []);
+
+    const handleAddDamage = async () => {
         if (damageForm.product_id && damageForm.quantity && damageForm.reason) {
-            const item = items.find(i => i.product_id === damageForm.product_id);
-            const batch = batches.find(b => b.batch_id === damageForm.batch_id);
-            const newDmg = {
-                id: `DMG${Date.now()}`,
-                product_id: damageForm.product_id,
-                product_name: item?.name || '',
-                batch_code: batch?.batch_code || '',
-                quantity: parseInt(damageForm.quantity),
-                reason: damageForm.reason,
-                date: damageForm.date || new Date().toISOString().split('T')[0],
-                note: damageForm.note
-            };
-            setDamageEntries([...damageEntries, newDmg]);
-            setDamageForm({ product_id: '', batch_id: '', quantity: '', reason: '', date: '', note: '' });
+            setLoading(true);
+            try {
+                const item = items.find(i => i.product_id === parseInt(damageForm.product_id));
+                const batch = batches.find(b => b.batch_id === parseInt(damageForm.batch_id));
+                
+                const payload = {
+                    product_id: parseInt(damageForm.product_id),
+                    batch_id: damageForm.batch_id ? parseInt(damageForm.batch_id) : null,
+                    damage_quantity: parseInt(damageForm.quantity),
+                    damage_type: damageForm.reason,
+                    notes: damageForm.note,
+                    damage_date: damageForm.date || new Date().toISOString().split('T')[0]
+                };
+
+                const createdDamage = await storeService.createDamage(payload);
+                
+                const newDmg = {
+                    ...createdDamage,
+                    product_name: item?.name || '',
+                    batch_code: batch?.batch_code || ''
+                };
+                
+                const updatedDamages = [...damageEntries, newDmg];
+                setLocalDamageEntries(updatedDamages);
+                if (setDamageEntries) setDamageEntries(updatedDamages);
+                
+                setDamageForm({ product_id: '', batch_id: '', quantity: '', reason: '', date: '', note: '' });
+            } catch (err) {
+                console.error('Error creating damage entry:', err);
+                alert('Failed to create damage entry');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -77,7 +113,7 @@ const DamageEntryScreen = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">Supporting Note</label>
                     <textarea value={damageForm.note} onChange={(e) => setDamageForm({ ...damageForm, note: e.target.value })} placeholder="Enter details..." className="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="2"></textarea>
                 </div>
-                <button onClick={handleAddDamage} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Log Damage Entry</button>
+                <button onClick={handleAddDamage} disabled={loading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Creating...' : 'Log Damage Entry'}</button>
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
