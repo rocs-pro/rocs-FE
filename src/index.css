@@ -7,5 +7,132 @@
 @layer base {
   body {
     @apply bg-brand-bg text-brand-text;
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text;
+  }
+}
+@layer base {
+  html {
+    font-family: theme("fontFamily.sans");
+  }
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+
+/* Futuristic button animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(37, 99, 235, 0.3), inset 0 0 5px rgba(37, 99, 235, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.6), inset 0 0 10px rgba(37, 99, 235, 0.2);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.add-button-futuristic {
+  position: relative;
+  overflow: hidden;
+  animation: pulse-glow 2.5s ease-in-out infinite, float 3s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent) !important;
+  background-size: 1000px 100%;
+  color: white;
+  text-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+}
+
+.add-button-futuristic:hover {
+  animation: pulse-glow 1.5s ease-in-out infinite, float 2s ease-in-out infinite, shimmer 0.6s ease-in-out;
+  text-shadow: 0 0 12px rgba(37, 99, 235, 0.8);
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Button Hover Animations */
+@layer components {
+  .btn-hover-scale {
+    @apply active:animate-button-scale transition-all;
+  }
+
+  .btn-hover-lift {
+    @apply hover:-translate-y-1 active:translate-y-0 transition-all duration-200;
+  }
+
+  .btn-hover-glow {
+    @apply hover:shadow-lg active:shadow-md transition-all duration-200;
+  }
+
+  .btn-interactive {
+    @apply hover:scale-105 active:scale-95 transition-transform duration-200;
+  }
+
+  /* Sidebar Item Animations */
+  .sidebar-item-hover {
+    @apply hover:translate-x-1 hover:shadow-md transition-all duration-200;
+  }
+  
+  .sidebar-section-hover {
+    @apply hover:translate-x-0.5 transition-all duration-200;
+  }
+
+  /* Modal Backdrop Blur */
+  .modal-blur-overlay {
+    @apply animate-modal-blur;
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 z-40 animate-modal-blur;
+    background-color: rgb(0 0 0 / 0.4);
   }
 }
