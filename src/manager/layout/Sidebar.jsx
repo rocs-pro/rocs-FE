@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutGrid,
   CheckCircle,
@@ -10,78 +10,130 @@ import {
   TrendingUp,
   Users,
   FileText,
+  LogOut,
+  Package,
+  Monitor
 } from "lucide-react";
 
 const base =
   "flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition";
-const active = "bg-brand-primary text-white";
+const activeClass = "bg-blue-600 text-white";
 
-const NavItemLink = ({ to, icon: Icon, label, isActive }) => (
-  <NavLink to={to} className={({ isActive: active }) => `${base} ${active ? active : ""}`}>
+const NavItemLink = ({ to, icon: Icon, label, end = false }) => (
+  <NavLink 
+    to={to} 
+    end={end}
+    className={({ isActive }) => `${base} ${isActive ? activeClass : ""}`}
+  >
     <Icon size={20} className="shrink-0" />
     <span className="truncate">{label}</span>
   </NavLink>
 );
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+  
+  // Get user info from localStorage
+  const userStr = localStorage.getItem('user');
+  let userName = 'User';
+  let userRole = 'Staff';
+  let branchName = 'Branch';
+  
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      userName = user.username || user.name || 'User';
+      userRole = user.role || user.userRole || 'Staff';
+      branchName = user.branchName || 'Main Branch';
+    } catch (e) {
+      console.error('Error parsing user:', e);
+    }
+  }
+  
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+  
+  const goToPOS = () => navigate('/pos');
+  const goToInventory = () => navigate('/inventory');
+
   return (
-    <aside className="w-60 shrink-0 bg-brand-sidebar text-white h-screen flex flex-col min-h-0">
+    <aside className="w-60 shrink-0 bg-slate-900 text-white h-screen flex flex-col min-h-0">
       {/* Header */}
       <div className="p-5 mb-2">
         <div className="text-xl font-extrabold tracking-wide">
           Smart Retail <span className="text-green-500">Pro</span>
         </div>
-        <div className="text-xs text-slate-300">
-          Manager Dashboard • Colombo Main
+        <div className="text-xs text-slate-400 mt-1">
+          {userRole === 'ADMIN' ? 'Admin Dashboard' : 'Manager Dashboard'}
         </div>
       </div>
 
+      {/* Quick Access Buttons */}
+      <div className="px-5 mb-4 grid grid-cols-2 gap-2">
+        <button 
+          onClick={goToPOS}
+          className="flex items-center justify-center gap-2 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition"
+        >
+          <Monitor size={16} /> POS
+        </button>
+        <button 
+          onClick={goToInventory}
+          className="flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition"
+        >
+          <Package size={16} /> Inventory
+        </button>
+      </div>
+
       {/* Scroll Area */}
-      <nav className="sidebar-scroll space-y-2 flex-1 min-h-0 overflow-y-auto px-5">
-        <NavItemLink to="/manager" end icon={LayoutGrid} label="Overview" />
+      <nav className="sidebar-scroll space-y-1 flex-1 min-h-0 overflow-y-auto px-4">
+        <NavItemLink to="/dashboard" end icon={LayoutGrid} label="Overview" />
 
-        <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Operations</div>
+        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Operations</div>
 
-        <NavItemLink to="/manager/approvals" icon={CheckCircle} label="Approvals" />
-        <NavItemLink to="/manager/branch-activity" icon={Activity} label="Branch Activity Log" />
+        <NavItemLink to="/dashboard/approvals" icon={CheckCircle} label="Approvals" />
+        <NavItemLink to="/dashboard/branch-activity" icon={Activity} label="Branch Activity" />
 
-        <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Sales</div>
+        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Sales</div>
 
-        <NavItemLink to="/manager/sales" icon={ShoppingCart} label="Sales" />
-        <NavItemLink to="/manager/sales-reports" icon={BarChart3} label="Sales Reports" />
+        <NavItemLink to="/dashboard/sales" icon={ShoppingCart} label="Sales" />
+        <NavItemLink to="/dashboard/sales-reports" icon={BarChart3} label="Sales Reports" />
 
-        <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Accounting</div>
+        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Accounting</div>
 
-        <NavItemLink to="/manager/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
-        <NavItemLink to="/manager/journal-entry" icon={PenTool} label="Journal Entry" />
-        <NavItemLink to="/manager/profit-loss" icon={TrendingUp} label="Profit & Loss" />
+        <NavItemLink to="/dashboard/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
+        <NavItemLink to="/dashboard/journal-entry" icon={PenTool} label="Journal Entry" />
+        <NavItemLink to="/dashboard/profit-loss" icon={TrendingUp} label="Profit & Loss" />
 
-        <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Staff</div>
+        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Staff</div>
 
-        <NavItemLink to="/manager/staff" icon={Users} label="Staff" />
+        <NavItemLink to="/dashboard/staff" icon={Users} label="Staff" />
 
-        <div className="pt-3 text-xs uppercase tracking-wider text-slate-400">Reports</div>
+        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Reports</div>
 
-        <NavItemLink to="/manager/reports" icon={FileText} label="Other Reports" />
+        <NavItemLink to="/dashboard/reports" icon={FileText} label="Other Reports" />
       </nav>
 
-      {/* Footer */}
-      <div className="p-5 border-t border-slate-700">
+      {/* Footer - User Info & Logout */}
+      <div className="p-4 border-t border-slate-700">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-xl bg-brand-secondary grid place-items-center font-bold">
-            M
+          <div className="w-10 h-10 rounded-xl bg-blue-600 grid place-items-center font-bold text-lg">
+            {userName.charAt(0).toUpperCase()}
           </div>
-          <div className="min-w-0">
-            <div className="font-bold leading-4 truncate">Branch Manager</div>
-            <div className="text-xs text-slate-300 truncate">Colombo Main</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold leading-5 truncate">{userName}</div>
+            <div className="text-xs text-slate-400 truncate">{userRole}</div>
           </div>
         </div>
 
         <button
           type="button"
-          className="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition"
-          onClick={() => alert("Hook this to your logout later")}
+          className="w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-700 transition flex items-center justify-center gap-2 font-medium"
+          onClick={handleLogout}
         >
+          <LogOut size={18} />
           Logout
         </button>
       </div>

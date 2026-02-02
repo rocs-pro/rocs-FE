@@ -55,14 +55,25 @@ export default function Login() {
         localStorage.setItem('user', JSON.stringify(data));
         
         // --- ROLE BASED REDIRECT LOGIC ---
-        // We check data.role directly because your Java DTO puts it at the top level
-        const role = data.role; 
+        const role = (data.role || data.userRole || '').toUpperCase();
+        console.log('Login successful. Role:', role);
 
-        if (role === 'ADMIN' || role === 'BRANCH_MANAGER') {
+        switch (role) {
+          case 'ADMIN':
+          case 'BRANCH_MANAGER':
+            // Admin and Branch Manager go to Control Dashboard
             navigate('/dashboard');
-        } else {
-            // Default for CASHIER or undefined roles
+            break;
+          case 'STOCK_KEEPER':
+            // Stock Keeper goes to Inventory
+            navigate('/inventory');
+            break;
+          case 'CASHIER':
+          case 'SUPERVISOR':
+          default:
+            // Cashier and Supervisor go to POS
             navigate('/pos');
+            break;
         }
       } else {
          setError("Login failed: No token received.");

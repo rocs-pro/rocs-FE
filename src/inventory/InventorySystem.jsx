@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Package, Plus, Search, Filter, Edit, Trash2, Printer,
     BarChart3, Tag, Box, Calendar, AlertTriangle, ArrowRightLeft,
     CheckCircle, FileText, TrendingUp, Clock, ChevronRight,
-    Download, Upload, RefreshCw, Archive, X
+    Download, Upload, RefreshCw, Archive, X, LogOut, Monitor, LayoutDashboard
 } from 'lucide-react';
 
 import ItemListScreen from './ItemListScreen';
@@ -28,8 +29,33 @@ import StockAgingScreen from '../reports/StockAgingScreen';
 import inventoryService from '../services/inventoryService';
 
 const InventorySystem = () => {
+    const navigate = useNavigate();
     const [activeScreen, setActiveScreen] = useState('item-list');
     const [currentTime, setCurrentTime] = useState(new Date());
+    
+    // Get user info
+    const userStr = localStorage.getItem('user');
+    let userName = 'User';
+    let userRole = 'Staff';
+    let branchName = 'Main Branch';
+    
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            userName = user.username || user.name || 'User';
+            userRole = user.role || user.userRole || 'Staff';
+            branchName = user.branchName || 'Main Branch';
+        } catch (e) {}
+    }
+    
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+    };
+    
+    const goToPOS = () => navigate('/pos');
+    const goToDashboard = () => navigate('/dashboard');
 
     React.useEffect(() => {
         const timer = setInterval(() => {
@@ -506,23 +532,57 @@ const InventorySystem = () => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className="h-14 bg-white border-b border-brand-border flex items-center justify-between px-5 gap-3 shrink-0">
+                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 gap-4 shrink-0 shadow-sm">
                     <div className="flex flex-col">
-                        <h1 className="font-extrabold leading-4 text-gray-900">Dashboard</h1>
-                        <span className="text-xs text-brand-muted mt-1">Colombo Main Branch</span>
+                        <h1 className="font-bold text-lg text-slate-800">Inventory Management</h1>
+                        <span className="text-xs text-slate-500">{branchName}</span>
                     </div>
+                    
+                    {/* Quick Nav Buttons */}
+                    <div className="flex items-center gap-2">
+                        {(userRole === 'ADMIN' || userRole === 'BRANCH_MANAGER') && (
+                            <button 
+                                onClick={goToDashboard}
+                                className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition"
+                            >
+                                <LayoutDashboard size={16} className="text-slate-600" />
+                                <span className="hidden sm:inline text-slate-700">Dashboard</span>
+                            </button>
+                        )}
+                        <button 
+                            onClick={goToPOS}
+                            className="flex items-center gap-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg text-sm font-medium transition"
+                        >
+                            <Monitor size={16} className="text-green-600" />
+                            <span className="hidden sm:inline text-green-700">POS</span>
+                        </button>
+                    </div>
+                    
                     <div className="flex items-center gap-3">
-                        <div className="px-3 py-1 bg-slate-100 rounded text-xs font-medium text-gray-600">
+                        <div className="hidden md:flex px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
                             {currentTime.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded text-xs font-medium text-gray-600">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
                             <Clock size={14} />
                             <span className="font-mono">
                                 {currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </span>
                         </div>
-                        <button className="px-3 py-1 bg-brand-primary hover:bg-brand-secondary text-white text-xs rounded transition-colors shadow-sm btn-hover-scale btn-interactive">
-                            Logout
+                        
+                        {/* User Info */}
+                        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                                {userName.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="text-sm font-medium text-blue-700">{userName}</span>
+                        </div>
+                        
+                        <button 
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg transition-colors font-medium"
+                        >
+                            <LogOut size={14} />
+                            <span className="hidden sm:inline">Logout</span>
                         </button>
                     </div>
                 </header>
