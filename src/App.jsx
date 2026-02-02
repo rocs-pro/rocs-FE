@@ -1,3 +1,8 @@
+import AppRouter from "./AppRouter.jsx";
+
+export default function App() {
+  return <AppRouter />;
+}
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Layout

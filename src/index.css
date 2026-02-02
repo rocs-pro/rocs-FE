@@ -1,6 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Optional: keep a nice default font + background */
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text;
 @layer base {
   body {
     @apply bg-brand-bg text-brand-text;
