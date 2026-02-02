@@ -64,7 +64,7 @@ export default function Login() {
             // Admin and Branch Manager go to Control Dashboard
             navigate('/dashboard');
             break;
-          case 'STOCK_KEEPER':
+          case 'STORE_KEEPER':
             // Stock Keeper goes to Inventory
             navigate('/inventory');
             break;

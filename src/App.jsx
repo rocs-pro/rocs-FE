@@ -80,7 +80,7 @@ function getRoleDefaultRoute(role) {
     case 'ADMIN':
     case 'BRANCH_MANAGER':
       return '/dashboard';
-    case 'STOCK_KEEPER':
+    case 'STORE_KEEPER':
       return '/inventory';
     case 'CASHIER':
     case 'SUPERVISOR':
@@ -113,11 +113,11 @@ export default function App() {
           } 
         />
         
-        {/* ========== INVENTORY (Stock Keeper, Admin, Manager) ========== */}
+        {/* ========== INVENTORY (Store Keeper, Admin, Manager) ========== */}
         <Route 
           path="/inventory/*" 
           element={
-            <ProtectedRoute allowedRoles={['STOCK_KEEPER', 'ADMIN', 'BRANCH_MANAGER']}>
+            <ProtectedRoute allowedRoles={['STORE_KEEPER', 'ADMIN', 'BRANCH_MANAGER']}>
               <InventorySystem />
             </ProtectedRoute>
           } 
