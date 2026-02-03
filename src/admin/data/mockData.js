@@ -2,10 +2,10 @@
 
 // ===== Admin overview widgets =====
 export const stats = [
-  { title: "Today's Sales", value: "LKR 450,230" },
-  { title: "Pending GRNs", value: "3 Orders" },
-  { title: "Low Stock Alerts", value: "12 SKUs" },
-  { title: "Active Staff", value: "8 / 10" },
+  { title: "Total Sales Today", value: "LKR 450,230" },
+  { title: "Total Transactions", value: "320" },
+  { title: "Total Customers Served", value: "280" },
+  { title: "Total Revenue (Month)", value: "LKR 8,200,000" },
 ];
 
 export const weeklySales = [120, 180, 150, 220, 200, 260, 350];
@@ -17,13 +17,41 @@ export const categoryMix = [
   { name: "Household", value: 15 },
 ];
 
+export const kpiStats = [
+  { title: "Today’s Sales", value: "LKR 450,230", abnormal: false, icon: "💰" },
+  { title: "Transactions Count", value: "320", abnormal: false, icon: "🧾" },
+  { title: "Net Profit", value: "LKR 120,000", abnormal: false, icon: "📈" },
+  { title: "Refunds / Voids", value: "12", abnormal: true, icon: "🔄" },
+  { title: "Active Branches", value: "3", abnormal: false, icon: "🏪" },
+  { title: "Online Terminals", value: "5", abnormal: false, icon: "🖥" },
+];
+
+export const alerts = [
+  { type: "Low stock items", value: 7, abnormal: true, icon: "🔴" },
+  { type: "Offline terminals", value: 2, abnormal: true, icon: "🖥" },
+  { type: "Locked users", value: 1, abnormal: true, icon: "👤" },
+  { type: "Excessive refunds today", value: 12, abnormal: true, icon: "🚨" },
+  { type: "Branches pending activation", value: 1, abnormal: true, icon: "⚠" },
+];
+
+export const paymentMethods = [
+  { method: "Cash", value: 180 },
+  { method: "Card", value: 90 },
+  { method: "QR", value: 50 },
+];
+
+export const branchSnapshot = [
+  { name: "Colombo Main", sales: 250000, terminals: 3, status: "Active" },
+  { name: "Kandy", sales: 120000, terminals: 2, status: "Active" },
+  { name: "Galle", sales: 80000, terminals: 1, status: "Inactive" },
+];
+
 // SKU-level stock alerts (used by widgets)
 export const stockAlerts = [
   { item: "Rice 5kg", qty: 3, level: "Critical" },
   { item: "Sugar 1kg", qty: 2, level: "Warning" },
   { item: "Milk Powder", qty: 1, level: "Critical" },
 ];
-
 
 // ===== Admin governance data =====
 
@@ -111,5 +139,35 @@ export const seedActivity = [
     type: "Login",
     action: "Login attempt: Failed (POS-02)",
     severity: "Warning",
+  },
+  {
+    id: "A-004",
+    time: "2026-02-04 09:10",
+    actor: "admin",
+    action: "Branch Galle activated by Admin",
+  },
+  {
+    id: "A-005",
+    time: "2026-02-04 09:12",
+    actor: "admin",
+    action: "Price updated for Item #102",
+  },
+  {
+    id: "A-006",
+    time: "2026-02-04 09:15",
+    actor: "manager",
+    action: "Refund approved – Bill #8892",
+  },
+  {
+    id: "A-007",
+    time: "2026-02-04 09:18",
+    actor: "system",
+    action: "Terminal T-04 went offline",
+  },
+  {
+    id: "A-008",
+    time: "2026-02-04 09:20",
+    actor: "admin",
+    action: "User kamal locked due to failed logins",
   },
 ];
