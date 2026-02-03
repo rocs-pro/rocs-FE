@@ -60,9 +60,12 @@ export default function Login() {
 
         switch (role) {
           case 'ADMIN':
+            // Admin goes to Admin Dashboard
+            navigate('/admin');
+            break;
           case 'BRANCH_MANAGER':
-            // Admin and Branch Manager go to Control Dashboard
-            navigate('/dashboard');
+            // Branch Manager goes to Manager Dashboard
+            navigate('/manager');
             break;
           case 'STORE_KEEPER':
             // Stock Keeper goes to Inventory

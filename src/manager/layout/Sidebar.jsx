@@ -89,31 +89,31 @@ export default function Sidebar() {
 
       {/* Scroll Area */}
       <nav className="sidebar-scroll space-y-1 flex-1 min-h-0 overflow-y-auto px-4">
-        <NavItemLink to="/dashboard" end icon={LayoutGrid} label="Overview" />
+        <NavItemLink to="/manager" end icon={LayoutGrid} label="Overview" />
 
         <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Operations</div>
 
-        <NavItemLink to="/dashboard/approvals" icon={CheckCircle} label="Approvals" />
-        <NavItemLink to="/dashboard/branch-activity" icon={Activity} label="Branch Activity" />
+        <NavItemLink to="/manager/approvals" icon={CheckCircle} label="Approvals" />
+        <NavItemLink to="/manager/branch-activity" icon={Activity} label="Branch Activity" />
 
         <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Sales</div>
 
-        <NavItemLink to="/dashboard/sales" icon={ShoppingCart} label="Sales" />
-        <NavItemLink to="/dashboard/sales-reports" icon={BarChart3} label="Sales Reports" />
+        <NavItemLink to="/manager/sales" icon={ShoppingCart} label="Sales" />
+        <NavItemLink to="/manager/sales-reports" icon={BarChart3} label="Sales Reports" />
 
         <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Accounting</div>
 
-        <NavItemLink to="/dashboard/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
-        <NavItemLink to="/dashboard/journal-entry" icon={PenTool} label="Journal Entry" />
-        <NavItemLink to="/dashboard/profit-loss" icon={TrendingUp} label="Profit & Loss" />
+        <NavItemLink to="/manager/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
+        <NavItemLink to="/manager/journal-entry" icon={PenTool} label="Journal Entry" />
+        <NavItemLink to="/manager/profit-loss" icon={TrendingUp} label="Profit & Loss" />
 
         <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Staff</div>
 
-        <NavItemLink to="/dashboard/staff" icon={Users} label="Staff" />
+        <NavItemLink to="/manager/staff" icon={Users} label="Staff" />
 
         <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Reports</div>
 
-        <NavItemLink to="/dashboard/reports" icon={FileText} label="Other Reports" />
+        <NavItemLink to="/manager/reports" icon={FileText} label="Other Reports" />
       </nav>
 
       {/* Footer - User Info & Logout */}

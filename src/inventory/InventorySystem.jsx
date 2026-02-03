@@ -55,7 +55,27 @@ const InventorySystem = () => {
     };
     
     const goToPOS = () => navigate('/pos');
-    const goToDashboard = () => navigate('/dashboard');
+    const goToDashboard = () => {
+        // Navigate to appropriate dashboard based on user role
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                const role = (user.role || user.userRole || '').toUpperCase();
+                if (role === 'ADMIN') {
+                    navigate('/admin');
+                } else if (role === 'BRANCH_MANAGER') {
+                    navigate('/manager');
+                } else {
+                    navigate('/pos'); // Default for others
+                }
+            } catch (e) {
+                navigate('/pos');
+            }
+        } else {
+            navigate('/login');
+        }
+    };
 
     React.useEffect(() => {
         const timer = setInterval(() => {

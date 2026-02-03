@@ -22,6 +22,9 @@ import ProfitLoss from './manager/pages/ProfitLoss';
 import Staff from './manager/pages/Staff';
 import OtherReports from './manager/pages/Reports';
 
+// Admin Dashboard
+import AdminDashboard from './admin/AdminDashboard';
+
 // =====================================================
 // PROTECTED ROUTE COMPONENT
 // =====================================================
@@ -78,8 +81,9 @@ const RoleBasedRedirect = () => {
 function getRoleDefaultRoute(role) {
   switch (role) {
     case 'ADMIN':
+      return '/admin';
     case 'BRANCH_MANAGER':
-      return '/dashboard';
+      return '/manager';
     case 'STORE_KEEPER':
       return '/inventory';
     case 'CASHIER':
@@ -123,11 +127,21 @@ export default function App() {
           } 
         />
         
-        {/* ========== MANAGER/ADMIN DASHBOARD ========== */}
+        {/* ========== ADMIN DASHBOARD ========== */}
         <Route 
-          path="/dashboard" 
+          path="/admin/*" 
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'BRANCH_MANAGER']}>
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* ========== MANAGER DASHBOARD ========== */}
+        <Route 
+          path="/manager" 
+          element={
+            <ProtectedRoute allowedRoles={['BRANCH_MANAGER']}>
               <ManagerLayout />
             </ProtectedRoute>
           }

@@ -1,5 +1,15 @@
+import { useNavigate } from "react-router-dom";
 import Clock from "../../shared/Clock";
+
 export default function Topbar() {
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+  
   return (
     <header className="h-14 bg-white border-b border-brand-border flex items-center justify-between px-5">
       <div>
@@ -14,8 +24,8 @@ export default function Topbar() {
         </span>
         <button
           type="button"
-          className="text-xs px-3 py-1 rounded-full bg-brand-primary text-white hover:bg-brand-secondary transition"
-          onClick={() => alert("Hook this to your logout later")}
+          className="text-xs px-3 py-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition"
+          onClick={handleLogout}
         >
           Logout
         </button>
