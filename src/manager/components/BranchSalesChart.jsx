@@ -4,11 +4,37 @@ const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function BranchSalesChart({ data = [] }) {
   // Ensure data is always an array and has at least some values
-  const safeData = Array.isArray(data) && data.length > 0 ? data : [0, 0, 0, 0, 0, 0, 0];
-  const chartData = safeData.map((value, i) => ({ day: days[i] || `D${i+1}`, sales: value || 0 }));
+  let safeData = [];
+  
+  if (Array.isArray(data) && data.length > 0) {
+    // If data is an array of numbers, use it directly
+    if (typeof data[0] === 'number') {
+      safeData = data;
+    } else if (data[0] && typeof data[0] === 'object') {
+      // If it's an array of objects, extract numeric values
+      safeData = data.map(item => (typeof item === 'number' ? item : item.value || 0));
+    }
+  } else if (data && typeof data === 'object' && !Array.isArray(data)) {
+    // If data is a single object (not an array), try to extract the value
+    if (typeof data.value === 'number') {
+      safeData = [data.value];
+    } else if (Array.isArray(data.data)) {
+      safeData = data.data;
+    }
+  }
+  
+  // Use default if no valid data found
+  if (safeData.length === 0) {
+    safeData = [0, 0, 0, 0, 0, 0, 0];
+  }
+  
+  const chartData = safeData.map((value, i) => ({ 
+    day: days[i] || `D${i+1}`, 
+    sales: typeof value === 'number' ? value : 0 
+  }));
 
   // Don't render chart if there's no valid data structure
-  const hasValidData = Array.isArray(data) && data.length > 0;
+  const hasValidData = safeData.length > 0 && safeData.some(v => v !== 0);
 
   return (
     <div className="bg-white border border-brand-border rounded-2xl shadow-sm p-5">
@@ -20,13 +46,13 @@ export default function BranchSalesChart({ data = [] }) {
       </div>
 
       {/* Fixed height container with explicit dimensions to prevent recharts errors */}
-      <div className="w-full" style={{ height: '288px', minHeight: '288px' }}>
+      <div style={{ width: '100%', height: '288px', minHeight: '288px', minWidth: '0' }}>
         {!hasValidData ? (
-          <div className="flex items-center justify-center h-full text-brand-muted text-sm">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }} className="text-brand-muted text-sm">
             No sales data available
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={288} margin={0}>
             <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
               <XAxis dataKey="day" />
               <YAxis />

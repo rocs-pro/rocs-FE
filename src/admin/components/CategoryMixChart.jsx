@@ -16,8 +16,8 @@ export default function CategoryMixChart() {
     <div className="bg-white border border-brand-border rounded-2xl shadow-sm p-5">
       <div className="font-bold mb-3">Sales by Category</div>
 
-      <div className="h-72">
-        <ResponsiveContainer width="100%" height="100%">
+      <div style={{ width: '100%', height: '288px', minHeight: '288px' }}>
+        <ResponsiveContainer width="100%" height="100%" minHeight={0}>
           <PieChart>
             <Pie
               data={categoryMix}

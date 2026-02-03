@@ -29,8 +29,31 @@ export default function Dashboard() {
           getSalesData("weekly"),
         ]);
 
-        setStats(statsResponse || []);
-        setSalesData(salesResponse || []);
+        // Handle stats response - convert object to array if needed
+        let statsArray = [];
+        if (Array.isArray(statsResponse)) {
+          statsArray = statsResponse;
+        } else if (statsResponse && typeof statsResponse === 'object') {
+          // If it's a single object, wrap it in an array
+          statsArray = [statsResponse];
+        }
+        
+        // Handle sales response - ensure it's an array
+        let salesArray = [];
+        if (Array.isArray(salesResponse)) {
+          salesArray = salesResponse;
+        } else if (salesResponse && typeof salesResponse === 'object') {
+          // If response has a 'data' property, extract it
+          if (Array.isArray(salesResponse.data)) {
+            salesArray = salesResponse.data;
+          } else if (typeof salesResponse.value === 'number') {
+            // If it's a single object with value property, convert to array
+            salesArray = [salesResponse.value];
+          }
+        }
+        
+        setStats(statsArray);
+        setSalesData(salesArray);
       } catch (err) {
         console.error("Error loading dashboard data:", err);
         setError("Failed to load dashboard data. Please try again.");

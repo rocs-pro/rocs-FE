@@ -8,13 +8,16 @@ const toneToBorder = {
 
 export default function StatCard({ title, value, icon = "📌", tone = "primary" }) {
   const border = toneToBorder[tone] || toneToBorder.primary;
+  
+  // Safely render value - convert objects to strings
+  const safeValue = typeof value === 'object' ? JSON.stringify(value) : value;
 
   return (
     <div className={`bg-white border border-brand-border border-l-4 ${border} rounded-2xl shadow-sm p-5`}>
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-sm text-brand-muted">{title}</div>
-          <div className="mt-2 text-2xl font-extrabold">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold">{safeValue}</div>
         </div>
         <div className="w-10 h-10 rounded-2xl bg-slate-100 grid place-items-center text-lg">
           {icon}

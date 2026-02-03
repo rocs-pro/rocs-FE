@@ -12,7 +12,7 @@ const MainLayout = ({ children }) => {
         backgroundImage: 'url(/retail-bg.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
+        backgroundAttachment: 'scroll',
         color: '#fff',
         overflow: 'hidden',
         display: 'flex',
