@@ -10,6 +10,7 @@ const ItemListScreen = ({
     setSelectedItemId,
     setActiveScreen,
     handleDeleteItem,
+    handleEditItem,
     categories
 }) => {
     const filteredItems = items.filter((item) =>
@@ -119,10 +120,10 @@ const ItemListScreen = ({
                                         <button onClick={(e) => { e.stopPropagation(); setSelectedItemId(item.product_id); setActiveScreen('item-detail'); }} className="p-1.5 text-brand-primary hover:bg-blue-50 rounded transition-colors bg-blue-50/50" title="View Details">
                                             <FileText size={16} />
                                         </button>
-                                        <button onClick={(e) => { e.stopPropagation(); setSelectedItemId(item.product_id); setActiveScreen('item-detail'); }} className="p-1.5 text-brand-primary hover:bg-blue-50 rounded transition-colors bg-blue-50/50" title="Edit Item">
+                                        <button onClick={(e) => { e.stopPropagation(); handleEditItem(item.product_id); }} className="p-1.5 text-brand-primary hover:bg-blue-50 rounded transition-colors bg-blue-50/50" title="Edit Item">
                                             <Edit size={16} />
                                         </button>
-                                        <button onClick={(e) => { e.stopPropagation(); setSelectedItemId(item.product_id); setActiveScreen('item-detail'); }} className="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors" title="Print">
+                                        <button onClick={(e) => { e.stopPropagation(); setActiveScreen('barcode-print'); }} className="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors" title="Print Barcode">
                                             <Printer size={16} />
                                         </button>
                                         <button onClick={(e) => { e.stopPropagation(); handleDeleteItem(item.product_id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">

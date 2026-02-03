@@ -11,7 +11,13 @@ import {
     mapBrandsFromBackend,
     mapSupplierFromBackend,
     mapSupplierToBackend,
-    mapSuppliersFromBackend
+    mapSuppliersFromBackend,
+    mapGRNFromBackend,
+    mapGRNToBackend,
+    mapGRNsFromBackend,
+    mapSubCategoriesFromBackend,
+    mapSubCategoryToBackend,
+    mapSubCategoryFromBackend
 } from './inventoryMapper';
 
 /**
@@ -202,8 +208,10 @@ export const inventoryService = {
      */
     createCategory: async (categoryData) => {
         try {
-            console.log('[InventoryService] POST category:', categoryData);
-            const backendData = mapCategoryToBackend(categoryData);
+            // eslint-disable-next-line no-unused-vars
+            const { category_id, ...rest } = categoryData;
+            console.log('[InventoryService] POST category:', rest);
+            const backendData = mapCategoryToBackend(rest);
             console.log('[InventoryService] POST category (mapped):', backendData);
             const response = await api.post('/categories', backendData);
             console.log('[InventoryService] POST category response:', response.data);
@@ -244,6 +252,74 @@ export const inventoryService = {
             return response.data;
         } catch (error) {
             console.error('Error deleting category:', error);
+            throw error;
+        }
+    },
+
+    // ============= SUBCATEGORIES =============
+    /**
+     * Get all subcategories
+     * @returns {Promise} Array of subcategories
+     */
+    getSubCategories: async () => {
+        try {
+            const response = await api.get('/subcategories');
+            const subcategories = response.data.data || response.data;
+            return mapSubCategoriesFromBackend(subcategories);
+        } catch (error) {
+            console.error('Error fetching subcategories:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Create new subcategory
+     * @param {Object} subCategoryData
+     * @returns {Promise} Created subcategory
+     */
+    createSubCategory: async (subCategoryData) => {
+        try {
+            // eslint-disable-next-line no-unused-vars
+            const { subcategory_id, ...rest } = subCategoryData;
+            const backendData = mapSubCategoryToBackend(rest);
+            const response = await api.post('/subcategories', backendData);
+            const subCategory = response.data.data || response.data;
+            return mapSubCategoryFromBackend(subCategory);
+        } catch (error) {
+            console.error('Error creating subcategory:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Update subcategory
+     * @param {number} subCategoryId
+     * @param {Object} subCategoryData
+     * @returns {Promise} Updated subcategory
+     */
+    updateSubCategory: async (subCategoryId, subCategoryData) => {
+        try {
+            const backendData = mapSubCategoryToBackend(subCategoryData);
+            const response = await api.put(`/subcategories/${subCategoryId}`, backendData);
+            const subCategory = response.data.data || response.data;
+            return mapSubCategoryFromBackend(subCategory);
+        } catch (error) {
+            console.error('Error updating subcategory:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Delete subcategory
+     * @param {number} subCategoryId
+     * @returns {Promise}
+     */
+    deleteSubCategory: async (subCategoryId) => {
+        try {
+            const response = await api.delete(`/subcategories/${subCategoryId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting subcategory:', error);
             throw error;
         }
     },
@@ -292,7 +368,9 @@ export const inventoryService = {
      */
     createBrand: async (brandData) => {
         try {
-            const backendData = mapBrandToBackend(brandData);
+            // eslint-disable-next-line no-unused-vars
+            const { brand_id, ...rest } = brandData;
+            const backendData = mapBrandToBackend(rest);
             const response = await api.post('/brands', backendData);
             const brand = response.data.data || response.data;
             return mapBrandFromBackend(brand);
@@ -331,6 +409,59 @@ export const inventoryService = {
             return response.data;
         } catch (error) {
             console.error('Error deleting brand:', error);
+            throw error;
+        }
+    },
+
+
+
+    // ============= GRNS =============
+
+    /**
+     * Get all GRNs
+     * @returns {Promise} Array of GRNs in frontend format
+     */
+    getGRNs: async () => {
+        try {
+            console.log('[InventoryService] GET GRNs');
+            const response = await api.get('/grns');
+            const grns = response.data.data || response.data;
+            return mapGRNsFromBackend(grns);
+        } catch (error) {
+            console.error('Error fetching GRNs:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get GRN by ID
+     * @param {number} grnId
+     * @returns {Promise} GRN object
+     */
+    getGRNById: async (grnId) => {
+        try {
+            const response = await api.get(`/grns/${grnId}`);
+            const grn = response.data.data || response.data;
+            return mapGRNFromBackend(grn);
+        } catch (error) {
+            console.error('Error fetching GRN:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Create new GRN
+     * @param {Object} grnData
+     * @returns {Promise} Created GRN
+     */
+    createGRN: async (grnData) => {
+        try {
+            const backendData = mapGRNToBackend(grnData);
+            const response = await api.post('/grns', backendData);
+            const grn = response.data.data || response.data;
+            return mapGRNFromBackend(grn);
+        } catch (error) {
+            console.error('Error creating GRN:', error);
             throw error;
         }
     },
@@ -379,12 +510,21 @@ export const inventoryService = {
      */
     createSupplier: async (supplierData) => {
         try {
-            const backendData = mapSupplierToBackend(supplierData);
+            // Remove supplier_id if it's empty to avoid sending empty string as ID
+            // eslint-disable-next-line no-unused-vars
+            const { supplier_id, ...rest } = supplierData;
+
+            const backendData = mapSupplierToBackend(rest);
+            console.log('[InventoryService] Creating supplier with data:', backendData);
+
             const response = await api.post('/suppliers', backendData);
             const supplier = response.data.data || response.data;
             return mapSupplierFromBackend(supplier);
         } catch (error) {
             console.error('Error creating supplier:', error);
+            if (error.response) {
+                console.error('Backend validation errors:', error.response.data);
+            }
             throw error;
         }
     },
