@@ -57,20 +57,40 @@ const BrandManagementScreen = ({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {filteredBrands.map((b) => (
-                            <tr key={b.brand_id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 text-sm font-mono text-gray-900">{b.brand_id}</td>
-                                <td className="px-6 py-4 text-sm font-medium text-gray-900">{b.name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{b.description}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600"><span className={`px-2 py-1 rounded-full text-xs font-medium ${b.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{b.is_active ? 'Active' : 'Inactive'}</span></td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex items-center justify-end gap-2">
-                                        <button onClick={() => handleEditBrand(b.brand_id)} className="p-1.5 text-brand-primary hover:bg-blue-50 rounded"><Edit size={16} /></button>
-                                        <button onClick={() => handleDeleteBrand(b.brand_id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
-                                    </div>
+                        {filteredBrands.length > 0 ? (
+                            filteredBrands.map((b) => (
+                                <tr key={b.brand_id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 text-sm font-mono text-gray-900">{b.brand_id}</td>
+                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{b.name}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{b.description}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-600"><span className={`px-2 py-1 rounded-full text-xs font-medium ${b.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{b.is_active ? 'Active' : 'Inactive'}</span></td>
+                                    <td className="px-6 py-4 text-right text-sm">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => handleEditBrand(b.brand_id)}
+                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                title="Edit"
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteBrand(b.brand_id)}
+                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                                    No brands found.
                                 </td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>

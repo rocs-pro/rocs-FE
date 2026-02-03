@@ -47,28 +47,64 @@ const SupplierManagementScreen = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-                {filteredSuppliers.map((s) => (
-                    <div key={s.supplier_id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 rounded-lg bg-blue-50">
-                                <Archive size={24} className="text-brand-primary" />
-                            </div>
-                            <div className="flex gap-1">
-                                <button onClick={() => handleEditSupplier(s.supplier_id)} className="p-1.5 text-gray-600 hover:bg-gray-50 rounded">
-                                    <Edit size={16} />
-                                </button>
-                                <button onClick={() => handleDeleteSupplier(s.supplier_id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded">
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900">{s.name} <span className="text-xs font-mono text-gray-500 ml-2">{s.code}</span></h3>
-                        <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Company:</span> {s.company_name}</p>
-                        <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Type:</span> {s.supplier_type}</p>
-                        <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Phone:</span> {s.phone}</p>
-                    </div>
-                ))}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Supplier Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Company & Code</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Type</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Phone</th>
+                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {filteredSuppliers.length > 0 ? (
+                            filteredSuppliers.map((s) => (
+                                <tr key={s.supplier_id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 rounded-lg bg-blue-50">
+                                                <Archive size={16} className="text-brand-primary" />
+                                            </div>
+                                            {s.name}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm">
+                                        <div className="text-gray-900 font-medium">{s.company_name}</div>
+                                        <div className="text-xs text-gray-500 font-mono">{s.code}</div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{s.supplier_type}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{s.phone}</td>
+                                    <td className="px-6 py-4 text-right text-sm">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => handleEditSupplier(s.supplier_id)}
+                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                title="Edit"
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteSupplier(s.supplier_id)}
+                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                                    No suppliers found.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
 

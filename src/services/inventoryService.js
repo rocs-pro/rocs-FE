@@ -23,7 +23,7 @@ import {
 
 export const inventoryService = {
     // ============= PRODUCTS =============
-    
+
     /**
      * Get all products
      * @returns {Promise} Array of products in frontend format (snake_case)

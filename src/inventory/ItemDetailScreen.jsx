@@ -232,7 +232,7 @@ const ItemDetailScreen = ({
         printWindow.document.close();
     };
 
-    if (!item || !detail) {
+    if (!item) {
         return (
             <div className="p-6">
                 <p className="text-gray-900 font-semibold mb-4">Item not found or no item selected</p>
@@ -337,7 +337,7 @@ const ItemDetailScreen = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {detail.priceHistory.map((entry, idx) => (
+                            {(detail?.priceHistory || []).map((entry, idx) => (
                                 <tr key={idx} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 text-sm text-gray-900">{entry.date}</td>
                                     <td className="px-6 py-4 text-sm font-mono text-right">LKR {entry.selling_price.toFixed(2)}</td>
@@ -363,7 +363,7 @@ const ItemDetailScreen = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {detail.stockHistory.map((entry, idx) => (
+                            {(detail?.stockHistory || []).map((entry, idx) => (
                                 <tr key={idx} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 text-sm text-gray-900">{entry.date}</td>
                                     <td className="px-6 py-4 text-sm"><span className={`px-2 py-1 text-xs font-medium rounded-full ${entry.type === 'GRN' ? 'bg-green-100 text-green-700' : entry.type === 'Sales' ? 'bg-blue-100 text-blue-700' : entry.type === 'Adjustment' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'}`}>{entry.type}</span></td>
@@ -420,7 +420,7 @@ const ItemDetailScreen = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {detail.supplierHistory.map((supplier, idx) => (
+                            {(detail?.supplierHistory || []).map((supplier, idx) => (
                                 <tr key={idx} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 text-sm font-medium">{supplier.name}</td>
                                     <td className="px-6 py-4 text-sm font-mono">{supplier.lastPO}</td>
@@ -446,7 +446,7 @@ const ItemDetailScreen = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {detail.salesData && detail.salesData.length > 0 ? (
+                            {detail?.salesData && detail.salesData.length > 0 ? (
                                 detail.salesData.map((sale, idx) => (
                                     <tr key={idx} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 text-sm">{sale.date}</td>

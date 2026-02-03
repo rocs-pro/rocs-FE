@@ -45,29 +45,63 @@ const CategoryManagementScreen = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-                {filteredCategories.map((cat) => (
-                    <div key={cat.category_id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 rounded-lg bg-blue-50">
-                                <Tag size={24} className="text-brand-primary" />
-                            </div>
-                            <div className="flex gap-1">
-                                <button onClick={() => handleEditCategory(cat.category_id)} className="p-1.5 text-gray-600 hover:bg-gray-50 rounded">
-                                    <Edit size={16} />
-                                </button>
-                                <button onClick={() => handleDeleteCategory(cat.category_id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded">
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900">{cat.name}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{cat.description}</p>
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${cat.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{cat.is_active ? 'Active' : 'Inactive'}</span>
-                        </div>
-                    </div>
-                ))}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Category Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Description</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {filteredCategories.length > 0 ? (
+                            filteredCategories.map((cat) => (
+                                <tr key={cat.category_id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 rounded-lg bg-blue-50">
+                                                <Tag size={16} className="text-brand-primary" />
+                                            </div>
+                                            {cat.name}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{cat.description || '-'}</td>
+                                    <td className="px-6 py-4 text-sm">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${cat.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {cat.is_active ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right text-sm">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => handleEditCategory(cat.category_id)}
+                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                title="Edit"
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteCategory(cat.category_id)}
+                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                                    No categories found.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
 

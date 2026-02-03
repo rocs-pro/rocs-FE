@@ -32,28 +32,28 @@ const InventorySystem = () => {
     const navigate = useNavigate();
     const [activeScreen, setActiveScreen] = useState('item-list');
     const [currentTime, setCurrentTime] = useState(new Date());
-    
+
     // Get user info
     const userStr = localStorage.getItem('user');
     let userName = 'User';
     let userRole = 'Staff';
     let branchName = 'Main Branch';
-    
+
     if (userStr) {
         try {
             const user = JSON.parse(userStr);
             userName = user.username || user.name || 'User';
             userRole = user.role || user.userRole || 'Staff';
             branchName = user.branchName || 'Main Branch';
-        } catch (e) {}
+        } catch (e) { }
     }
-    
+
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/login');
     };
-    
+
     const goToPOS = () => navigate('/pos');
     const goToDashboard = () => {
         // Navigate to appropriate dashboard based on user role
@@ -111,7 +111,7 @@ const InventorySystem = () => {
                 setCategories(categoriesData);
                 setBrands(brandsData);
                 setSuppliers(suppliersData);
-                
+
                 console.log('[InventorySystem] State updated successfully');
             } catch (err) {
                 console.error('[InventorySystem] Inventory API error:', err);
@@ -366,7 +366,7 @@ const InventorySystem = () => {
                     batches={batches}
                 />;
             case 'add-item':
-                return <AddItemScreen 
+                return <AddItemScreen
                     setActiveScreen={setActiveScreen}
                     categories={categories}
                     brands={brands}
@@ -557,11 +557,11 @@ const InventorySystem = () => {
                         <h1 className="font-bold text-lg text-slate-800">Inventory Management</h1>
                         <span className="text-xs text-slate-500">{branchName}</span>
                     </div>
-                    
+
                     {/* Quick Nav Buttons */}
                     <div className="flex items-center gap-2">
                         {(userRole === 'ADMIN' || userRole === 'BRANCH_MANAGER') && (
-                            <button 
+                            <button
                                 onClick={goToDashboard}
                                 className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition"
                             >
@@ -569,7 +569,7 @@ const InventorySystem = () => {
                                 <span className="hidden sm:inline text-slate-700">Dashboard</span>
                             </button>
                         )}
-                        <button 
+                        <button
                             onClick={goToPOS}
                             className="flex items-center gap-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg text-sm font-medium transition"
                         >
@@ -577,7 +577,7 @@ const InventorySystem = () => {
                             <span className="hidden sm:inline text-green-700">POS</span>
                         </button>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                         <div className="hidden md:flex px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
                             {currentTime.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
@@ -588,7 +588,7 @@ const InventorySystem = () => {
                                 {currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </span>
                         </div>
-                        
+
                         {/* User Info */}
                         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-200">
                             <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
@@ -596,8 +596,8 @@ const InventorySystem = () => {
                             </div>
                             <span className="text-sm font-medium text-blue-700">{userName}</span>
                         </div>
-                        
-                        <button 
+
+                        <button
                             onClick={handleLogout}
                             className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg transition-colors font-medium"
                         >
@@ -619,8 +619,8 @@ const InventorySystem = () => {
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)}></div>
                     <div className="relative bg-white rounded-lg shadow-lg w-full max-w-full sm:max-w-2xl md:max-w-3xl mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
                         <div className="p-4 sm:p-6">
-                            <AddItemScreen 
-                                onClose={() => setIsAddModalOpen(false)} 
+                            <AddItemScreen
+                                onClose={() => setIsAddModalOpen(false)}
                                 setActiveScreen={setActiveScreen}
                                 categories={categories}
                                 brands={brands}
@@ -738,10 +738,10 @@ const InventorySystem = () => {
 
                                     <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
                                         <button onClick={() => { setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-                                        <button onClick={async () => { 
-                                            if (!brandForm.name) { 
-                                                alert('Please fill required fields'); 
-                                                return; 
+                                        <button onClick={async () => {
+                                            if (!brandForm.name) {
+                                                alert('Please fill required fields');
+                                                return;
                                             }
                                             if (isEditMode) {
                                                 await handleSaveEdit();
@@ -836,10 +836,10 @@ const InventorySystem = () => {
                                         <button onClick={() => { setIsAddSupplierOpen(false); setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                                             Cancel
                                         </button>
-                                        <button onClick={async () => { 
-                                            if (!supplierForm.code || !supplierForm.name) { 
-                                                alert('Please fill required fields'); 
-                                                return; 
+                                        <button onClick={async () => {
+                                            if (!supplierForm.code || !supplierForm.name) {
+                                                alert('Please fill required fields');
+                                                return;
                                             }
                                             if (isEditMode) {
                                                 await handleSaveEdit();

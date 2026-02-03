@@ -47,13 +47,14 @@ const ItemListScreen = ({
                 </button>
                 <button
                     onClick={() => {
-                        const headers = ['SKU', 'Name', 'Category', 'Selling Price', 'MRP', 'Reorder Level', 'Tax Rate', 'Status'];
+                        const headers = ['SKU', 'Name', 'Category', 'Quantity', 'Selling Price', 'MRP', 'Reorder Level', 'Tax Rate', 'Status'];
                         const csvContent = [
                             headers.join(','),
                             ...filteredItems.map(item => [
                                 item.sku,
                                 `"${item.name.replace(/"/g, '""')}"`, // Handle commas in name
                                 `"${(categories?.find(c => c.category_id === item.category_id)?.name || item.category_id || '').replace(/"/g, '""')}"`,
+                                item.quantity || 0,
                                 item.selling_price.toFixed(2),
                                 item.mrp.toFixed(2),
                                 item.reorder_level,
@@ -88,6 +89,7 @@ const ItemListScreen = ({
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">SKU</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Item Name</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Category</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Quantity</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Selling Price</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">MRP</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Reorder Level</th>
@@ -102,6 +104,7 @@ const ItemListScreen = ({
                                 <td className="px-6 py-4 text-sm font-mono text-gray-900">{item.sku}</td>
                                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.name}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">{categories?.find(c => c.category_id === item.category_id)?.name || item.category_id}</td>
+                                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.quantity || 0}</td>
                                 <td className="px-6 py-4 text-sm font-mono text-gray-900">LKR {item.selling_price.toFixed(2)}</td>
                                 <td className="px-6 py-4 text-sm font-mono text-gray-900">LKR {item.mrp.toFixed(2)}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">{item.reorder_level}</td>
