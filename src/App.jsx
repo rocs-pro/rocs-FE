@@ -101,7 +101,7 @@ export default function App() {
         <Route path="/register" element={<RegisterScreen />} />
         
         {/* ========== DEFAULT REDIRECT ========== */}
-        <Route path="/" element={<RoleBasedRedirect />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         
         {/* ========== POS SYSTEM (Cashier, Supervisor) ========== */}
         <Route 
