@@ -55,6 +55,7 @@ function POSContent() {
     const [listConfig, setListConfig] = useState(null); 
   
     const [editingCartIndex, setEditingCartIndex] = useState(null);
+    const [selectedCartIndex, setSelectedCartIndex] = useState(null);
   const [quickGridRefresh, setQuickGridRefresh] = useState(0);
   const [time, setTime] = useState(new Date());
     const [cashierSummary, setCashierSummary] = useState(null);
@@ -95,6 +96,13 @@ function POSContent() {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+    useEffect(() => {
+            if (selectedCartIndex === null || selectedCartIndex === undefined) return;
+            if (selectedCartIndex < 0 || selectedCartIndex >= cart.length) {
+                    setSelectedCartIndex(null);
+            }
+    }, [cart, selectedCartIndex]);
 
   // Generate invoice ID using next sequential number when cart has items
   useEffect(() => {
@@ -481,7 +489,10 @@ function POSContent() {
   };
 
   const handleCartItemClick = (index) => { 
-      setEditingCartIndex(index); 
+      setSelectedCartIndex(index);
+      if (editingCartIndex !== null && editingCartIndex !== index) {
+          setEditingCartIndex(null);
+      }
   };
 
   const handleInlineQuantityCommit = (index, rawQty) => {
@@ -525,18 +536,27 @@ function POSContent() {
       }
   };
   
-  const handleVoidItem = (index) => {
-    const targetIndex = index !== undefined ? index : cart.length - 1;
-    if(targetIndex < 0 || targetIndex >= cart.length) return;
-    const item = cart[targetIndex];
-    showConfirm("Void Item", `Remove "${item.name}" from cart?`, () => {
-        const newCart = [...cart];
-        newCart.splice(targetIndex, 1);
-        setCart(newCart);
-        setActiveModal(null);
-        addNotification('info', 'Item Voided', `${item.name} removed from cart.`);
-    });
-  };
+    const handleVoidItem = (index) => {
+        const fallbackIndex = selectedCartIndex ?? (cart.length - 1);
+        const targetIndex = index !== undefined ? index : fallbackIndex;
+        if (targetIndex < 0 || targetIndex >= cart.length) return;
+        const item = cart[targetIndex];
+        showConfirm("Void Item", `Remove "${item.name}" from cart?`, () => {
+                const newCart = [...cart];
+                newCart.splice(targetIndex, 1);
+                setCart(newCart);
+                setSelectedCartIndex(prev => {
+                        if (prev === null || prev === undefined) return null;
+                        if (prev === targetIndex) {
+                                return newCart.length ? Math.min(targetIndex, newCart.length - 1) : null;
+                        }
+                        if (prev > targetIndex) return prev - 1;
+                        return prev;
+                });
+                setActiveModal(null);
+                addNotification('info', 'Item Voided', `${item.name} removed from cart.`);
+        });
+    };
   
   // Apply discount to selected item
   const handleApplyItemDiscount = (index, discountAmount) => {
@@ -673,6 +693,12 @@ function POSContent() {
       if (e.key === 'F10') { e.preventDefault(); handleComplexAction('PAY_CARD'); }
       if (e.key === 'F11') { e.preventDefault(); handleComplexAction('PAY_QR'); }
       if (e.key === 'Delete') { e.preventDefault(); handleVoidItem(); }
+      if (e.key === 'q' || e.key === 'Q') {
+          if (selectedCartIndex !== null && selectedCartIndex !== undefined) {
+              e.preventDefault();
+              setEditingCartIndex(selectedCartIndex);
+          }
+      }
 
       if (!activeModal && document.activeElement.tagName !== 'INPUT') {
         inputRef.current?.focus();
@@ -680,7 +706,7 @@ function POSContent() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeModal, cart, session.isOpen]);
+    }, [activeModal, cart, session.isOpen, selectedCartIndex]);
 
   // Calculate cart totals for display
   const cartTotals = React.useMemo(() => {
@@ -755,6 +781,7 @@ function POSContent() {
                 customer={customer} 
                 totals={cartTotals}
                 onItemClick={handleCartItemClick} 
+                selectedIndex={selectedCartIndex}
                 editingIndex={editingCartIndex}
                 onQuantityCommit={handleInlineQuantityCommit}
                 onQuantityCancel={handleInlineQuantityCancel}

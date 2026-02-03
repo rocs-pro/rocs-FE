@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { ShoppingCart, X, Crown, Percent, Tag, Receipt } from 'lucide-react';
 
-export default function BillPanel({ cart, customer, onItemClick, onDetachCustomer, totals, editingIndex, onQuantityCommit, onQuantityCancel }) {
+export default function BillPanel({ cart, customer, onItemClick, onDetachCustomer, totals, editingIndex, selectedIndex, onQuantityCommit, onQuantityCancel }) {
   const scrollRef = useRef(null);
   const qtyInputRef = useRef(null);
   const [editingValue, setEditingValue] = useState('');
@@ -17,7 +17,13 @@ export default function BillPanel({ cart, customer, onItemClick, onDetachCustome
     const currentItem = cart[editingIndex];
     if (currentItem) {
       setEditingValue(String(currentItem.qty ?? 1));
-      requestAnimationFrame(() => qtyInputRef.current?.focus());
+      requestAnimationFrame(() => {
+        const input = qtyInputRef.current;
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      });
     }
   }, [editingIndex, cart]);
 
@@ -113,9 +119,11 @@ export default function BillPanel({ cart, customer, onItemClick, onDetachCustome
         ) : (
           cart.map((item, index) => (
             <div 
-                key={index} 
-                onClick={() => onItemClick(index)}
-                className="grid grid-cols-12 gap-1 px-3 py-2.5 border-b border-slate-100 text-sm items-start hover:bg-blue-50 cursor-pointer group transition-colors"
+              key={index} 
+              onClick={() => onItemClick(index)}
+              className={`grid grid-cols-12 gap-1 px-3 py-2.5 border-b border-slate-100 text-sm items-start cursor-pointer group transition-colors ${
+                selectedIndex === index ? 'bg-blue-100 ring-1 ring-blue-300' : 'hover:bg-blue-50'
+              }`}
             >
               {/* Line Number */}
               <div className="col-span-1 text-center text-slate-400 font-mono text-xs group-hover:text-blue-500 pt-0.5">
@@ -158,6 +166,7 @@ export default function BillPanel({ cart, customer, onItemClick, onDetachCustome
                       step="1"
                       value={editingValue}
                       onClick={(e) => e.stopPropagation()}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => setEditingValue(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
