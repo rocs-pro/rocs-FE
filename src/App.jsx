@@ -21,6 +21,7 @@ import JournalEntry from './manager/pages/JournalEntry';
 import ProfitLoss from './manager/pages/ProfitLoss';
 import Staff from './manager/pages/Staff';
 import OtherReports from './manager/pages/Reports';
+import UserRegistrations from './manager/pages/UserRegistrations';
 
 // Admin Dashboard
 import AdminDashboard from './admin/AdminDashboard';
@@ -155,6 +156,7 @@ export default function App() {
           <Route path="journal-entry" element={<JournalEntry />} />
           <Route path="profit-loss" element={<ProfitLoss />} />
           <Route path="staff" element={<Staff />} />
+          <Route path="user-registrations" element={<UserRegistrations />} />
           <Route path="reports" element={<OtherReports />} />
         </Route>
         

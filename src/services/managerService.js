@@ -174,3 +174,57 @@ export const getSalesReports = async (filters = {}) => {
     throw error;
   }
 };
+
+// User Registration Approvals
+export const getUserRegistrations = async (status = "PENDING") => {
+  try {
+    const response = await api.get("/manager/registrations", { params: { status } });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user registrations:", error);
+    throw error;
+  }
+};
+
+export const updateRegistrationStatus = async (registrationId, status, role) => {
+  try {
+    const response = await api.patch(`/manager/registrations/${registrationId}`, {
+      status,
+      role,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating registration status:", error);
+    throw error;
+  }
+};
+
+export const getRegisteredUsers = async () => {
+  try {
+    const response = await api.get("/manager/users");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching registered users:", error);
+    throw error;
+  }
+};
+
+export const updateUserRole = async (userId, role) => {
+  try {
+    const response = await api.patch(`/manager/users/${userId}/role`, { role });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    throw error;
+  }
+};
+
+export const updateUserActiveStatus = async (userId, isActive) => {
+  try {
+    const response = await api.patch(`/manager/users/${userId}/status`, { isActive });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user active status:", error);
+    throw error;
+  }
+};

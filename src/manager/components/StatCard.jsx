@@ -13,13 +13,13 @@ export default function StatCard({ title, value, icon = "📌", tone = "primary"
   const safeValue = typeof value === 'object' ? JSON.stringify(value) : value;
 
   return (
-    <div className={`bg-white border border-brand-border border-l-4 ${border} rounded-2xl shadow-sm p-5`}>
+    <div className={`bg-white border border-brand-border border-l-4 ${border} rounded-2xl shadow-sm p-5 h-full min-h-[110px]`}>
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="text-sm text-brand-muted">{title}</div>
-          <div className="mt-2 text-2xl font-extrabold">{safeValue}</div>
+        <div className="min-w-0">
+          <div className="text-sm text-brand-muted leading-tight">{title}</div>
+          <div className="mt-2 text-2xl font-extrabold leading-none">{safeValue}</div>
         </div>
-        <div className="w-10 h-10 rounded-2xl bg-slate-100 grid place-items-center text-lg">
+        <div className="w-10 h-10 rounded-2xl bg-slate-100 grid place-items-center text-lg shrink-0">
           {icon}
         </div>
       </div>

@@ -85,16 +85,13 @@ export default function Dashboard() {
             Branch-focused view: sales summary, approvals, and operational alerts.
           </p>
         </div>
-        <div className="text-xs text-brand-muted">
-          Tip: Use <span className="font-bold">Quick</span> button in the top bar to create GRN requests.
-        </div>
       </div>
 
       {/* Target progress (manager-specific) */}
       <TargetProgress />
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
         {loading ? (
           <div className="col-span-full text-center text-brand-muted">Loading stats...</div>
         ) : (

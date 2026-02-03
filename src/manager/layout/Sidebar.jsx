@@ -9,10 +9,9 @@ import {
   PenTool,
   TrendingUp,
   Users,
+  UserCheck,
   FileText,
-  LogOut,
-  Package,
-  Monitor
+  Package
 } from "lucide-react";
 
 const base =
@@ -50,13 +49,6 @@ export default function Sidebar() {
     }
   }
   
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-  
-  const goToPOS = () => navigate('/pos');
   const goToInventory = () => navigate('/inventory');
 
   return (
@@ -72,16 +64,10 @@ export default function Sidebar() {
       </div>
 
       {/* Quick Access Buttons */}
-      <div className="px-5 mb-4 grid grid-cols-2 gap-2">
-        <button 
-          onClick={goToPOS}
-          className="flex items-center justify-center gap-2 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition"
-        >
-          <Monitor size={16} /> POS
-        </button>
+      <div className="px-5 mb-4">
         <button 
           onClick={goToInventory}
-          className="flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition"
+          className="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition"
         >
           <Package size={16} /> Inventory
         </button>
@@ -110,33 +96,13 @@ export default function Sidebar() {
         <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Staff</div>
 
         <NavItemLink to="/manager/staff" icon={Users} label="Staff" />
+        <NavItemLink to="/manager/user-registrations" icon={UserCheck} label="User Registrations" />
 
         <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Reports</div>
 
         <NavItemLink to="/manager/reports" icon={FileText} label="Other Reports" />
       </nav>
 
-      {/* Footer - User Info & Logout */}
-      <div className="p-4 border-t border-slate-700">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 grid place-items-center font-bold text-lg">
-            {userName.charAt(0).toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold leading-5 truncate">{userName}</div>
-            <div className="text-xs text-slate-400 truncate">{userRole}</div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-700 transition flex items-center justify-center gap-2 font-medium"
-          onClick={handleLogout}
-        >
-          <LogOut size={18} />
-          Logout
-        </button>
-      </div>
     </aside>
   );
 }
