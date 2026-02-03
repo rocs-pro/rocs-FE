@@ -18,7 +18,7 @@ export default function QuickActions() {
       <div className="font-bold mb-3">Overview • Quick Actions</div>
 
       <ActionBtn onClick={() => navigate("/admin/users")}>👤 User Registration</ActionBtn>
-      <ActionBtn onClick={() => navigate("/admin/password-reset")}>🔑 Password Reset</ActionBtn>
+      <ActionBtn onClick={() => navigate("/admin/terminals")}>🖥️ Manage Terminals</ActionBtn>
       <ActionBtn onClick={() => navigate("/admin/branches")}>🏢 Manage Branches</ActionBtn>
       <ActionBtn onClick={() => navigate("/admin/system-activity")}>🧾 System Activity</ActionBtn>
     </div>
