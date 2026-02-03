@@ -45,9 +45,6 @@ export default function Sidebar() {
         <NavLink to="/admin/users" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
           User Registration
         </NavLink>
-        <NavLink to="/admin/password-reset" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
-          Password Reset
-        </NavLink>
         <NavLink to="/admin/branches" className={({ isActive }) => `${base} ${isActive ? active : ""}`}>
           Branch Management
         </NavLink>
