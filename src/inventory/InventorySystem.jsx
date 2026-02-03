@@ -13,6 +13,7 @@ import ItemDetailScreen from './ItemDetailScreen';
 import CategoryManagementScreen from './CategoryManagementScreen';
 import BrandManagementScreen from './BrandManagementScreen';
 import SupplierManagementScreen from './SupplierManagementScreen';
+import GRNManagementScreen from './GRNManagementScreen';
 
 import StockOverviewScreen from '../dashboard/StockOverviewScreen';
 
@@ -92,11 +93,14 @@ const InventorySystem = () => {
             try {
                 // Fetch all data in parallel
                 console.log('[InventorySystem] Calling Promise.all for products, categories, brands, suppliers');
-                const [productsData, categoriesData, brandsData, suppliersData] = await Promise.all([
+                // Fetch all data in parallel
+                console.log('[InventorySystem] Calling Promise.all for products, categories, brands, suppliers, subcategories');
+                const [productsData, categoriesData, brandsData, suppliersData, subCategoriesData] = await Promise.all([
                     inventoryService.getProducts(),
                     inventoryService.getCategories(),
                     inventoryService.getBrands(),
-                    inventoryService.getSuppliers()
+                    inventoryService.getSuppliers(),
+                    inventoryService.getSubCategories()
                 ]);
 
                 console.log('[InventorySystem] Data received:', {
@@ -111,6 +115,7 @@ const InventorySystem = () => {
                 setCategories(categoriesData);
                 setBrands(brandsData);
                 setSuppliers(suppliersData);
+                setSubCategories(subCategoriesData);
 
                 console.log('[InventorySystem] State updated successfully');
             } catch (err) {
@@ -145,8 +150,13 @@ const InventorySystem = () => {
     const [brandForm, setBrandForm] = useState({ brand_id: '', name: '', description: '', is_active: true });
 
     const [categories, setCategories] = useState([]);
+    const [subCategories, setSubCategories] = useState([]);
     const [categoryForm, setCategoryForm] = useState({ category_id: '', name: '', description: '', is_active: true });
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+
+    const [subCategoryForm, setSubCategoryForm] = useState({ subcategory_id: '', category_id: '', name: '', description: '', is_active: true });
+    const [isAddSubCategoryOpen, setIsAddSubCategoryOpen] = useState(false);
+    const [selectedParentCategory, setSelectedParentCategory] = useState(null);
 
     const handleAddCategory = async () => {
         if (categoryForm.name.trim()) {
@@ -158,6 +168,34 @@ const InventorySystem = () => {
             } catch (err) {
                 console.error('Error creating category:', err);
                 alert('Failed to create category');
+            }
+        }
+    };
+
+    const handleAddSubCategory = async () => {
+        if (subCategoryForm.name.trim() && selectedParentCategory) {
+            try {
+                const payload = { ...subCategoryForm, category_id: selectedParentCategory };
+                const createdSubCategory = await inventoryService.createSubCategory(payload);
+                setSubCategories([...subCategories, createdSubCategory]);
+                setSubCategoryForm({ subcategory_id: '', category_id: '', name: '', description: '', is_active: true });
+                setIsAddSubCategoryOpen(false);
+                setSelectedParentCategory(null);
+            } catch (err) {
+                console.error('Error creating subcategory:', err);
+                alert('Failed to create subcategory');
+            }
+        }
+    };
+
+    const handleDeleteSubCategory = async (subCategoryId) => {
+        if (window.confirm('Are you sure you want to delete this subcategory?')) {
+            try {
+                await inventoryService.deleteSubCategory(subCategoryId);
+                setSubCategories(subCategories.filter(s => s.subcategory_id !== subCategoryId));
+            } catch (err) {
+                console.error('Error deleting subcategory:', err);
+                alert('Failed to delete subcategory');
             }
         }
     };
@@ -243,6 +281,17 @@ const InventorySystem = () => {
         }
     };
 
+    const handleEditSubCategory = (subCategoryId) => {
+        const subCategory = subCategories.find(s => s.subcategory_id === subCategoryId);
+        if (subCategory) {
+            setSubCategoryForm({ ...subCategory });
+            setEditingId(subCategoryId);
+            setEditingType('subcategory');
+            setIsEditMode(true);
+            setIsAddSubCategoryOpen(true);
+        }
+    };
+
     const handleSaveEdit = async () => {
         try {
             if (editingType === 'category' && categoryForm.name.trim()) {
@@ -266,6 +315,13 @@ const InventorySystem = () => {
                 setEditingId(null);
                 setEditingType(null);
                 setIsAddSupplierOpen(false);
+            } else if (editingType === 'subcategory' && subCategoryForm.name.trim()) {
+                const updatedSubCategory = await inventoryService.updateSubCategory(editingId, subCategoryForm);
+                setSubCategories(subCategories.map(s => s.subcategory_id === editingId ? updatedSubCategory : s));
+                setIsEditMode(false);
+                setEditingId(null);
+                setEditingType(null);
+                setIsAddSubCategoryOpen(false);
             }
         } catch (err) {
             console.error('Error updating:', err);
@@ -300,6 +356,15 @@ const InventorySystem = () => {
     // State for Item Detail
     const [selectedItemId, setSelectedItemId] = useState(null);
     const [selectedItemTab, setSelectedItemTab] = useState('summary');
+    const [editingItem, setEditingItem] = useState(null);
+
+    const handleEditItem = (itemId) => {
+        const item = items.find(i => i.product_id === itemId);
+        if (item) {
+            setEditingItem(item);
+            setIsAddModalOpen(true);
+        }
+    };
 
     // Detailed item data for Item Detail screen
     const itemDetails = {};
@@ -307,6 +372,11 @@ const InventorySystem = () => {
     const stockTransfers = [];
 
     const navigation = [
+        {
+            id: 'procurement', label: 'Procurement', icon: FileText, screens: [
+                { id: 'grn-mgmt', label: 'GRN Management', icon: CheckCircle },
+            ]
+        },
         {
             id: 'item-management', label: 'Item Management', icon: Package, screens: [
                 { id: 'item-list', label: 'Item List', icon: Package },
@@ -352,7 +422,12 @@ const InventorySystem = () => {
                     setSelectedItemId={setSelectedItemId}
                     setActiveScreen={setActiveScreen}
                     handleDeleteItem={handleDeleteItem}
+                    handleEditItem={handleEditItem}
                     categories={categories}
+                    setIsAddModalOpen={(isOpen) => {
+                        if (isOpen) setEditingItem(null);
+                        setIsAddModalOpen(isOpen);
+                    }}
                 />;
             case 'item-detail':
                 return <ItemDetailScreen
@@ -417,15 +492,26 @@ const InventorySystem = () => {
             case 'category-mgmt':
                 return <CategoryManagementScreen
                     categories={categories}
+                    subCategories={subCategories}
                     categoryForm={categoryForm}
                     setCategoryForm={setCategoryForm}
                     isAddCategoryOpen={isAddCategoryOpen}
                     setIsAddCategoryOpen={setIsAddCategoryOpen}
                     handleAddCategory={handleAddCategory}
+
+                    subCategoryForm={subCategoryForm}
+                    setSubCategoryForm={setSubCategoryForm}
+                    isAddSubCategoryOpen={isAddSubCategoryOpen}
+                    setIsAddSubCategoryOpen={setIsAddSubCategoryOpen}
+                    handleAddSubCategory={handleAddSubCategory}
+                    selectedParentCategory={selectedParentCategory}
+                    setSelectedParentCategory={setSelectedParentCategory}
                     handleDeleteCategory={handleDeleteCategory}
                     handleEditCategory={handleEditCategory}
                     isEditMode={isEditMode && editingType === 'category'}
                     handleSaveEdit={handleSaveEdit}
+                    handleEditSubCategory={handleEditSubCategory}
+                    handleDeleteSubCategory={handleDeleteSubCategory}
                 />;
             case 'brand-mgmt':
                 return <BrandManagementScreen
@@ -454,6 +540,14 @@ const InventorySystem = () => {
                     handleEditSupplier={handleEditSupplier}
                     isEditMode={isEditMode && editingType === 'supplier'}
                     handleSaveEdit={handleSaveEdit}
+                />;
+            case 'grn-mgmt':
+                return <GRNManagementScreen
+                    items={items}
+                    suppliers={suppliers}
+                    branches={branches}
+                    categories={categories}
+                    subCategories={subCategories}
                 />;
             case 'transfer-create':
                 return <StockTransferCreateScreen
@@ -576,6 +670,7 @@ const InventorySystem = () => {
                             <Monitor size={16} className="text-green-600" />
                             <span className="hidden sm:inline text-green-700">POS</span>
                         </button>
+
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -623,11 +718,84 @@ const InventorySystem = () => {
                                 onClose={() => setIsAddModalOpen(false)}
                                 setActiveScreen={setActiveScreen}
                                 categories={categories}
+                                subCategories={subCategories}
                                 brands={brands}
-                                onSaved={(createdItem) => {
-                                    setItems([...items, createdItem]);
+                                itemToEdit={editingItem}
+                                onSaved={(savedItem) => {
+                                    if (editingItem) {
+                                        setItems(items.map(i => i.product_id === savedItem.product_id ? savedItem : i));
+                                    } else {
+                                        setItems([...items, savedItem]);
+                                    }
                                 }}
                             />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Subcategory Modal */}
+            {isAddSubCategoryOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center animate-modal-blur">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddSubCategoryOpen(false)}></div>
+                    <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 sm:mx-6 z-10 max-h-[90vh] overflow-y-auto">
+                        <div className="p-4 sm:p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">{isEditMode ? 'Edit Subcategory' : 'Add New Subcategory'}</h3>
+                                <button onClick={() => setIsAddSubCategoryOpen(false)} className="text-gray-500 hover:text-gray-700">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory Name</label>
+                                    <input
+                                        type="text"
+                                        value={subCategoryForm.name}
+                                        onChange={(e) => setSubCategoryForm({ ...subCategoryForm, name: e.target.value })}
+                                        placeholder="e.g., Soft Drinks"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <textarea
+                                        value={subCategoryForm.description}
+                                        onChange={(e) => setSubCategoryForm({ ...subCategoryForm, description: e.target.value })}
+                                        placeholder="Description..."
+                                        rows="3"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={subCategoryForm.is_active}
+                                        onChange={(e) => setSubCategoryForm({ ...subCategoryForm, is_active: e.target.checked })}
+                                        id="isSubActive"
+                                        className="rounded"
+                                    />
+                                    <label htmlFor="isSubActive" className="text-sm font-medium text-gray-700">Active</label>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 mt-6">
+                                <button
+                                    onClick={() => setIsAddSubCategoryOpen(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={isEditMode ? handleSaveEdit : handleAddSubCategory}
+                                    className="flex-1 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary"
+                                >
+                                    {isEditMode ? 'Save Changes' : 'Add Subcategory'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

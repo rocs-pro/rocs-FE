@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import inventoryService from '../services/inventoryService';
 
-const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }) => {
+const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [], brands, onSaved, itemToEdit }) => {
     const [formData, setFormData] = useState({
         sku: '',
         barcode: '',
         name: '',
         description: '',
         category_id: '',
+        subcategory_id: '',
         brand_id: '',
         unit: '',
         cost_price: '',
@@ -17,6 +18,27 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }
         reorder_level: '10',
         is_active: true
     });
+
+    React.useEffect(() => {
+        if (itemToEdit) {
+            setFormData({
+                sku: itemToEdit.sku || '',
+                barcode: itemToEdit.barcode || '',
+                name: itemToEdit.name || '',
+                description: itemToEdit.description || '',
+                category_id: itemToEdit.category_id || '',
+                subcategory_id: itemToEdit.subcategory_id || '',
+                brand_id: itemToEdit.brand_id || '',
+                unit: itemToEdit.unit || '',
+                cost_price: itemToEdit.cost_price || '',
+                selling_price: itemToEdit.selling_price || '',
+                mrp: itemToEdit.mrp || '',
+                tax_rate: itemToEdit.tax_rate || '0',
+                reorder_level: itemToEdit.reorder_level || '10',
+                is_active: itemToEdit.is_active !== undefined ? itemToEdit.is_active : true
+            });
+        }
+    }, [itemToEdit]);
 
     const [loading, setLoading] = useState(false);
 
@@ -63,6 +85,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }
             const payload = {
                 ...formData,
                 category_id: parseInt(formData.category_id),
+                subcategory_id: formData.subcategory_id ? parseInt(formData.subcategory_id) : null,
                 brand_id: formData.brand_id ? parseInt(formData.brand_id) : null,
                 cost_price: parseFloat(formData.cost_price),
                 selling_price: parseFloat(formData.selling_price),
@@ -71,13 +94,18 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }
                 reorder_level: parseInt(formData.reorder_level)
             };
 
-            const createdProduct = await inventoryService.createProduct(payload);
-            
+            let savedProduct;
+            if (itemToEdit) {
+                savedProduct = await inventoryService.updateProduct(itemToEdit.product_id, payload);
+            } else {
+                savedProduct = await inventoryService.createProduct(payload);
+            }
+
             // Call parent callback to add item to list
             if (onSaved) {
-                onSaved(createdProduct);
+                onSaved(savedProduct);
             }
-            
+
             // Close modal
             if (onClose) {
                 onClose();
@@ -85,8 +113,8 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }
                 setActiveScreen('item-list');
             }
         } catch (err) {
-            console.error('Error creating product:', err);
-            alert('Failed to create product. Please try again.');
+            console.error('Error saving product:', err);
+            alert('Failed to save product. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -108,51 +136,51 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">SKU *</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="sku"
                             value={formData.sku}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent" 
-                            placeholder="BEV-CC-001" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                            placeholder="BEV-CC-001"
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Barcode</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="barcode"
                             value={formData.barcode}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            placeholder="1234567890123" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="1234567890123"
                         />
                     </div>
                     <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            placeholder="Enter product name" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter product name"
                         />
                     </div>
                     <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <textarea 
+                        <textarea
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            placeholder="Product description" 
-                            rows="2" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Product description"
+                            rows="2"
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                        <select 
+                        <select
                             name="category_id"
                             value={formData.category_id}
                             onChange={handleChange}
@@ -167,8 +195,27 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }
                         </select>
                     </div>
                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory</label>
+                        <select
+                            name="subcategory_id"
+                            value={formData.subcategory_id}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={!formData.category_id}
+                        >
+                            <option value="">Select subcategory</option>
+                            {subCategories
+                                .filter(sc => sc.category_id === parseInt(formData.category_id))
+                                .map(sc => (
+                                    <option key={sc.subcategory_id} value={sc.subcategory_id}>
+                                        {sc.name}
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
-                        <select 
+                        <select
                             name="brand_id"
                             value={formData.brand_id}
                             onChange={handleChange}
@@ -184,7 +231,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
-                        <select 
+                        <select
                             name="unit"
                             value={formData.unit}
                             onChange={handleChange}
@@ -201,75 +248,75 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, brands, onSaved }
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Reorder Level</label>
-                        <input 
-                            type="number" 
+                        <input
+                            type="number"
                             name="reorder_level"
                             value={formData.reorder_level}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            placeholder="10" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="10"
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Cost Price *</label>
-                        <input 
-                            type="number" 
+                        <input
+                            type="number"
                             name="cost_price"
                             value={formData.cost_price}
                             onChange={handleChange}
                             step="0.01"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            placeholder="0.00" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="0.00"
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Selling Price *</label>
-                        <input 
-                            type="number" 
+                        <input
+                            type="number"
                             name="selling_price"
                             value={formData.selling_price}
                             onChange={handleChange}
                             step="0.01"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            placeholder="0.00" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="0.00"
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">MRP (Maximum Retail Price)</label>
-                        <input 
-                            type="number" 
+                        <input
+                            type="number"
                             name="mrp"
                             value={formData.mrp}
                             onChange={handleChange}
                             step="0.01"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            placeholder="0.00" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="0.00"
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Tax Rate (%)</label>
-                        <input 
-                            type="number" 
+                        <input
+                            type="number"
                             name="tax_rate"
                             value={formData.tax_rate}
                             onChange={handleChange}
                             step="0.01"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            placeholder="10" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="10"
                         />
                     </div>
                 </div>
 
                 <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-                    <button 
-                        onClick={() => onClose ? onClose() : setActiveScreen('item-list')} 
+                    <button
+                        onClick={() => onClose ? onClose() : setActiveScreen('item-list')}
                         className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                         disabled={loading}
                     >
                         Cancel
                     </button>
-                    <button 
-                        onClick={handleSave} 
+                    <button
+                        onClick={handleSave}
                         className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={loading}
                     >

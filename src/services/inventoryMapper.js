@@ -19,7 +19,7 @@ const convertKeysToSnake = (obj) => {
     if (obj === null || obj === undefined) return obj;
     if (Array.isArray(obj)) return obj.map(convertKeysToSnake);
     if (typeof obj !== 'object') return obj;
-    
+
     const newObj = {};
     for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
@@ -35,7 +35,7 @@ const convertKeysToCamel = (obj) => {
     if (obj === null || obj === undefined) return obj;
     if (Array.isArray(obj)) return obj.map(convertKeysToCamel);
     if (typeof obj !== 'object') return obj;
-    
+
     const newObj = {};
     for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
@@ -75,8 +75,33 @@ export const mapProductsFromBackend = (backendProducts) => {
     if (!Array.isArray(backendProducts)) return [];
     return backendProducts.map(mapProductFromBackend);
 };
+// ============= SUBCATEGORY MAPPERS =============
 
-// ============= CATEGORY MAPPERS =============
+/**
+ * Map backend subcategory to frontend format
+ * Backend: { subcategoryId, categoryId, isActive, createdAt, ... }
+ * Frontend: { subcategory_id, category_id, is_active, created_at, ... }
+ */
+export const mapSubCategoryFromBackend = (backendSubCategory) => {
+    if (!backendSubCategory) return null;
+    return convertKeysToSnake(backendSubCategory);
+};
+
+/**
+ * Map frontend subcategory to backend format
+ */
+export const mapSubCategoryToBackend = (frontendSubCategory) => {
+    if (!frontendSubCategory) return null;
+    return convertKeysToCamel(frontendSubCategory);
+};
+
+/**
+ * Map array of backend subcategories to frontend format
+ */
+export const mapSubCategoriesFromBackend = (backendSubCategories) => {
+    if (!Array.isArray(backendSubCategories)) return [];
+    return backendSubCategories.map(mapSubCategoryFromBackend);
+};
 
 /**
  * Map backend category to frontend format
@@ -282,6 +307,62 @@ export const mapDamagesFromBackend = (backendDamages) => {
     return backendDamages.map(mapDamageFromBackend);
 };
 
+// ============= GRN MAPPERS =============
+
+/**
+ * Map backend GRN to frontend format
+ * Backend: { grnId, grnNo, branchId, supplierId, poId, grnDate, invoiceNo, invoiceDate, 
+ *            totalAmount, netAmount, paymentStatus, status, createdBy, approvedBy, createdAt, ... }
+ * Frontend: { grn_id, grn_no, branch_id, supplier_id, po_id, grn_date, invoice_no, invoice_date,
+ *             total_amount, net_amount, payment_status, status, created_by, approved_by, created_at, ... }
+ */
+export const mapGRNFromBackend = (backendGRN) => {
+    if (!backendGRN) return null;
+    return convertKeysToSnake(backendGRN);
+};
+
+/**
+ * Map frontend GRN to backend format
+ */
+export const mapGRNToBackend = (frontendGRN) => {
+    if (!frontendGRN) return null;
+    return convertKeysToCamel(frontendGRN);
+};
+
+/**
+ * Map array of backend GRNs to frontend format
+ */
+export const mapGRNsFromBackend = (backendGRNs) => {
+    if (!Array.isArray(backendGRNs)) return [];
+    return backendGRNs.map(mapGRNFromBackend);
+};
+
+// ============= GRN ITEM MAPPERS =============
+
+/**
+ * Map backend GRN Item to frontend format
+ */
+export const mapGRNItemFromBackend = (backendGRNItem) => {
+    if (!backendGRNItem) return null;
+    return convertKeysToSnake(backendGRNItem);
+};
+
+/**
+ * Map frontend GRN Item to backend format
+ */
+export const mapGRNItemToBackend = (frontendGRNItem) => {
+    if (!frontendGRNItem) return null;
+    return convertKeysToCamel(frontendGRNItem);
+};
+
+/**
+ * Map array of backend GRN Items to frontend format
+ */
+export const mapGRNItemsFromBackend = (backendGRNItems) => {
+    if (!Array.isArray(backendGRNItems)) return [];
+    return backendGRNItems.map(mapGRNItemFromBackend);
+};
+
 // ============= GENERIC MAPPERS =============
 
 /**
@@ -313,42 +394,55 @@ export default {
     mapProductFromBackend,
     mapProductToBackend,
     mapProductsFromBackend,
-    
+
     // Category mappers
     mapCategoryFromBackend,
     mapCategoryToBackend,
     mapCategoriesFromBackend,
-    
+
+    // Subcategory mappers
+    mapSubCategoryFromBackend,
+    mapSubCategoryToBackend,
+    mapSubCategoriesFromBackend,
+
     // Brand mappers
     mapBrandFromBackend,
     mapBrandToBackend,
     mapBrandsFromBackend,
-    
+
     // Supplier mappers
     mapSupplierFromBackend,
     mapSupplierToBackend,
     mapSuppliersFromBackend,
-    
+
     // Batch mappers
     mapBatchFromBackend,
     mapBatchToBackend,
     mapBatchesFromBackend,
-    
+
     // Adjustment mappers
     mapAdjustmentFromBackend,
     mapAdjustmentToBackend,
     mapAdjustmentsFromBackend,
-    
+
     // Transfer mappers
     mapTransferFromBackend,
     mapTransferToBackend,
     mapTransfersFromBackend,
-    
+
     // Damage mappers
     mapDamageFromBackend,
     mapDamageToBackend,
     mapDamagesFromBackend,
-    
+
+    // GRN mappers
+    mapGRNFromBackend,
+    mapGRNToBackend,
+    mapGRNsFromBackend,
+    mapGRNItemFromBackend,
+    mapGRNItemToBackend,
+    mapGRNItemsFromBackend,
+
     // Generic mappers
     mapFromBackend,
     mapToBackend,
