@@ -439,6 +439,9 @@ const InventorySystem = () => {
                     selectedItemTab={selectedItemTab}
                     setSelectedItemTab={setSelectedItemTab}
                     batches={batches}
+                    categories={categories}
+                    brands={brands}
+                    subCategories={subCategories}
                 />;
             case 'add-item':
                 return <AddItemScreen
@@ -663,25 +666,18 @@ const InventorySystem = () => {
                                 <span className="hidden sm:inline text-slate-700">Dashboard</span>
                             </button>
                         )}
-                        <button
-                            onClick={goToPOS}
-                            className="flex items-center gap-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg text-sm font-medium transition"
-                        >
-                            <Monitor size={16} className="text-green-600" />
-                            <span className="hidden sm:inline text-green-700">POS</span>
-                        </button>
+
 
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="hidden md:flex px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
-                            {currentTime.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
-                            <Clock size={14} />
-                            <span className="font-mono">
-                                {currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                            </span>
+                        <div className="text-right leading-tight">
+                            <div className="font-mono text-lg font-bold tracking-wider text-slate-700">
+                                {currentTime.toLocaleTimeString('en-US', { hour12: false })}
+                            </div>
+                            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">
+                                {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}
+                            </div>
                         </div>
 
                         {/* User Info */}

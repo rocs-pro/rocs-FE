@@ -10,12 +10,19 @@ const ItemDetailScreen = ({
     setActiveScreen,
     selectedItemTab,
     setSelectedItemTab,
-    batches
+    batches,
+    categories,
+    brands,
+    subCategories
 }) => {
     // Use selectedItemId, or default to first item if not set
     const itemId = selectedItemId || items[0]?.product_id;
     const item = items.find(i => i.product_id === itemId);
     const detail = itemDetails[itemId];
+
+    const categoryName = categories?.find(c => c.category_id === item?.category_id)?.name || item?.category_id || 'N/A';
+    const subCategoryName = subCategories?.find(s => s.subcategory_id === item?.subcategory_id)?.name || item?.subcategory_id || 'N/A';
+    const brandName = brands?.find(b => b.brand_id === item?.brand_id)?.name || item?.brand_id || 'N/A';
 
     const handlePrint = () => {
         const printWindow = window.open('', '_blank');
@@ -183,16 +190,16 @@ const ItemDetailScreen = ({
                             <div class="info-value">${item.barcode}</div>
                         </div>
                         <div class="info-card">
-                            <div class="info-label">Category ID</div>
-                            <div class="info-value">${item.category_id}</div>
+                            <div class="info-label">Category</div>
+                            <div class="info-value">${categoryName}</div>
                         </div>
                         <div class="info-card">
-                            <div class="info-label">Brand ID</div>
-                            <div class="info-value">${item.brand_id}</div>
+                            <div class="info-label">Subcategory</div>
+                            <div class="info-value">${subCategoryName}</div>
                         </div>
                         <div class="info-card">
-                            <div class="info-label">Unit ID</div>
-                            <div class="info-value">${item.unit_id}</div>
+                            <div class="info-label">Brand</div>
+                            <div class="info-value">${brandName}</div>
                         </div>
                         <div class="info-card">
                             <div class="info-label">Tax Rate</div>
@@ -257,29 +264,7 @@ const ItemDetailScreen = ({
                 </button>
             </div>
 
-            {/* Quick Info Cards */}
-            <div className="grid grid-cols-5 gap-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-600 font-semibold">SKU</p>
-                    <p className="text-lg font-bold text-blue-700 mt-1">{item.sku}</p>
-                </div>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm text-green-600 font-semibold">Cost Price</p>
-                    <p className="text-lg font-bold text-green-700 mt-1">LKR {item.cost_price.toFixed(2)}</p>
-                </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <p className="text-sm text-purple-600 font-semibold">Selling Price</p>
-                    <p className="text-lg font-bold text-purple-700 mt-1">LKR {item.selling_price.toFixed(2)}</p>
-                </div>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <p className="text-sm text-orange-600 font-semibold">Reorder Level</p>
-                    <p className="text-lg font-bold text-orange-700 mt-1">{item.reorder_level}</p>
-                </div>
-                <div className={`${item.is_active ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border rounded-lg p-4`}>
-                    <p className={`text-sm ${item.is_active ? 'text-green-600' : 'text-red-600'} font-semibold`}>Status</p>
-                    <p className={`text-lg font-bold mt-1 ${item.is_active ? 'text-green-700' : 'text-red-700'}`}>{item.is_active ? 'Active' : 'Inactive'}</p>
-                </div>
-            </div>
+
 
             {/* Tabs */}
             <div className="flex gap-2 border-b border-gray-200">
@@ -305,9 +290,9 @@ const ItemDetailScreen = ({
                             <div><label className="text-sm text-gray-600">Product ID:</label><p className="font-mono">{item.product_id}</p></div>
                             <div><label className="text-sm text-gray-600">Barcode:</label><p className="font-mono">{item.barcode}</p></div>
                             <div><label className="text-sm text-gray-600">SKU:</label><p className="font-mono">{item.sku}</p></div>
-                            <div><label className="text-sm text-gray-600">Category ID:</label><p>{item.category_id}</p></div>
-                            <div><label className="text-sm text-gray-600">Brand ID:</label><p>{item.brand_id}</p></div>
-                            <div><label className="text-sm text-gray-600">Unit ID:</label><p>{item.unit_id}</p></div>
+                            <div><label className="text-sm text-gray-600">Category:</label><p>{categoryName}</p></div>
+                            <div><label className="text-sm text-gray-600">Subcategory:</label><p>{subCategoryName}</p></div>
+                            <div><label className="text-sm text-gray-600">Brand:</label><p>{brandName}</p></div>
                             <div><label className="text-sm text-gray-600">Description:</label><p>{item.description}</p></div>
                         </div>
                     </div>
