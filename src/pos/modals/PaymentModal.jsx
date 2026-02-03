@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CreditCard, Banknote, X, CheckCircle, Trash2, Plus, QrCode, Building2, Loader2 } from 'lucide-react';
 
 const PAYMENT_METHODS = [
@@ -8,7 +8,7 @@ const PAYMENT_METHODS = [
     { key: 'TRANSFER', label: 'Transfer', icon: Building2, color: 'slate' }
 ];
 
-export default function PaymentModal({ total, initialMethod = 'CASH', onClose, onProcess }) {
+export default function PaymentModal({ total, cart = [], invoiceId, cashierName, branchInfo, totals, initialMethod = 'CASH', onClose, onProcess }) {
   // Track multiple payments matching the payments table structure
   const [payments, setPayments] = useState([]);
   const [currentAmount, setCurrentAmount] = useState("");
@@ -18,6 +18,20 @@ export default function PaymentModal({ total, initialMethod = 'CASH', onClose, o
   const [bankName, setBankName] = useState("");
   const [processing, setProcessing] = useState(false);
   const inputRef = useRef(null);
+
+  const receiptTotals = useMemo(() => {
+      if (totals) return totals;
+      const grossTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const totalDiscount = cart.reduce((sum, item) => sum + (item.discount || 0), 0);
+      const taxAmount = cart.reduce((sum, item) => {
+          const itemTotal = (item.price * item.qty) - (item.discount || 0);
+          return sum + (itemTotal * (item.taxRate || 0) / 100);
+      }, 0);
+      const netTotal = grossTotal - totalDiscount + taxAmount;
+      return { grossTotal, totalDiscount, taxAmount, netTotal };
+  }, [cart, totals]);
+
+  const formatMoney = (value) => Number(value || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // Calculate totals
   const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
@@ -94,56 +108,65 @@ export default function PaymentModal({ total, initialMethod = 'CASH', onClose, o
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
-        <div className="bg-white w-[850px] h-[650px] rounded-2xl shadow-2xl flex overflow-hidden">
+        <div className="bg-white w-[980px] h-[680px] rounded-2xl shadow-2xl flex overflow-hidden">
             
-            {/* Left: Summary */}
-            <div className="w-1/3 bg-slate-50 border-r border-slate-200 p-6 flex flex-col">
-                <h2 className="text-xl font-bold text-slate-800 mb-6">Payment Summary</h2>
-                
-                <div className="space-y-4 flex-1">
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                        <div className="text-xs text-slate-500 font-bold uppercase">Total Due</div>
-                        <div className="text-3xl font-mono font-bold text-slate-900">
-                            <span className="text-lg text-slate-400">LKR </span>
-                            {total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </div>
+            {/* Left: Receipt Preview */}
+            <div className="w-2/5 bg-slate-50 border-r border-slate-200 p-5 flex flex-col">
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Receipt Preview</div>
+                <div className="bg-white border border-slate-200 rounded-xl shadow-sm flex-1 overflow-hidden flex flex-col">
+                    <div className="p-4 border-b border-dashed border-slate-200 text-center">
+                        <div className="text-sm font-bold text-slate-800">{branchInfo?.name || 'Store'}</div>
+                        {branchInfo?.code && <div className="text-[10px] text-slate-400">{branchInfo.code}</div>}
+                        <div className="text-[10px] text-slate-400 mt-1">{new Date().toLocaleString()}</div>
+                        <div className="text-[10px] text-slate-500 mt-1">Invoice: {invoiceId || 'INV-PREVIEW'}</div>
+                        <div className="text-[10px] text-slate-500">Cashier: {cashierName || '--'}</div>
                     </div>
-                    
-                    <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-                        <div className="text-xs text-green-700 font-bold uppercase">Paid So Far</div>
-                        <div className="text-2xl font-mono font-bold text-green-700">
-                            {totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+
+                    <div className="flex-1 overflow-y-auto px-3 py-2 text-xs">
+                        {cart.length === 0 ? (
+                            <div className="text-center text-slate-400 py-6">No items</div>
+                        ) : (
+                            cart.map((item, idx) => (
+                                <div key={idx} className="py-2 border-b border-dashed border-slate-100">
+                                    <div className="flex justify-between gap-2">
+                                        <span className="font-semibold text-slate-700 truncate">{item.name}</span>
+                                        <span className="font-mono text-slate-700">{formatMoney(item.price * item.qty)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                                        <span>{item.qty} x {formatMoney(item.price)}</span>
+                                        {item.discount > 0 && <span>-{formatMoney(item.discount)}</span>}
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    <div className="border-t border-dashed border-slate-200 p-3 text-xs space-y-1">
+                        <div className="flex justify-between"><span>Subtotal</span><span className="font-mono">{formatMoney(receiptTotals.grossTotal)}</span></div>
+                        {receiptTotals.totalDiscount > 0 && (
+                            <div className="flex justify-between text-orange-600"><span>Discount</span><span className="font-mono">-{formatMoney(receiptTotals.totalDiscount)}</span></div>
+                        )}
+                        {receiptTotals.taxAmount > 0 && (
+                            <div className="flex justify-between"><span>Tax</span><span className="font-mono">+{formatMoney(receiptTotals.taxAmount)}</span></div>
+                        )}
+                        <div className="flex justify-between font-bold text-slate-800 text-sm pt-1 border-t border-slate-100">
+                            <span>Total</span><span className="font-mono">{formatMoney(receiptTotals.netTotal)}</span>
                         </div>
                     </div>
 
-                    {remaining > 0 ? (
-                        <div className="bg-red-50 p-4 rounded-xl border border-red-100 animate-pulse">
-                            <div className="text-xs text-red-700 font-bold uppercase">Remaining</div>
-                            <div className="text-2xl font-mono font-bold text-red-700">
-                                {remaining.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="bg-blue-600 p-4 rounded-xl border border-blue-500 shadow-lg text-white">
-                            <div className="text-xs text-blue-100 font-bold uppercase">Change Due</div>
-                            <div className="text-4xl font-mono font-bold">
-                                {change.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                            </div>
-                        </div>
-                    )}
-                </div>
-                
-                {/* Payment Count */}
-                <div className="mt-auto pt-4 border-t border-slate-200">
-                    <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Payments Added:</span>
-                        <span className="font-bold text-slate-700">{payments.length}</span>
+                    <div className="border-t border-dashed border-slate-200 p-3 text-xs space-y-1">
+                        <div className="flex justify-between"><span>Paid</span><span className="font-mono">{formatMoney(totalPaid)}</span></div>
+                        {remaining > 0 ? (
+                            <div className="flex justify-between text-red-600"><span>Remaining</span><span className="font-mono">{formatMoney(remaining)}</span></div>
+                        ) : (
+                            <div className="flex justify-between text-blue-600"><span>Change</span><span className="font-mono">{formatMoney(change)}</span></div>
+                        )}
                     </div>
                 </div>
             </div>
 
             {/* Right: Payment Entry */}
-            <div className="w-2/3 p-6 flex flex-col">
+            <div className="w-3/5 p-6 flex flex-col">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-lg text-slate-700">Add Payment</h3>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">

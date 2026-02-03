@@ -1,9 +1,9 @@
 import React from 'react';
-import { X, Trash2, CheckCircle, AlertTriangle, Info, Bell, Clock } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, Info, Bell, Clock } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 
 export default function NotificationPanel() {
-  const { notifications, isOpen, setIsOpen, markAllRead, clearNotifications } = useNotification();
+    const { notifications, isOpen, setIsOpen, markAllRead } = useNotification();
 
   if (!isOpen) return null;
 
@@ -23,11 +23,6 @@ export default function NotificationPanel() {
                 <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{notifications.length}</span>
             </div>
             <div className="flex gap-2">
-                {notifications.length > 0 && (
-                    <button onClick={clearNotifications} className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-colors" title="Clear All">
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                )}
                 <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-slate-200 rounded text-slate-500">
                     <X className="w-5 h-5" />
                 </button>

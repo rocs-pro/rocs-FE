@@ -1,14 +1,25 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { ShoppingCart, X, Crown, Percent, Tag, Receipt } from 'lucide-react';
 
-export default function BillPanel({ cart, customer, onItemClick, onDetachCustomer, totals }) {
+export default function BillPanel({ cart, customer, onItemClick, onDetachCustomer, totals, editingIndex, onQuantityCommit, onQuantityCancel }) {
   const scrollRef = useRef(null);
+  const qtyInputRef = useRef(null);
+  const [editingValue, setEditingValue] = useState('');
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [cart]);
+
+  useEffect(() => {
+    if (editingIndex === null || editingIndex === undefined) return;
+    const currentItem = cart[editingIndex];
+    if (currentItem) {
+      setEditingValue(String(currentItem.qty ?? 1));
+      requestAnimationFrame(() => qtyInputRef.current?.focus());
+    }
+  }, [editingIndex, cart]);
 
   // Calculate totals if not provided - matches sale_items table structure
   const calculatedTotals = useMemo(() => {
@@ -139,9 +150,32 @@ export default function BillPanel({ cart, customer, onItemClick, onDetachCustome
               
               {/* Qty */}
               <div className="col-span-2 text-center pt-0.5">
-                  <span className="bg-slate-100 px-2 py-0.5 rounded font-mono font-bold text-xs group-hover:bg-blue-200 group-hover:text-blue-800 transition-colors">
-                    {item.qty}
-                  </span>
+                  {editingIndex === index ? (
+                    <input
+                      ref={qtyInputRef}
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={editingValue}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => setEditingValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          onQuantityCommit(index, editingValue);
+                        }
+                        if (e.key === 'Escape') {
+                          e.preventDefault();
+                          onQuantityCancel?.();
+                        }
+                      }}
+                      className="w-14 text-center bg-white border border-blue-400 rounded text-xs font-mono font-bold text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    />
+                  ) : (
+                    <span className="bg-slate-100 px-2 py-0.5 rounded font-mono font-bold text-xs group-hover:bg-blue-200 group-hover:text-blue-800 transition-colors">
+                      {item.qty}
+                    </span>
+                  )}
               </div>
               
               {/* Unit Price */}
