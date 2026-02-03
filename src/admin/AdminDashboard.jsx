@@ -5,6 +5,7 @@ import Users from "./pages/Users";
 import Reports from "./pages/Reports";
 import SystemActivityLog from "./pages/SystemActivityLog";
 import Branches from "./pages/Branches";
+import Terminals from "./pages/Terminals";
 
 export default function AdminDashboard() {
   return (
@@ -13,6 +14,7 @@ export default function AdminDashboard() {
         <Route index element={<Dashboard />} />
         <Route path="overview" element={<Dashboard />} />
         <Route path="users" element={<Users />} />
+        <Route path="terminals" element={<Terminals />} />
         <Route path="system-activity" element={<SystemActivityLog />} />
         <Route path="branches" element={<Branches />} />
         <Route path="reports" element={<Reports />} />
