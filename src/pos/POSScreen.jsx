@@ -18,8 +18,8 @@ import ListModal from './modals/ListModal';
 import FloatModal from './modals/FloatModal'; 
 import EndShiftModal from './modals/EndShiftModal';
 import PaymentModal from './modals/PaymentModal';
-import QuantityModal from './modals/QuantityModal'; 
 import QuickAddModal from './modals/QuickAddModal'; 
+import CashierSummaryModal from './modals/CashierSummaryModal';
 
 // Get branch/terminal from localStorage or use defaults
 const getBranchId = () => {
@@ -52,14 +52,43 @@ function POSContent() {
 
   const [activeModal, setActiveModal] = useState('FLOAT'); 
   const [confirmConfig, setConfirmConfig] = useState(null);
-  const [listConfig, setListConfig] = useState(null); 
+    const [listConfig, setListConfig] = useState(null); 
   
-  const [selectedCartIndex, setSelectedCartIndex] = useState(null);
+    const [editingCartIndex, setEditingCartIndex] = useState(null);
   const [quickGridRefresh, setQuickGridRefresh] = useState(0);
   const [time, setTime] = useState(new Date());
+    const [cashierSummary, setCashierSummary] = useState(null);
+    const [cashierSummaryLoading, setCashierSummaryLoading] = useState(false);
   
   const inputRef = useRef(null);
   const { addNotification, setIsOpen, unreadCount } = useNotification();
+
+    // Fetch branch info for header display
+    useEffect(() => {
+        let isMounted = true;
+
+        authService.getBranches()
+            .then((branches) => {
+                if (!isMounted) return;
+
+                const branch = branches?.find((b) =>
+                    String(b.id ?? b.branchId) === String(branchId)
+                );
+
+                setBranchInfo({
+                    name: branch?.name || branch?.branchName || `Branch ${branchId}`,
+                    code: branch?.code || branch?.branchCode || ""
+                });
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                setBranchInfo({ name: `Branch ${branchId}`, code: "" });
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [branchId]);
 
   // Clock
   useEffect(() => {
@@ -313,6 +342,7 @@ function POSContent() {
             product.id = product.sku || product.barcode;
         }
         
+        let notification = null;
         setCart(prev => {
             const existingIndex = prev.findIndex(item => 
                 item.id === product.id || 
@@ -321,16 +351,20 @@ function POSContent() {
             );
             if (existingIndex >= 0) {
                 const updated = [...prev];
+                const newQty = updated[existingIndex].qty + 1;
                 updated[existingIndex] = { 
                     ...updated[existingIndex], 
-                    qty: updated[existingIndex].qty + 1 
+                    qty: newQty 
                 };
-                addNotification('info', 'Quantity Updated', `${product.name} x${updated[existingIndex].qty}`);
+                notification = { type: 'info', title: 'Quantity Updated', message: `${product.name} x${newQty}` };
                 return updated;
             }
-            addNotification('success', 'Item Added', `${product.name} added to cart`);
+            notification = { type: 'success', title: 'Item Added', message: `${product.name} added to cart` };
             return [...prev, product];
         });
+        if (notification) {
+            addNotification(notification.type, notification.title, notification.message);
+        }
         
         inputRef.current?.focus();
     } catch (err) {
@@ -447,20 +481,48 @@ function POSContent() {
   };
 
   const handleCartItemClick = (index) => { 
-      setSelectedCartIndex(index); 
-      setActiveModal('QUANTITY'); 
+      setEditingCartIndex(index); 
   };
-  
-  const handleQuantityUpdate = (newQty) => {
-      if (selectedCartIndex !== null && newQty > 0) {
-          setCart(prev => {
-              const newCart = [...prev];
-              newCart[selectedCartIndex] = { ...newCart[selectedCartIndex], qty: newQty };
-              return newCart;
-          });
+
+  const handleInlineQuantityCommit = (index, rawQty) => {
+      const parsed = Number(rawQty);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+          addNotification('warning', 'Invalid Quantity', 'Enter a quantity greater than 0.');
+          return;
       }
-      setActiveModal(null);
-      setSelectedCartIndex(null);
+      setCart(prev => {
+          const newCart = [...prev];
+          if (!newCart[index]) return prev;
+          newCart[index] = { ...newCart[index], qty: parsed };
+          return newCart;
+      });
+      setEditingCartIndex(null);
+      inputRef.current?.focus();
+  };
+
+  const handleInlineQuantityCancel = () => {
+      setEditingCartIndex(null);
+      inputRef.current?.focus();
+  };
+
+  const handleOpenCashierSummary = async () => {
+      if (!session.shiftId) {
+          addNotification('warning', 'No Active Shift', 'Open a shift to view summary.');
+          return;
+      }
+      setActiveModal('CASHIER_SUMMARY');
+      setCashierSummaryLoading(true);
+      try {
+          const res = await posService.getShiftTotals(session.shiftId);
+          const data = res.data?.data || res.data || null;
+          setCashierSummary(data);
+      } catch (e) {
+          console.error('Failed to load cashier summary:', e);
+          addNotification('error', 'Summary Error', e.response?.data?.message || 'Failed to load cashier summary.');
+          setCashierSummary(null);
+      } finally {
+          setCashierSummaryLoading(false);
+      }
   };
   
   const handleVoidItem = (index) => {
@@ -660,10 +722,14 @@ function POSContent() {
                     <Bell className="w-5 h-5" />
                     {unreadCount > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-900 animate-pulse"></span>}
                 </button>
-                <div className="flex items-center gap-3 bg-blue-900/40 border border-blue-500/30 rounded-full py-1.5 px-4">
+                <button
+                    onClick={handleOpenCashierSummary}
+                    disabled={!session.isOpen}
+                    className="flex items-center gap-3 bg-blue-900/40 border border-blue-500/30 rounded-full py-1.5 px-4 hover:bg-blue-900/60 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
                     <User className="w-4 h-4 text-blue-400" />
                     <span className="text-sm font-bold tracking-wide uppercase text-blue-100">{session.cashier}</span>
-                </div>
+                </button>
                 <div className="text-right leading-tight hidden md:block">
                     <div className="font-mono text-2xl font-bold text-white tracking-widest">
                         {time.toLocaleTimeString('en-US', { hour12: false })}
@@ -689,6 +755,9 @@ function POSContent() {
                 customer={customer} 
                 totals={cartTotals}
                 onItemClick={handleCartItemClick} 
+                editingIndex={editingCartIndex}
+                onQuantityCommit={handleInlineQuantityCommit}
+                onQuantityCancel={handleInlineQuantityCancel}
                 onDetachCustomer={() => setCustomer(null)}
             />
             <ControlPanel 
@@ -733,17 +802,14 @@ function POSContent() {
         {activeModal === 'PAYMENT' && (
             <PaymentModal 
                 total={cartTotals.netTotal} 
+                cart={cart}
+                invoiceId={invoiceId}
+                cashierName={session.cashier}
+                branchInfo={branchInfo}
+                totals={cartTotals}
                 initialMethod={listConfig?.mode || 'CASH'} 
                 onClose={() => setActiveModal(null)} 
                 onProcess={processPayment} 
-            />
-        )}
-        {activeModal === 'QUANTITY' && selectedCartIndex !== null && (
-            <QuantityModal 
-                item={cart[selectedCartIndex]} 
-                onClose={() => { setActiveModal(null); setSelectedCartIndex(null); }} 
-                onConfirm={handleQuantityUpdate}
-                onVoid={() => handleVoidItem(selectedCartIndex)}
             />
         )}
         {activeModal === 'QUICK_ADD' && (
@@ -835,6 +901,15 @@ function POSContent() {
                 branchId={branchId}
                 onClose={() => { setActiveModal(null); setListConfig(null); }} 
                 onSelect={handleRecallBill} 
+            />
+        )}
+        {activeModal === 'CASHIER_SUMMARY' && (
+            <CashierSummaryModal
+                cashierName={session.cashier}
+                shiftId={session.shiftId}
+                summary={cashierSummary}
+                loading={cashierSummaryLoading}
+                onClose={() => { setActiveModal(null); setCashierSummary(null); }}
             />
         )}
     </div>
