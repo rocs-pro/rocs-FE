@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutGrid, Users, Building2, Monitor, Activity, FileText, LogOut } from "lucide-react";
 
-const baseLink = "flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition";
+const baseLink = "flex items-center gap-3 px-3 py-2 rounded-lg text-brand-muted hover:bg-brand-hover hover:text-white transition";
 const activeLink = "bg-brand-primary text-white";
 
 const NavItemLink = ({ to, icon: Icon, label, end = false }) => (
@@ -40,10 +40,10 @@ export default function Sidebar() {
   };
   
   return (
-    <aside className="w-60 shrink-0 bg-brand-sidebar text-white p-5 flex flex-col">
+    <aside className="w-60 shrink-0 bg-brand-deep text-white p-5 flex flex-col">
       <div className="mb-6">
         <div className="text-xl font-extrabold tracking-wide">
-          Smart Retail <span className="text-green-500">Pro</span>
+          Smart Retail <span className="text-pos-success">Pro</span>
         </div>
         <div className="text-xs text-slate-300">Admin Dashboard</div>
       </div>
@@ -68,7 +68,7 @@ export default function Sidebar() {
 
       <div className="mt-auto pt-4 border-t border-slate-700">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-brand-secondary grid place-items-center font-bold">
+          <div className="w-9 h-9 rounded-xl bg-brand-primary grid place-items-center font-bold">
             {userName.charAt(0).toUpperCase()}
           </div>
           <div>

@@ -11,6 +11,7 @@ const severityClass = (s) => {
 export default function SystemActivityLog() {
   const [q, setQ] = useState("");
   const [type, setType] = useState("All");
+  const [branch, setBranch] = useState("All");
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
@@ -26,7 +27,8 @@ export default function SystemActivityLog() {
     const s = q.trim().toLowerCase();
     return rows.filter((r) => {
       const matchType = type === "All" ? true : r.type === type;
-      if (!matchType) return false;
+      const matchBranch = branch === "All" ? true : r.branch === branch;
+      if (!matchType || !matchBranch) return false;
       if (!s) return true;
       return (
         (r.time || "").toLowerCase().includes(s) ||
@@ -35,7 +37,7 @@ export default function SystemActivityLog() {
         (r.action || "").toLowerCase().includes(s)
       );
     });
-  }, [rows, q, type]);
+  }, [rows, q, type, branch]);
 
   return (
     <div className="space-y-4">
@@ -67,7 +69,16 @@ export default function SystemActivityLog() {
             <option>User</option>
             <option>Branch</option>
           </select>
-
+          <select
+            value={branch}
+            onChange={(e) => setBranch(e.target.value)}
+            className="w-40 px-3 py-2 rounded-xl border border-brand-border bg-white text-sm"
+          >
+            <option value="All">All Branches</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.name}>{b.name}</option>
+            ))}
+          </select>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
