@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { branches as initialBranches } from "../data/mockData";
 import { getUsers } from "../../shared/storage";
 import axios from "axios";
-import { X } from "lucide-react";
+import { X, Eye } from "lucide-react";
 
 export default function Branches() {
   const [q, setQ] = useState("");
@@ -168,12 +168,13 @@ export default function Branches() {
                   <th className="text-left p-3">Address</th>
                   <th className="text-left p-3">Manager</th>
                   <th className="text-left p-3">Status</th>
+                  <th className="text-center p-3">View</th>
                   <th className="text-left p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((b) => (
-                  <tr key={b.id} className="border-t hover:bg-slate-50 cursor-pointer" onClick={() => setSelectedBranch(b)}>
+                  <tr key={b.id} className="border-t hover:bg-slate-50">
                     <td className="p-3 font-mono text-xs">{b.id}</td>
                     <td className="p-3 font-bold">{b.name}</td>
                     <td className="p-3">{b.address}</td>
@@ -182,16 +183,29 @@ export default function Branches() {
                       <span
                         className={[
                           "text-xs px-3 py-1 rounded-full text-white font-bold",
-                          b.status === "Active" ? "bg-brand-success" : "bg-slate-500",
+                          b.status === "Active" ? "bg-green-500" : "bg-slate-500",
                         ].join(" ")}
                       >
                         {b.status}
                       </span>
                     </td>
+                    <td className="p-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBranch(b)}
+                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                        title="View Details"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </td>
                     <td className="p-3">
                       <button
                         type="button"
-                        onClick={() => toggleStatus(b.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleStatus(b.id);
+                        }}
                         className={`px-3 py-2 rounded-xl text-xs font-bold border transition ${
                           b.status === "Active"
                             ? "bg-white border-brand-border hover:bg-slate-50"
@@ -205,7 +219,7 @@ export default function Branches() {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td className="p-6 text-center text-brand-muted" colSpan={6}>
+                    <td className="p-6 text-center text-brand-muted" colSpan={7}>
                       No branches found
                     </td>
                   </tr>

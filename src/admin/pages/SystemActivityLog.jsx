@@ -97,6 +97,7 @@ export default function SystemActivityLog() {
               <tr>
                 <th className="text-left p-3">Time</th>
                 <th className="text-left p-3">Actor</th>
+                <th className="text-left p-3">Branch</th>
                 <th className="text-left p-3">Type</th>
                 <th className="text-left p-3">Action</th>
                 <th className="text-left p-3">Severity</th>
@@ -107,6 +108,11 @@ export default function SystemActivityLog() {
                 <tr key={e.id} className="border-t hover:bg-slate-50">
                   <td className="p-3 text-brand-muted whitespace-nowrap">{e.time}</td>
                   <td className="p-3 font-mono text-xs whitespace-nowrap">{e.actor}</td>
+                  <td className="p-3">
+                    <span className="text-xs px-2 py-1 rounded-full bg-blue-100 border border-blue-300 text-blue-700">
+                      {e.branch || "-"}
+                    </span>
+                  </td>
                   <td className="p-3">
                     <span className="text-xs px-2 py-1 rounded-full bg-slate-100 border border-brand-border">
                       {e.type}
@@ -123,7 +129,7 @@ export default function SystemActivityLog() {
 
               {filtered.length === 0 && (
                 <tr>
-                  <td className="p-6 text-center text-brand-muted" colSpan={5}>
+                  <td className="p-6 text-center text-brand-muted" colSpan={6}>
                     No activity found
                   </td>
                 </tr>
