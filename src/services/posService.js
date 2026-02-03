@@ -52,7 +52,7 @@ export const posService = {
     },
     
     // Close shift with cash count
-    closeShift: (shiftId, data) => api.post(`/shift/${shiftId}/close`, {
+    closeShift: (shiftId, data) => api.put(`/shift/${shiftId}/close`, {
         closingCash: data.closingCash,
         denominations: data.denominations, // Closing denominations
         notes: data.notes,
