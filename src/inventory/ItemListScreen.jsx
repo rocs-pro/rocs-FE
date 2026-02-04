@@ -52,8 +52,8 @@ const ItemListScreen = ({
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Item List</h2>
-                    <p className="text-gray-600 mt-1">Manage your inventory items</p>
+                    <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Item List</h2>
+                    <p className="text-gray-600 mt-2 font-medium">Manage your inventory items</p>
                 </div>
                 <button onClick={() => setIsAddModalOpen(true)} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors btn-hover-scale btn-interactive">
                     <Plus size={20} />
