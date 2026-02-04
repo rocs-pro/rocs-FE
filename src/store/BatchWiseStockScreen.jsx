@@ -42,28 +42,46 @@ const BatchWiseStockScreen = ({
     const nearExpiryBatches = filteredBatches.filter(b => getBatchAlert(b.expiry_date) === 'Near Expiry').length;
 
     const handleExportReport = () => {
+        const headers = ['📦 Product Name', '🔖 Batch Code', '📊 Quantity', '📅 Expiry Date', '🏭 Mfg Date', '🏢 Branch', '💲 Cost Price', '⚠️ Alert Status'];
+
         const csvContent = [
-            ['Product Name', 'Batch Code', 'Quantity', 'Expiry Date', 'Manufacturing Date', 'Branch', 'Alert Status'],
+            headers.join(','),
             ...filteredBatches.map(b => {
                 const product = items.find(i => i.product_id === b.product_id);
+                const alertStatus = getBatchAlert(b.expiry_date);
+
+                // Add emojis to status for visual cue in report
+                let statusWithEmoji = alertStatus;
+                if (alertStatus === 'Expired') statusWithEmoji = '🔴 Expired';
+                else if (alertStatus === 'Near Expiry') statusWithEmoji = '🟡 Near Expiry';
+                else statusWithEmoji = '🟢 Safe';
+
+                // Escape fields that might contain commas
+                const safeName = `"${(product?.name || '').replace(/"/g, '""')}"`;
+                const safeBatch = `"${(b.batch_code || '').replace(/"/g, '""')}"`;
+
                 return [
-                    product?.name || '',
-                    b.batch_code,
+                    safeName,
+                    safeBatch,
                     b.qty,
                     b.expiry_date,
                     b.manufacturing_date,
-                    b.branch_id,
-                    getBatchAlert(b.expiry_date)
-                ];
+                    b.branch_id || 'Main', // Default to Main if undefined
+                    (b.cost_price || 0).toFixed(2),
+                    statusWithEmoji
+                ].join(',');
             })
-        ].map(row => row.join(',')).join('\n');
+        ].join('\n');
 
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+        // Add BOM for Excel UTF-8 compatibility
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'batch-stock-report.csv';
+        a.download = `batch_stock_report_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a); // Append to body to ensure it works in all browsers
         a.click();
+        document.body.removeChild(a); // specific cleanup
     };
 
     return (
