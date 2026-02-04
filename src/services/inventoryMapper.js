@@ -110,7 +110,13 @@ export const mapSubCategoriesFromBackend = (backendSubCategories) => {
  */
 export const mapCategoryFromBackend = (backendCategory) => {
     if (!backendCategory) return null;
-    return convertKeysToSnake(backendCategory);
+    const mapped = convertKeysToSnake(backendCategory);
+    // Ensure icon and color are preserved or set to defaults
+    return {
+        ...mapped,
+        icon: mapped.icon || 'Tag',
+        color: mapped.color || 'blue'
+    };
 };
 
 /**

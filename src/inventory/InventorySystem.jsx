@@ -111,9 +111,17 @@ const InventorySystem = () => {
                     suppliers: suppliersData?.length || 0
                 });
 
+                // MERGE CATEGORIES WITH LOCAL METADATA
+                const categoryMetadata = JSON.parse(localStorage.getItem('category_metadata') || '{}');
+                const enhancedCategories = categoriesData.map(cat => ({
+                    ...cat,
+                    icon: categoryMetadata[cat.category_id]?.icon || cat.icon || 'Tag',
+                    color: categoryMetadata[cat.category_id]?.color || cat.color || 'blue'
+                }));
+
                 // Set state with fetched data (already mapped to snake_case by service)
                 setItems(productsData);
-                setCategories(categoriesData);
+                setCategories(enhancedCategories);
                 setBrands(brandsData);
                 setSuppliers(suppliersData);
                 setSubCategories(subCategoriesData);
@@ -163,7 +171,23 @@ const InventorySystem = () => {
         if (categoryForm.name.trim()) {
             try {
                 const createdCategory = await inventoryService.createCategory(categoryForm);
-                setCategories([...categories, createdCategory]);
+
+                // SAVE METADATA TO LOCAL STORAGE
+                const metadata = JSON.parse(localStorage.getItem('category_metadata') || '{}');
+                metadata[createdCategory.category_id] = {
+                    icon: categoryForm.icon,
+                    color: categoryForm.color
+                };
+                localStorage.setItem('category_metadata', JSON.stringify(metadata));
+
+                // Merge with local state
+                const categoryWithMeta = {
+                    ...createdCategory,
+                    icon: categoryForm.icon,
+                    color: categoryForm.color
+                };
+
+                setCategories([...categories, categoryWithMeta]);
                 setCategoryForm({ category_id: '', name: '', description: '', is_active: true, icon: 'Tag', color: 'blue' });
                 setIsAddCategoryOpen(false);
             } catch (err) {
@@ -205,6 +229,14 @@ const InventorySystem = () => {
         if (window.confirm('Are you sure you want to delete this category?')) {
             try {
                 await inventoryService.deleteCategory(categoryId);
+
+                // REMOVE METADATA FROM LOCAL STORAGE
+                const metadata = JSON.parse(localStorage.getItem('category_metadata') || '{}');
+                if (metadata[categoryId]) {
+                    delete metadata[categoryId];
+                    localStorage.setItem('category_metadata', JSON.stringify(metadata));
+                }
+
                 setCategories(categories.filter(c => c.category_id !== categoryId));
             } catch (err) {
                 console.error('Error deleting category:', err);
@@ -252,7 +284,12 @@ const InventorySystem = () => {
     const handleEditCategory = (categoryId) => {
         const category = categories.find(c => c.category_id === categoryId);
         if (category) {
-            setCategoryForm({ ...category });
+            setCategoryForm({
+                ...category,
+                // Ensure form gets defaults if missing
+                icon: category.icon || 'Tag',
+                color: category.color || 'blue'
+            });
             setEditingId(categoryId);
             setEditingType('category');
             setIsEditMode(true);
@@ -297,7 +334,23 @@ const InventorySystem = () => {
         try {
             if (editingType === 'category' && categoryForm.name.trim()) {
                 const updatedCategory = await inventoryService.updateCategory(editingId, categoryForm);
-                setCategories(categories.map(c => c.category_id === editingId ? updatedCategory : c));
+
+                // UPDATE METADATA IN LOCAL STORAGE
+                const metadata = JSON.parse(localStorage.getItem('category_metadata') || '{}');
+                metadata[editingId] = {
+                    icon: categoryForm.icon,
+                    color: categoryForm.color
+                };
+                localStorage.setItem('category_metadata', JSON.stringify(metadata));
+
+                // Merge update with meta
+                const categoryWithMeta = {
+                    ...updatedCategory,
+                    icon: categoryForm.icon,
+                    color: categoryForm.color
+                };
+
+                setCategories(categories.map(c => c.category_id === editingId ? categoryWithMeta : c));
                 setIsEditMode(false);
                 setEditingId(null);
                 setEditingType(null);
