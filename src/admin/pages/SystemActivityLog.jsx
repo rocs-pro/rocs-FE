@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { branches, seedActivity, seedUsers } from "../data/mockData";
-import { ensureAdminSeed, getActivity } from "../../shared/storage";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { getActivityLogs, getAllBranches } from "../services/adminApi";
 
 const severityClass = (s) => {
-  if (s === "Critical") return "bg-brand-danger";
-  if (s === "Warning") return "bg-brand-warning";
+  if (s === "CRITICAL" || s === "Critical") return "bg-brand-danger";
+  if (s === "WARNING" || s === "Warning") return "bg-brand-warning";
   return "bg-slate-500";
 };
 
@@ -13,31 +13,80 @@ export default function SystemActivityLog() {
   const [type, setType] = useState("All");
   const [branch, setBranch] = useState("All");
   const [rows, setRows] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Fetch activity logs and branches on mount
   useEffect(() => {
-    ensureAdminSeed({ seedUsers, seedActivity, seedBranches: branches });
-    setRows(getActivity());
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [logsData, branchesData] = await Promise.all([
+          getActivityLogs(),
+          getAllBranches(),
+        ]);
+        setRows(logsData || []);
+        setBranches(branchesData || []);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load activity logs");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  function refresh() {
-    setRows(getActivity());
+  async function refresh() {
+    try {
+      setLoading(true);
+      const filters = {};
+      if (type !== "All") filters.type = type;
+      if (branch !== "All") filters.branchId = branch;
+      const data = await getActivityLogs(filters);
+      setRows(data || []);
+    } catch (err) {
+      console.error("Error refreshing logs:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const filtered = useMemo(() => {
+  // Filter logs based on search and filters
+  const filtered = rows.filter((r) => {
+    const matchType = type === "All" ? true : r.type === type;
+    const matchBranch = branch === "All" ? true : (r.branchId || r.branch_id || r.branchName || r.branch_name) === branch;
+    if (!matchType || !matchBranch) return false;
+    
     const s = q.trim().toLowerCase();
-    return rows.filter((r) => {
-      const matchType = type === "All" ? true : r.type === type;
-      const matchBranch = branch === "All" ? true : r.branch === branch;
-      if (!matchType || !matchBranch) return false;
-      if (!s) return true;
-      return (
-        (r.time || "").toLowerCase().includes(s) ||
-        (r.actor || "").toLowerCase().includes(s) ||
-        (r.type || "").toLowerCase().includes(s) ||
-        (r.action || "").toLowerCase().includes(s)
-      );
-    });
-  }, [rows, q, type, branch]);
+    if (!s) return true;
+    return (
+      (r.time || r.timestamp || "").toLowerCase().includes(s) ||
+      (r.actor || r.actorName || r.actor_name || "").toLowerCase().includes(s) ||
+      (r.type || "").toLowerCase().includes(s) ||
+      (r.action || r.description || "").toLowerCase().includes(s)
+    );
+  });
+
+  const getBranchId = (b) => b.branchId || b.branch_id;
+  const getBranchName = (b) => b.branchName || b.branch_name;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -76,7 +125,7 @@ export default function SystemActivityLog() {
           >
             <option value="All">All Branches</option>
             {branches.map((b) => (
-              <option key={b.id} value={b.name}>{b.name}</option>
+              <option key={getBranchId(b)} value={getBranchId(b)}>{getBranchName(b)}</option>
             ))}
           </select>
           <input
@@ -104,28 +153,37 @@ export default function SystemActivityLog() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((e) => (
-                <tr key={e.id} className="border-t hover:bg-slate-50">
-                  <td className="p-3 text-brand-muted whitespace-nowrap">{e.time}</td>
-                  <td className="p-3 font-mono text-xs whitespace-nowrap">{e.actor}</td>
-                  <td className="p-3">
-                    <span className="text-xs px-2 py-1 rounded-full bg-blue-100 border border-blue-300 text-blue-700">
-                      {e.branch || "-"}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <span className="text-xs px-2 py-1 rounded-full bg-slate-100 border border-brand-border">
-                      {e.type}
-                    </span>
-                  </td>
-                  <td className="p-3">{e.action}</td>
-                  <td className="p-3">
-                    <span className={`text-xs px-3 py-1 rounded-full text-white font-bold ${severityClass(e.severity)}`}>
-                      {e.severity}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((e, idx) => {
+                const logId = e.id || e.logId || e.log_id || idx;
+                const time = e.time || e.timestamp || e.createdAt || e.created_at || "-";
+                const actor = e.actor || e.actorName || e.actor_name || "-";
+                const branchName = e.branchName || e.branch_name || e.branch || "-";
+                const action = e.action || e.description || "-";
+                const severity = e.severity || "Info";
+                
+                return (
+                  <tr key={logId} className="border-t hover:bg-slate-50">
+                    <td className="p-3 text-brand-muted whitespace-nowrap">{time}</td>
+                    <td className="p-3 font-mono text-xs whitespace-nowrap">{actor}</td>
+                    <td className="p-3">
+                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 border border-blue-300 text-blue-700">
+                        {branchName}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span className="text-xs px-2 py-1 rounded-full bg-slate-100 border border-brand-border">
+                        {e.type}
+                      </span>
+                    </td>
+                    <td className="p-3">{action}</td>
+                    <td className="p-3">
+                      <span className={`text-xs px-3 py-1 rounded-full text-white font-bold ${severityClass(severity)}`}>
+                        {severity}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
 
               {filtered.length === 0 && (
                 <tr>

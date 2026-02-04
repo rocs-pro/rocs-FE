@@ -1,26 +1,39 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { branches, seedActivity, seedUsers } from "../data/mockData";
-import { addActivity, ensureAdminSeed, getUsers, setUsers } from "../../shared/storage";
-import { X, Eye, MoreVertical, Edit, Trash2, Power, User } from "lucide-react";
-
-const statusBadge = (status) =>
-  status === "Active" ? "bg-brand-success" : "bg-slate-500";
+import { X, Eye, MoreVertical, Edit, Trash2, Power, User, Search, Loader2, UserPlus } from "lucide-react";
+import {
+  getAllUsers,
+  searchUsers,
+  registerManager,
+  updateUser,
+  deleteUser,
+  toggleUserStatus,
+  getAllBranches,
+} from "../services/adminApi";
 
 export default function Users() {
   const [users, setUsersState] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Form fields for Manager Registration
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("Cashier");
-  const [branch, setBranch] = useState("Colombo Main");
+  const [employeeId, setEmployeeId] = useState("");
+  const [branch, setBranch] = useState("");
+
+  // Search and UI state
   const [q, setQ] = useState("");
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [editUser, setEditUser] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [submitting, setSubmitting] = useState(false);
   const dropdownButtonRefs = useRef({});
+  const searchTimeoutRef = useRef(null);
 
   const toggleDropdown = (id) => {
     if (activeDropdown === id) {
@@ -38,161 +51,228 @@ export default function Users() {
     }
   };
 
+  // Fetch users and branches on mount
   useEffect(() => {
-    ensureAdminSeed({ seedUsers, seedActivity, seedBranches: branches });
-    setUsersState(getUsers());
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        const [usersData, branchesData] = await Promise.all([
+          getAllUsers(),
+          getAllBranches(),
+        ]);
+        setUsersState(usersData || []);
+        setBranches(branchesData || []);
+        if (branchesData?.length > 0) {
+          setBranch(branchesData[0].branchId || branchesData[0].branch_id || "");
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitialData();
   }, []);
 
-  const filtered = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    if (!s) return users;
-    return users.filter((u) =>
-      [u.id, u.fullName, u.username, u.email, u.role, u.branch, u.status]
-        .join(" ")
-        .toLowerCase()
-        .includes(s)
-    );
-  }, [users, q]);
+  // Handle search with debounce - search by employee ID or name
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!q.trim()) {
+      // If search is empty, fetch all users
+      const fetchAllUsers = async () => {
+        try {
+          const data = await getAllUsers();
+          setUsersState(data || []);
+        } catch (err) {
+          console.error("Error fetching users:", err);
+        }
+      };
+      fetchAllUsers();
+      return;
+    }
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        setSearchLoading(true);
+        const data = await searchUsers(q.trim());
+        setUsersState(data || []);
+      } catch (err) {
+        console.error("Error searching users:", err);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [q]);
 
   function resetForm() {
     setFullName("");
     setUsername("");
     setEmail("");
-    setRole("Cashier");
-    setBranch("Colombo Main");
+    setEmployeeId("");
+    setBranch(branches[0]?.branchId || branches[0]?.branch_id || "");
     setEditUser(null);
   }
 
   function handleEditUser(user) {
     setEditUser(user);
-    setFullName(user.fullName);
-    setUsername(user.username);
-    setEmail(user.email);
-    setRole(user.role);
-    setBranch(user.branch);
+    setFullName(user.fullName || user.full_name || "");
+    setUsername(user.username || "");
+    setEmail(user.email || "");
+    setEmployeeId(user.employeeId || user.employee_id || "");
+    setBranch(user.branchId || user.branch_id || "");
     setActiveDropdown(null);
   }
 
-  function handleSaveEdit(e) {
+  async function handleSaveEdit(e) {
     e.preventDefault();
     if (!fullName.trim() || !email.trim()) return alert("Full name and email are required");
-    const next = users.map((u) =>
-      u.id === editUser.id
-        ? { ...u, fullName: fullName.trim(), email: email.trim(), role, branch }
-        : u
-    );
-    setUsers(next);
-    setUsersState(next);
-    addActivity({
-      time: new Date().toISOString().slice(0, 19).replace("T", " "),
-      actor: "admin",
-      type: "User",
-      action: `Updated user '${editUser.username}'`,
-      severity: "Info",
-    });
-    resetForm();
-  }
-
-  function handleDeleteUser(userId) {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      const user = users.find((u) => u.id === userId);
-      const next = users.filter((u) => u.id !== userId);
-      setUsers(next);
-      setUsersState(next);
-      addActivity({
-        time: new Date().toISOString().slice(0, 19).replace("T", " "),
-        actor: "admin",
-        type: "User",
-        action: `Deleted user '${user.username}'`,
-        severity: "Warning",
+    
+    try {
+      setSubmitting(true);
+      const userId = editUser.userId || editUser.user_id || editUser.id;
+      await updateUser(userId, {
+        fullName: fullName.trim(),
+        email: email.trim(),
+        employeeId: employeeId.trim(),
+        branchId: branch,
       });
-      setActiveDropdown(null);
+      
+      // Refresh users list
+      const data = await getAllUsers();
+      setUsersState(data || []);
+      resetForm();
+    } catch (err) {
+      console.error("Error updating user:", err);
+      alert("Failed to update user. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
-  function onRegister(e) {
+  async function handleDeleteUser(userId) {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        await deleteUser(userId);
+        // Refresh users list
+        const data = await getAllUsers();
+        setUsersState(data || []);
+        setActiveDropdown(null);
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        alert("Failed to delete user. Please try again.");
+      }
+    }
+  }
+
+  // Admin can only register Managers
+  async function onRegisterManager(e) {
     e.preventDefault();
     const fn = fullName.trim();
     const un = username.trim();
     const em = email.trim();
+    const empId = employeeId.trim();
 
     if (!fn || !un || !em) {
       alert("Full name, username and email are required.");
       return;
     }
 
-    // basic unique username check
-    if (users.some((u) => u.username.toLowerCase() === un.toLowerCase())) {
-      alert("Username already exists. Please choose another.");
-      return;
+    try {
+      setSubmitting(true);
+      await registerManager({
+        fullName: fn,
+        username: un,
+        email: em,
+        employeeId: empId,
+        branchId: branch,
+        role: "MANAGER", // Admin can only register managers
+        status: "INACTIVE", // default
+      });
+
+      // Refresh users list
+      const data = await getAllUsers();
+      setUsersState(data || []);
+      resetForm();
+    } catch (err) {
+      console.error("Error registering manager:", err);
+      if (err.response?.data?.message?.includes("username")) {
+        alert("Username already exists. Please choose another.");
+      } else if (err.response?.data?.message?.includes("employee")) {
+        alert("Employee ID already exists. Please use a different ID.");
+      } else {
+        alert("Failed to register manager. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
     }
-
-    const newUser = {
-      id: `U-${String(Date.now()).slice(-6)}`,
-      fullName: fn,
-      username: un,
-      email: em,
-      role,
-      branch,
-      status: "Inactive", // default
-      createdAt: new Date().toISOString().slice(0, 19).replace("T", " "),
-    };
-
-    const next = [newUser, ...users];
-    setUsers(next);
-    setUsersState(next);
-
-    addActivity({
-      time: newUser.createdAt,
-      actor: "admin",
-      type: "User",
-      action: `Registered user '${newUser.username}' (default: Inactive)`,
-      severity: "Info",
-    });
-
-    resetForm();
   }
 
-  function toggleStatus(userId) {
-    const next = users.map((u) => {
-      if (u.id !== userId) return u;
-      const newStatus = u.status === "Active" ? "Inactive" : "Active";
-      return { ...u, status: newStatus };
-    });
-
-    const changed = next.find((u) => u.id === userId);
-    setUsers(next);
-    setUsersState(next);
-
-    addActivity({
-      time: new Date().toISOString().slice(0, 19).replace("T", " "),
-      actor: "admin",
-      type: "User",
-      action: `Set user '${changed.username}' status to ${changed.status}`,
-      severity: "Warning",
-    });
+  async function handleToggleStatus(userId) {
+    try {
+      await toggleUserStatus(userId);
+      // Refresh users list
+      const data = await getAllUsers();
+      setUsersState(data || []);
+      setActiveDropdown(null);
+    } catch (err) {
+      console.error("Error toggling status:", err);
+      alert("Failed to update user status. Please try again.");
+    }
   }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 text-red-500">
+        {error}
+      </div>
+    );
+  }
+
+  const getUserId = (u) => u.userId || u.user_id || u.id;
+  const getUserStatus = (u) => u.status || "INACTIVE";
+  const isActive = (status) => status === "ACTIVE" || status === "Active";
 
   return (
     <div className="space-y-4" onClick={() => setActiveDropdown(null)}>
       <div>
-        <h1 className="text-xl font-extrabold">User Registration</h1>
+        <h1 className="text-xl font-extrabold">User Management</h1>
         <p className="text-sm text-brand-muted">
-          New users are created as <span className="font-bold">Inactive</span>. Admin must activate a user before they can access the system.
+          Admin can register <span className="font-bold">Managers only</span>. New managers are created as <span className="font-bold">Inactive</span>. Search any user by Employee ID or Name.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Form */}
+        {/* Manager Registration Form */}
         <div className={`lg:col-span-1 bg-white border rounded-2xl shadow-sm p-5 transition-all duration-300 ${editUser ? 'border-blue-400 ring-2 ring-blue-100' : 'border-brand-border'}`}>
           {editUser && (
             <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
               <Edit size={16} className="text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">Editing: {editUser.fullName}</span>
+              <span className="text-sm font-medium text-blue-700">Editing: {editUser.fullName || editUser.full_name}</span>
             </div>
           )}
           <div className="flex items-center justify-between mb-3">
-            <div className="font-bold">{editUser ? "Edit User" : "Register New User"}</div>
+            <div className="flex items-center gap-2">
+              <UserPlus size={18} className="text-brand-primary" />
+              <span className="font-bold">{editUser ? "Edit User" : "Register New Manager"}</span>
+            </div>
             {editUser && (
               <button
                 type="button"
@@ -203,7 +283,7 @@ export default function Users() {
               </button>
             )}
           </div>
-          <form onSubmit={editUser ? handleSaveEdit : onRegister} className="space-y-3">
+          <form onSubmit={editUser ? handleSaveEdit : onRegisterManager} className="space-y-3">
             <div>
               <label className="text-sm font-bold">Full Name</label>
               <input
@@ -226,6 +306,16 @@ export default function Users() {
             </div>
 
             <div>
+              <label className="text-sm font-bold">Employee ID</label>
+              <input
+                className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+                placeholder="e.g., EMP001"
+              />
+            </div>
+
+            <div>
               <label className="text-sm font-bold">Email</label>
               <input
                 type="email"
@@ -236,54 +326,56 @@ export default function Users() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-bold">Role</label>
-                <select
-                  className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border bg-white"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
-                  <option>Cashier</option>
-                  <option>Manager</option>
-                  <option>Store Keeper</option>
-                  <option>Accountant</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-sm font-bold">Branch</label>
-                <select
-                  className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border bg-white"
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                >
-                  {branches.map((b) => (
-                    <option key={b.id}>{b.name}</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="text-sm font-bold">Assign to Branch</label>
+              <select
+                className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border bg-white"
+                value={branch}
+                onChange={(e) => setBranch(e.target.value)}
+              >
+                {branches.map((b) => (
+                  <option key={b.branchId || b.branch_id} value={b.branchId || b.branch_id}>
+                    {b.branchName || b.branch_name || b.name}
+                  </option>
+                ))}
+              </select>
             </div>
+
+            {!editUser && (
+              <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
+                <p className="text-xs text-indigo-700">
+                  <span className="font-bold">Role:</span> Manager (Admin can only register Managers)
+                </p>
+              </div>
+            )}
 
             <button
               type="submit"
-              className="w-full py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold transition"
+              disabled={submitting}
+              className="w-full py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {editUser ? "Save Changes" : "Register User (Inactive)"}
+              {submitting && <Loader2 size={16} className="animate-spin" />}
+              {editUser ? "Save Changes" : "Register Manager (Inactive)"}
             </button>
           </form>
         </div>
 
-        {/* Table */}
+        {/* Users Table */}
         <div className="lg:col-span-2 bg-white border border-brand-border rounded-2xl shadow-sm overflow-visible">
           <div className="p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="font-bold">All Users</div>
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search users..."
-              className="w-full sm:w-80 px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
-            />
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by Employee ID or Name..."
+                className="w-full sm:w-80 pl-9 pr-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
+              />
+              {searchLoading && (
+                <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin" />
+              )}
+            </div>
           </div>
 
           <div className="overflow-x-auto overflow-y-visible">
@@ -291,6 +383,7 @@ export default function Users() {
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
                   <th className="text-left p-3">User</th>
+                  <th className="text-left p-3">Employee ID</th>
                   <th className="text-left p-3">Role</th>
                   <th className="text-left p-3">Branch</th>
                   <th className="text-center p-3">Status</th>
@@ -298,48 +391,62 @@ export default function Users() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((u) => (
-                  <tr key={u.id} className="border-t hover:bg-slate-50">
-                    <td className="p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-indigo-100 text-indigo-600">
-                          <User size={18} />
+                {users.map((u) => {
+                  const userId = getUserId(u);
+                  const status = getUserStatus(u);
+                  return (
+                    <tr key={userId} className="border-t hover:bg-slate-50">
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-indigo-100 text-indigo-600">
+                            <User size={18} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-900">{u.fullName || u.full_name}</span>
+                            <span className="text-xs text-gray-500">@{u.username} • {u.email}</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-900">{u.fullName}</span>
-                          <span className="text-xs text-gray-500">@{u.username} • {u.email}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-3">{u.role}</td>
-                    <td className="p-3">{u.branch}</td>
-                    <td className="p-3 text-center">
-                      <span className={`text-xs px-3 py-1 rounded-full font-bold ${
-                        u.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {u.status}
-                      </span>
-                    </td>
-                    <td className="p-3 text-right relative">
-                      <button
-                        ref={(el) => (dropdownButtonRefs.current[u.id] = el)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDropdown(u.id);
-                        }}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition"
-                      >
-                        <MoreVertical size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="p-3 font-mono text-gray-600">{u.employeeId || u.employee_id || "-"}</td>
+                      <td className="p-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          (u.role || "").toUpperCase() === "MANAGER" ? "bg-purple-100 text-purple-700" :
+                          (u.role || "").toUpperCase() === "CASHIER" ? "bg-blue-100 text-blue-700" :
+                          (u.role || "").toUpperCase() === "ADMIN" ? "bg-red-100 text-red-700" :
+                          "bg-gray-100 text-gray-700"
+                        }`}>
+                          {u.role || "N/A"}
+                        </span>
+                      </td>
+                      <td className="p-3">{u.branchName || u.branch_name || u.branch || "-"}</td>
+                      <td className="p-3 text-center">
+                        <span className={`text-xs px-3 py-1 rounded-full font-bold ${
+                          isActive(status)
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}>
+                          {status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right relative">
+                        <button
+                          ref={(el) => (dropdownButtonRefs.current[userId] = el)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDropdown(userId);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition"
+                        >
+                          <MoreVertical size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
 
-                {filtered.length === 0 && (
+                {users.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-brand-muted">
+                    <td colSpan={6} className="p-6 text-center text-brand-muted">
                       No users found
                     </td>
                   </tr>
@@ -363,7 +470,7 @@ export default function Users() {
           >
             <button
               onClick={() => {
-                const user = users.find((u) => u.id === activeDropdown);
+                const user = users.find((u) => getUserId(u) === activeDropdown);
                 setSelectedUser(user);
                 setActiveDropdown(null);
               }}
@@ -373,7 +480,7 @@ export default function Users() {
               View Details
             </button>
             <button
-              onClick={() => handleEditUser(users.find((u) => u.id === activeDropdown))}
+              onClick={() => handleEditUser(users.find((u) => getUserId(u) === activeDropdown))}
               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
             >
               <Edit size={16} className="text-blue-500" />
@@ -381,13 +488,12 @@ export default function Users() {
             </button>
             <button
               onClick={() => {
-                toggleStatus(activeDropdown);
-                setActiveDropdown(null);
+                handleToggleStatus(activeDropdown);
               }}
               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
             >
               <Power size={16} className="text-orange-500" />
-              {users.find((u) => u.id === activeDropdown)?.status === "Active"
+              {isActive(getUserStatus(users.find((u) => getUserId(u) === activeDropdown)))
                 ? "Deactivate"
                 : "Activate"}
             </button>
@@ -422,14 +528,18 @@ export default function Users() {
                     <User size={24} />
                   </div>
                   <div>
-                    <div className="font-bold text-lg">{selectedUser.fullName}</div>
+                    <div className="font-bold text-lg">{selectedUser.fullName || selectedUser.full_name}</div>
                     <div className="text-sm text-gray-500">@{selectedUser.username}</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-gray-50 p-3 rounded-xl">
+                    <div className="text-gray-500 text-xs">Employee ID</div>
+                    <div className="font-medium font-mono">{selectedUser.employeeId || selectedUser.employee_id || "-"}</div>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl">
                     <div className="text-gray-500 text-xs">Email</div>
-                    <div className="font-medium">{selectedUser.email}</div>
+                    <div className="font-medium truncate">{selectedUser.email}</div>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-xl">
                     <div className="text-gray-500 text-xs">Role</div>
@@ -437,14 +547,14 @@ export default function Users() {
                   </div>
                   <div className="bg-gray-50 p-3 rounded-xl">
                     <div className="text-gray-500 text-xs">Branch</div>
-                    <div className="font-medium">{selectedUser.branch}</div>
+                    <div className="font-medium">{selectedUser.branchName || selectedUser.branch_name || selectedUser.branch || "-"}</div>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-xl">
+                  <div className="col-span-2 bg-gray-50 p-3 rounded-xl">
                     <div className="text-gray-500 text-xs">Status</div>
                     <div className={`font-medium ${
-                      selectedUser.status === "Active" ? "text-green-600" : "text-red-600"
+                      isActive(getUserStatus(selectedUser)) ? "text-green-600" : "text-red-600"
                     }`}>
-                      {selectedUser.status}
+                      {getUserStatus(selectedUser)}
                     </div>
                   </div>
                 </div>
