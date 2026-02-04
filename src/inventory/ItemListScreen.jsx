@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, Search, Filter, Download, FileText, Edit, Printer, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Search, Filter, Download, FileText, Edit, Printer, Trash2, X } from 'lucide-react';
 import { getStatusColor } from '../utils/helpers';
 
 const ItemListScreen = ({
@@ -13,11 +13,41 @@ const ItemListScreen = ({
     handleEditItem,
     categories
 }) => {
-    const filteredItems = items.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.barcode.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const [showFilters, setShowFilters] = useState(false);
+    const [filters, setFilters] = useState({
+        category: '',
+        stockStatus: '',
+        status: ''
+    });
+
+    const filteredItems = items.filter((item) => {
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.barcode.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesCategory = filters.category ? item.category_id === filters.category : true;
+
+        let matchesStock = true;
+        if (filters.stockStatus === 'low') matchesStock = (item.quantity || 0) <= (item.reorder_level || 0);
+        else if (filters.stockStatus === 'out') matchesStock = (item.quantity || 0) <= 0;
+        else if (filters.stockStatus === 'in') matchesStock = (item.quantity || 0) > 0;
+
+        const matchesStatus = filters.status === 'active' ? item.is_active :
+            filters.status === 'inactive' ? !item.is_active : true;
+
+        return matchesSearch && matchesCategory && matchesStock && matchesStatus;
+    });
+
+    const clearFilters = () => {
+        setFilters({
+            category: '',
+            stockStatus: '',
+            status: ''
+        });
+    };
+
+    const activeFilterCount = Object.values(filters).filter(Boolean).length;
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -42,10 +72,87 @@ const ItemListScreen = ({
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50">
-                    <Filter size={20} />
-                    Filters
-                </button>
+                <div className="relative">
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showFilters || activeFilterCount > 0 ? 'border-brand-primary bg-blue-50 text-brand-primary' : 'border-gray-300 hover:bg-gray-50'}`}
+                    >
+                        <Filter size={20} />
+                        Filters
+                        {activeFilterCount > 0 && (
+                            <span className="flex items-center justify-center bg-brand-primary text-white text-xs font-bold rounded-full w-5 h-5">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {showFilters && (
+                        <div className="absolute top-full mt-2 right-0 w-72 bg-white rounded-xl shadow-xl border border-gray-200 z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold text-gray-900">Filter Items</h3>
+                                {activeFilterCount > 0 && (
+                                    <button onClick={clearFilters} className="text-xs text-red-600 hover:text-red-700 font-medium">
+                                        Clear all
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Category</label>
+                                    <select
+                                        value={filters.category}
+                                        onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                                        className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                                    >
+                                        <option value="">All Categories</option>
+                                        {categories?.map(cat => (
+                                            <option key={cat.category_id} value={cat.category_id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Stock Status</label>
+                                    <select
+                                        value={filters.stockStatus}
+                                        onChange={(e) => setFilters({ ...filters, stockStatus: e.target.value })}
+                                        className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                                    >
+                                        <option value="">All Stock Levels</option>
+                                        <option value="in">In Stock</option>
+                                        <option value="low">Low Stock</option>
+                                        <option value="out">Out of Stock</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Item Status</label>
+                                    <div className="flex rounded-lg border border-gray-200 p-1">
+                                        <button
+                                            onClick={() => setFilters({ ...filters, status: '' })}
+                                            className={`flex-1 py-1.5 text-xs font-medium rounded ${!filters.status ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                                        >
+                                            All
+                                        </button>
+                                        <button
+                                            onClick={() => setFilters({ ...filters, status: 'active' })}
+                                            className={`flex-1 py-1.5 text-xs font-medium rounded ${filters.status === 'active' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:text-gray-900'}`}
+                                        >
+                                            Active
+                                        </button>
+                                        <button
+                                            onClick={() => setFilters({ ...filters, status: 'inactive' })}
+                                            className={`flex-1 py-1.5 text-xs font-medium rounded ${filters.status === 'inactive' ? 'bg-red-100 text-red-700' : 'text-gray-500 hover:text-gray-900'}`}
+                                        >
+                                            Inactive
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
                 <button
                     onClick={() => {
                         const headers = ['📌 SKU', '📦 Item Name', '🏷️ Category', '📊 Quantity', '💲 Selling Price', '💰 MRP', '📉 Reorder Level', '🔢 Tax Rate', '🟢 Status'];
@@ -143,7 +250,7 @@ const ItemListScreen = ({
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 };
 
