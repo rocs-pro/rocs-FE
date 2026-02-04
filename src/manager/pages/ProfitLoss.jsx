@@ -51,6 +51,20 @@ export default function ProfitLoss() {
   const netProfit = (plData.grossProfit || 0) - totalExpenses;
 
   const exportCSV = () => {
+    // Get branch name from user data
+    const getBranchName = () => {
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          return user.branchName || user.branch || "Main Branch";
+        }
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+      return "Main Branch";
+    };
+
     const escapeCSV = (field) => {
       if (field === null || field === undefined) return "";
       const str = String(field);
@@ -64,7 +78,7 @@ export default function ProfitLoss() {
     lines.push("📈 SMART RETAIL PRO - PROFIT & LOSS REPORT");
     lines.push("=".repeat(70));
     lines.push(`📅 Generated: ${new Date().toLocaleString()}`);
-    lines.push(`🏢 Branch: Colombo Main`);
+    lines.push(`🏢 Branch: ${getBranchName()}`);
     lines.push(`📆 Period: ${period.toUpperCase()}`);
     lines.push(`⏰ Report Date: ${plData.period}`);
     lines.push("=".repeat(70));
@@ -81,14 +95,14 @@ export default function ProfitLoss() {
     lines.push("EXPENSES BREAKDOWN");
     lines.push("-".repeat(70));
     lines.push(["Expense Item", "Amount (LKR)"].map(escapeCSV).join(","));
-    
+
     if (plData.expenses && plData.expenses.length > 0) {
       plData.expenses.forEach((e, idx) => {
         const emoji = idx % 2 === 0 ? "✓" : "→";
         lines.push([`${emoji} ${e.name}`, e.amount || 0].map(escapeCSV).join(","));
       });
     }
-    
+
     lines.push("-".repeat(70));
     lines.push(["💸 Total Expenses", totalExpenses].map(escapeCSV).join(","));
     lines.push("");
