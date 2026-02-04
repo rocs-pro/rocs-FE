@@ -8,21 +8,21 @@ export default function Topbar() {
   const [time, setTime] = useState(new Date());
   const navigate = useNavigate();
   const { unreadCount, setIsOpen } = useNotification();
-  
+
   // Get user info
   const userStr = localStorage.getItem('user');
   let branchName = 'Main Branch';
   let userName = 'User';
   let branchId = 1;
   const [branchLabel, setBranchLabel] = useState("");
-  
+
   if (userStr) {
     try {
       const user = JSON.parse(userStr);
       branchName = user.branchName || 'Main Branch';
       userName = user.username || user.name || 'User';
       branchId = user.branchId || 1;
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Update clock every second
@@ -86,9 +86,11 @@ export default function Topbar() {
             )}
           </button>
 
-          <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-full py-1.5 px-4">
-            <User className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-bold tracking-wide uppercase text-blue-700">{userName}</span>
+          <div className="flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full border border-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] transition-all duration-300 group cursor-default">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md transform group-hover:scale-110 transition-transform duration-300 ring-2 ring-blue-100">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">{userName}</span>
           </div>
 
           <div className="text-right leading-tight hidden md:block">
@@ -102,9 +104,11 @@ export default function Topbar() {
 
           <button
             onClick={handleLogout}
-            className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md text-xs font-bold uppercase tracking-widest border border-red-800 shadow-lg active:scale-95 transition-all w-auto"
+            className="group relative overflow-hidden flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-red-100 text-slate-700 hover:text-red-600 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
           >
-            LOGOUT <LogOut className="w-4 h-4" />
+            <div className="absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <LogOut size={18} className="relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-x-0.5" />
+            <span className="relative z-10 hidden sm:inline text-sm font-semibold">Sign Out</span>
           </button>
         </div>
       </div>

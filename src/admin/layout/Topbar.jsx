@@ -6,7 +6,7 @@ import { LogOut, LayoutDashboard } from "lucide-react";
 export default function Topbar() {
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
-  
+
   // Get user info from localStorage
   const userStr = localStorage.getItem('user');
   let userName = 'Admin';
@@ -14,20 +14,20 @@ export default function Topbar() {
     try {
       const user = JSON.parse(userStr);
       userName = user.username || user.name || 'Admin';
-    } catch (e) {}
+    } catch (e) { }
   }
-  
+
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-  
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
   };
-  
+
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 gap-4 shrink-0 shadow-sm">
       <div className="flex flex-col">
@@ -57,20 +57,21 @@ export default function Topbar() {
         </div>
 
         {/* User Info */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+        <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full border border-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] transition-all duration-300 group cursor-default">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md transform group-hover:scale-110 transition-transform duration-300 ring-2 ring-blue-100">
             {userName.charAt(0).toUpperCase()}
           </div>
-          <span className="text-sm font-medium text-blue-700">{userName}</span>
+          <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">{userName}</span>
         </div>
 
         <button
           type="button"
-          className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg transition-colors font-medium"
           onClick={handleLogout}
+          className="group relative overflow-hidden flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-red-100 text-slate-700 hover:text-red-600 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
         >
-          <LogOut size={14} />
-          <span className="hidden sm:inline">Logout</span>
+          <div className="absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <LogOut size={18} className="relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-x-0.5" />
+          <span className="relative z-10 hidden sm:inline text-sm font-semibold">Sign Out</span>
         </button>
       </div>
     </header>
