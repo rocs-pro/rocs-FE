@@ -369,6 +369,32 @@ export const mapGRNItemsFromBackend = (backendGRNItems) => {
     return backendGRNItems.map(mapGRNItemFromBackend);
 };
 
+// ============= BRANCH MAPPERS =============
+
+/**
+ * Map backend branch to frontend format
+ */
+export const mapBranchFromBackend = (backendBranch) => {
+    if (!backendBranch) return null;
+    return convertKeysToSnake(backendBranch);
+};
+
+/**
+ * Map frontend branch to backend format
+ */
+export const mapBranchToBackend = (frontendBranch) => {
+    if (!frontendBranch) return null;
+    return convertKeysToCamel(frontendBranch);
+};
+
+/**
+ * Map array of backend branches to frontend format
+ */
+export const mapBranchesFromBackend = (backendBranches) => {
+    if (!Array.isArray(backendBranches)) return [];
+    return backendBranches.map(mapBranchFromBackend);
+};
+
 // ============= GENERIC MAPPERS =============
 
 /**
@@ -452,5 +478,10 @@ export default {
     // Generic mappers
     mapFromBackend,
     mapToBackend,
-    mapArrayFromBackend
+    mapArrayFromBackend,
+
+    // Branch Mappers
+    mapBranchFromBackend: mapFromBackend,
+    mapBranchToBackend: mapToBackend,
+    mapBranchesFromBackend: mapArrayFromBackend
 };

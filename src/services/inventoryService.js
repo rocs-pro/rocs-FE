@@ -17,7 +17,8 @@ import {
     mapGRNsFromBackend,
     mapSubCategoriesFromBackend,
     mapSubCategoryToBackend,
-    mapSubCategoryFromBackend
+    mapSubCategoryFromBackend,
+    mapBranchesFromBackend
 } from './inventoryMapper';
 
 /**
@@ -414,6 +415,28 @@ export const inventoryService = {
     },
 
 
+
+
+    // ============= BRANCHES =============
+
+    /**
+     * Get all branches
+     * @returns {Promise} Array of branches in frontend format
+     */
+    getBranches: async () => {
+        try {
+            console.log('[InventoryService] GET branches');
+            const response = await api.get('/branches');
+            console.log('[InventoryService] GET branches response:', response.data);
+            const branches = response.data.data || response.data;
+            const mapped = mapBranchesFromBackend(branches);
+            console.log('[InventoryService] GET branches mapped:', mapped.length, 'items');
+            return mapped;
+        } catch (error) {
+            console.error('[InventoryService] GET branches error:', error?.response || error);
+            throw error;
+        }
+    },
 
     // ============= GRNS =============
 

@@ -30,6 +30,7 @@ import StockAgingScreen from '../reports/StockAgingScreen';
 
 import inventoryService from '../services/inventoryService';
 
+
 const InventorySystem = () => {
     const navigate = useNavigate();
     const [activeScreen, setActiveScreen] = useState('item-list');
@@ -96,19 +97,21 @@ const InventorySystem = () => {
                 console.log('[InventorySystem] Calling Promise.all for products, categories, brands, suppliers');
                 // Fetch all data in parallel
                 console.log('[InventorySystem] Calling Promise.all for products, categories, brands, suppliers, subcategories');
-                const [productsData, categoriesData, brandsData, suppliersData, subCategoriesData] = await Promise.all([
+                const [productsData, categoriesData, brandsData, suppliersData, subCategoriesData, branchesData] = await Promise.all([
                     inventoryService.getProducts(),
                     inventoryService.getCategories(),
                     inventoryService.getBrands(),
                     inventoryService.getSuppliers(),
-                    inventoryService.getSubCategories()
+                    inventoryService.getSubCategories(),
+                    inventoryService.getBranches()
                 ]);
 
                 console.log('[InventorySystem] Data received:', {
                     products: productsData?.length || 0,
                     categories: categoriesData?.length || 0,
                     brands: brandsData?.length || 0,
-                    suppliers: suppliersData?.length || 0
+                    suppliers: suppliersData?.length || 0,
+                    branches: branchesData?.length || 0
                 });
 
                 // MERGE CATEGORIES WITH LOCAL METADATA
@@ -125,6 +128,7 @@ const InventorySystem = () => {
                 setBrands(brandsData);
                 setSuppliers(suppliersData);
                 setSubCategories(subCategoriesData);
+                setBranches(branchesData);
 
                 console.log('[InventorySystem] State updated successfully');
             } catch (err) {
@@ -387,7 +391,7 @@ const InventorySystem = () => {
     const [stockFilterWarehouse, setStockFilterWarehouse] = useState('');
     const [stockFilterDate, setStockFilterDate] = useState('');
 
-    const branches = [];
+    const [branches, setBranches] = useState([]);
 
     // Sample data
     const [items, setItems] = useState([]);
