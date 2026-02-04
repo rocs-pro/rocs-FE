@@ -766,10 +766,11 @@ const InventorySystem = () => {
 
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg transition-colors font-medium"
+                            className="group relative overflow-hidden flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-red-100 text-slate-700 hover:text-red-600 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
                         >
-                            <LogOut size={14} />
-                            <span className="hidden sm:inline">Logout</span>
+                            <div className="absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <LogOut size={18} className="relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-x-0.5" />
+                            <span className="relative z-10 hidden sm:inline text-sm font-semibold">Sign Out</span>
                         </button>
                     </div>
                 </header>
