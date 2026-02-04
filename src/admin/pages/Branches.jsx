@@ -44,12 +44,12 @@ export default function Branches() {
     const updatedBranches = branches.map((b) => {
       if (b.id !== branchId) return b;
       const newStatus = b.status === "Active" ? "Inactive" : "Active";
-      
+
       // Send email if branch is being activated
       if (newStatus === "Active") {
         sendBranchActivationEmail(b.name);
       }
-      
+
       return { ...b, status: newStatus };
     });
 
@@ -206,11 +206,10 @@ export default function Branches() {
                           e.stopPropagation();
                           toggleStatus(b.id);
                         }}
-                        className={`px-3 py-2 rounded-xl text-xs font-bold border transition ${
-                          b.status === "Active"
+                        className={`px-3 py-2 rounded-xl text-xs font-bold border transition ${b.status === "Active"
                             ? "bg-white border-brand-border hover:bg-slate-50"
                             : "bg-brand-primary text-white border-brand-primary hover:bg-brand-secondary"
-                        }`}
+                          }`}
                       >
                         {b.status === "Active" ? "Deactivate" : "Activate"}
                       </button>
@@ -232,7 +231,7 @@ export default function Branches() {
 
       {/* Branch Detail Modal */}
       {selectedBranch && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-brand-border sticky top-0 bg-white">
               <h2 className="text-2xl font-extrabold">{selectedBranch.name}</h2>
@@ -321,9 +320,8 @@ export default function Branches() {
                 <div className="text-sm font-bold text-slate-600 mb-2">Status</div>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-bold text-white ${
-                      selectedBranch.status === "Active" ? "bg-brand-success" : "bg-slate-500"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm font-bold text-white ${selectedBranch.status === "Active" ? "bg-brand-success" : "bg-slate-500"
+                      }`}
                   >
                     {selectedBranch.status}
                   </span>
