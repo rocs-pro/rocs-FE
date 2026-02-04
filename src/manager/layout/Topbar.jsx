@@ -86,20 +86,20 @@ export default function Topbar() {
             )}
           </button>
 
+          <div className="text-right leading-tight">
+            <div className="font-mono text-lg font-bold tracking-wider text-slate-700">
+              {time.toLocaleTimeString('en-US', { hour12: false })}
+            </div>
+            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">
+              {time.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}
+            </div>
+          </div>
+
           <div className="flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full border border-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] transition-all duration-300 group cursor-default">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md transform group-hover:scale-110 transition-transform duration-300 ring-2 ring-blue-100">
               {userName.charAt(0).toUpperCase()}
             </div>
             <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">{userName}</span>
-          </div>
-
-          <div className="text-right leading-tight hidden md:block">
-            <div className="font-mono text-2xl font-bold text-slate-800 tracking-widest">
-              {time.toLocaleTimeString('en-US', { hour12: false })}
-            </div>
-            <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-              {time.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}
-            </div>
           </div>
 
           <button

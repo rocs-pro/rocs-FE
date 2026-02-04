@@ -15,29 +15,29 @@ import {
 } from "lucide-react";
 
 const base =
-  "flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition";
-const activeClass = "bg-blue-600 text-white";
+  "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:translate-x-1 hover:text-white";
+const activeClass = "bg-brand-primary text-white shadow-lg translate-x-1";
 
 const NavItemLink = ({ to, icon: Icon, label, end = false }) => (
-  <NavLink 
-    to={to} 
+  <NavLink
+    to={to}
     end={end}
     className={({ isActive }) => `${base} ${isActive ? activeClass : ""}`}
   >
-    <Icon size={20} className="shrink-0" />
-    <span className="truncate">{label}</span>
+    <Icon size={18} className="shrink-0 transition-transform duration-200" />
+    <span className="text-sm truncate">{label}</span>
   </NavLink>
 );
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  
+
   // Get user info from localStorage
   const userStr = localStorage.getItem('user');
   let userName = 'User';
   let userRole = 'Staff';
   let branchName = 'Branch';
-  
+
   if (userStr) {
     try {
       const user = JSON.parse(userStr);
@@ -48,59 +48,79 @@ export default function Sidebar() {
       console.error('Error parsing user:', e);
     }
   }
-  
+
   const goToInventory = () => navigate('/inventory');
 
   return (
-    <aside className="w-60 shrink-0 bg-slate-900 text-white h-screen flex flex-col min-h-0">
+    <aside className="w-72 shrink-0 bg-gray-900 text-white h-screen flex flex-col min-h-0">
       {/* Header */}
-      <div className="p-5 mb-2">
-        <div className="text-xl font-extrabold tracking-wide">
-          Smart Retail <span className="text-green-500">Pro</span>
-        </div>
-        <div className="text-xs text-slate-400 mt-1">
+      <div className="p-6 border-b border-gray-800">
+        <h1 className="text-xl font-bold">SmartRetail <span className="text-emerald-400">Pro</span></h1>
+        <p className="text-sm text-gray-400 mt-1">
           {userRole === 'ADMIN' ? 'Admin Dashboard' : 'Manager Dashboard'}
-        </div>
-      </div>
-
-      {/* Quick Access Buttons */}
-      <div className="px-5 mb-4">
-        <button 
-          onClick={goToInventory}
-          className="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition"
-        >
-          <Package size={16} /> Inventory
-        </button>
+        </p>
       </div>
 
       {/* Scroll Area */}
-      <nav className="sidebar-scroll space-y-1 flex-1 min-h-0 overflow-y-auto px-4">
-        <NavItemLink to="/manager" end icon={LayoutGrid} label="Overview" />
+      <nav className="sidebar-scroll p-4 flex-1 min-h-0 overflow-y-auto">
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Overview
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager" end icon={LayoutGrid} label="Dashboard" />
+          </div>
+        </div>
 
-        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Operations</div>
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Operations
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/approvals" icon={CheckCircle} label="Approvals" />
+            <NavItemLink to="/manager/branch-activity" icon={Activity} label="Branch Activity" />
+          </div>
+        </div>
 
-        <NavItemLink to="/manager/approvals" icon={CheckCircle} label="Approvals" />
-        <NavItemLink to="/manager/branch-activity" icon={Activity} label="Branch Activity" />
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Sales
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/sales" icon={ShoppingCart} label="Sales" />
+            <NavItemLink to="/manager/sales-reports" icon={BarChart3} label="Sales Reports" />
+          </div>
+        </div>
 
-        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Sales</div>
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Accounting
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
+            <NavItemLink to="/manager/journal-entry" icon={PenTool} label="Journal Entry" />
+            <NavItemLink to="/manager/profit-loss" icon={TrendingUp} label="Profit & Loss" />
+          </div>
+        </div>
 
-        <NavItemLink to="/manager/sales" icon={ShoppingCart} label="Sales" />
-        <NavItemLink to="/manager/sales-reports" icon={BarChart3} label="Sales Reports" />
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Staff
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/staff" icon={Users} label="Staff" />
+            <NavItemLink to="/manager/user-registrations" icon={UserCheck} label="User Registrations" />
+          </div>
+        </div>
 
-        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Accounting</div>
-
-        <NavItemLink to="/manager/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
-        <NavItemLink to="/manager/journal-entry" icon={PenTool} label="Journal Entry" />
-        <NavItemLink to="/manager/profit-loss" icon={TrendingUp} label="Profit & Loss" />
-
-        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Staff</div>
-
-        <NavItemLink to="/manager/staff" icon={Users} label="Staff" />
-        <NavItemLink to="/manager/user-registrations" icon={UserCheck} label="User Registrations" />
-
-        <div className="pt-4 pb-1 text-xs uppercase tracking-wider text-slate-500">Reports</div>
-
-        <NavItemLink to="/manager/reports" icon={FileText} label="Other Reports" />
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Reports
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/reports" icon={FileText} label="Other Reports" />
+          </div>
+        </div>
       </nav>
 
     </aside>
