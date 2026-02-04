@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { getUsers } from "../../shared/storage";
 import axios from "axios";
 import { X } from "lucide-react";
@@ -200,8 +201,8 @@ export default function Terminals() {
                           toggleStatus(t.id);
                         }}
                         className={`px-3 py-2 rounded-xl text-xs font-bold border transition ${t.status === "Active"
-                            ? "bg-white border-brand-border hover:bg-slate-50"
-                            : "bg-brand-primary text-white border-brand-primary hover:bg-brand-secondary"
+                          ? "bg-white border-brand-border hover:bg-slate-50"
+                          : "bg-brand-primary text-white border-brand-primary hover:bg-brand-secondary"
                           }`}
                       >
                         {t.status === "Active" ? "Deactivate" : "Activate"}
@@ -223,7 +224,7 @@ export default function Terminals() {
       </div>
 
       {/* Terminal Detail Modal */}
-      {selectedTerminal && (
+      {selectedTerminal && createPortal(
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-brand-border sticky top-0 bg-white">
@@ -303,7 +304,8 @@ export default function Terminals() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
