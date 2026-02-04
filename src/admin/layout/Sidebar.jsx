@@ -5,8 +5,8 @@ const baseLink = "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition
 const activeLink = "bg-brand-primary text-white shadow-lg translate-x-1";
 
 const NavItemLink = ({ to, icon: Icon, label, end = false }) => (
-  <NavLink 
-    to={to} 
+  <NavLink
+    to={to}
     end={end}
     className={({ isActive }) => `${baseLink} ${isActive ? activeLink : ""}`}
   >
@@ -17,7 +17,7 @@ const NavItemLink = ({ to, icon: Icon, label, end = false }) => (
 
 export default function Sidebar() {
   return (
-    <div className="w-72 bg-gray-900 text-white overflow-y-auto">
+    <aside className="w-72 shrink-0 bg-gray-900 text-white h-screen flex flex-col min-h-0">
       <div className="p-6 border-b border-gray-800">
         <h1 className="text-xl font-bold">
           SmartRetail <span className="text-emerald-400">Pro</span>
@@ -25,7 +25,7 @@ export default function Sidebar() {
         <p className="text-sm text-gray-400 mt-1">Admin Dashboard</p>
       </div>
 
-      <nav className="p-4">
+      <nav className="sidebar-scroll p-4 flex-1 min-h-0 overflow-y-auto">
         <div className="mb-6">
           <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
             Overview
@@ -64,6 +64,6 @@ export default function Sidebar() {
           </div>
         </div>
       </nav>
-    </div>
+    </aside>
   );
 }

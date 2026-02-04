@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutGrid,
@@ -13,24 +14,31 @@ import {
   FileText,
   Package
 } from "lucide-react";
+import { getUserRegistrations } from "../../services/managerService";
 
 const base =
-  "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:translate-x-1 hover:text-white";
+  "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:translate-x-1 hover:text-white relative";
 const activeClass = "bg-brand-primary text-white shadow-lg translate-x-1";
 
-const NavItemLink = ({ to, icon: Icon, label, end = false }) => (
+const NavItemLink = ({ to, icon: Icon, label, end = false, badge }) => (
   <NavLink
     to={to}
     end={end}
     className={({ isActive }) => `${base} ${isActive ? activeClass : ""}`}
   >
     <Icon size={18} className="shrink-0 transition-transform duration-200" />
-    <span className="text-sm truncate">{label}</span>
+    <span className="text-sm truncate flex-1">{label}</span>
+    {badge > 0 && (
+      <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse">
+        {badge}
+      </span>
+    )}
   </NavLink>
 );
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const [pendingCount, setPendingCount] = useState(0);
 
   // Get user info from localStorage
   const userStr = localStorage.getItem('user');
@@ -48,6 +56,24 @@ export default function Sidebar() {
       console.error('Error parsing user:', e);
     }
   }
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const data = await getUserRegistrations("PENDING");
+        if (Array.isArray(data)) {
+          setPendingCount(data.length);
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending count sidebar", err);
+      }
+    };
+
+    fetchPendingCount();
+    // Poll every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const goToInventory = () => navigate('/inventory');
 
@@ -109,7 +135,7 @@ export default function Sidebar() {
           </div>
           <div className="mt-2 space-y-1">
             <NavItemLink to="/manager/staff" icon={Users} label="Staff" />
-            <NavItemLink to="/manager/user-registrations" icon={UserCheck} label="User Registrations" />
+            <NavItemLink to="/manager/user-registrations" icon={UserCheck} label="User Registrations" badge={pendingCount} />
           </div>
         </div>
 

@@ -29,14 +29,14 @@ api.interceptors.response.use(
     },
     (error) => {
         const status = error.response?.status;
-        
+
         if (status === 401) {
             // Token expired or invalid
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';
         }
-        
+
         console.error('[API] Error:', error.response?.status, error.response?.data);
         return Promise.reject(error);
     }

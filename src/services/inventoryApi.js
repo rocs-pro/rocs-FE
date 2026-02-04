@@ -24,11 +24,11 @@ inventoryApi.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         console.log('[InventoryAPI] Token:', token ? 'EXISTS' : 'MISSING');
-        
+
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        
+
         console.log('[InventoryAPI] Request:', config.method.toUpperCase(), config.baseURL + config.url);
         return config;
     },
@@ -41,21 +41,21 @@ inventoryApi.interceptors.request.use(
 // Response interceptor - Handle common responses and errors
 inventoryApi.interceptors.response.use(
     (response) => {
-        console.log('[InventoryAPI] Response:', response.config.method.toUpperCase(), response.config.url, 
-                    'Status:', response.status, 'Data:', response.data);
+        console.log('[InventoryAPI] Response:', response.config.method.toUpperCase(), response.config.url,
+            'Status:', response.status, 'Data:', response.data);
         return response;
     },
     (error) => {
         console.error('[InventoryAPI] Error:', error.config?.method.toUpperCase(), error.config?.url,
-                     'Status:', error.response?.status, 'Message:', error.message,
-                     'Response:', error.response?.data);
-        
+            'Status:', error.response?.status, 'Message:', error.message,
+            'Response:', error.response?.data);
+
         if (error.response?.status === 401) {
             console.error('[InventoryAPI] 401 Unauthorized - Token invalid or expired');
             localStorage.removeItem('token');
             window.location.href = '/login';
         }
-        
+
         return Promise.reject(error);
     }
 );

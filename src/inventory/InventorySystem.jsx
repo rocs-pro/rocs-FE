@@ -5,7 +5,7 @@ import {
     BarChart3, Tag, Box, Calendar, AlertTriangle, ArrowRightLeft,
     CheckCircle, FileText, TrendingUp, Clock, ChevronRight,
     Download, Upload, RefreshCw, Archive, X, LogOut, Monitor, LayoutDashboard,
-    Layers, ShoppingBag, Coffee, Smartphone, Headphones, Shirt, Watch, Utensils, Zap, Gift, Briefcase, Camera, Music, Anchor, Globe, Key, Map, Sun, Moon, Star, Heart, Cloud, Umbrella, Droplet, Flame, Smile
+    Layers, ShoppingBag, Coffee, Smartphone, Headphones, Shirt, Watch, Utensils, Zap, Gift, Briefcase, Camera, Music, Anchor, Globe, Key, Map, Sun, Moon, Star, Heart, Cloud, Umbrella, Droplet, Flame, Smile, History, Bell
 } from 'lucide-react';
 
 import ItemListScreen from './ItemListScreen';
@@ -30,11 +30,16 @@ import StockAgingScreen from '../reports/StockAgingScreen';
 
 import inventoryService from '../services/inventoryService';
 
+import { useNotification, NotificationProvider } from '../pos/context/NotificationContext';
+import NotificationPanel from '../pos/components/NotificationPanel';
+import ActivityLogScreen from './ActivityLogScreen';
 
-const InventorySystem = () => {
+
+const InventorySystemContent = () => {
     const navigate = useNavigate();
     const [activeScreen, setActiveScreen] = useState('item-list');
     const [currentTime, setCurrentTime] = useState(new Date());
+    const { unreadCount, setIsOpen } = useNotification();
 
     // Get user info
     const userStr = localStorage.getItem('user');
@@ -467,11 +472,18 @@ const InventorySystem = () => {
                 { id: 'stock-aging', label: 'Stock Aging Report', icon: Clock },
             ]
         },
+        {
+            id: 'logs', label: 'Activity Logs', icon: History, screens: [
+                { id: 'activity-log', label: 'Activity Log', icon: History },
+            ]
+        },
     ];
 
     // Render logic handling props
     const renderScreen = () => {
         switch (activeScreen) {
+            case 'activity-log':
+                return <ActivityLogScreen />;
             case 'item-list':
                 return <ItemListScreen
                     items={items}
@@ -691,13 +703,13 @@ const InventorySystem = () => {
     return (
         <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}
-            <div className="w-72 bg-gray-900 text-white overflow-y-auto">
+            <aside className="w-72 shrink-0 bg-gray-900 text-white h-screen flex flex-col min-h-0">
                 <div className="p-6 border-b border-gray-800">
                     <h1 className="text-xl font-bold">SmartRetail <span className="text-emerald-400">Pro</span></h1>
                     <p className="text-sm text-gray-400 mt-1">Inventory Management</p>
                 </div>
 
-                <nav className="p-4">
+                <nav className="sidebar-scroll p-4 flex-1 min-h-0 overflow-y-auto">
                     {navigation.map((section) => (
                         <div key={section.id} className="mb-6">
                             <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -713,41 +725,37 @@ const InventorySystem = () => {
                                             : 'text-gray-300 hover:bg-gray-800 hover:translate-x-1 hover:text-white'
                                             }`}
                                     >
-                                        <screen.icon size={18} className="transition-transform duration-200 group-hover:scale-110" />
-                                        <span className="text-sm">{screen.label}</span>
+                                        <screen.icon size={18} className="shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                                        <span className="text-sm truncate">{screen.label}</span>
                                     </button>
                                 ))}
                             </div>
                         </div>
                     ))}
                 </nav>
-            </div>
+            </aside>
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 gap-4 shrink-0 shadow-sm">
-                    <div className="flex flex-col">
+                <header className="h-16 bg-white border-b border-slate-200 flex items-center px-6 gap-4 shrink-0 shadow-sm">
+                    <div className="flex flex-col flex-1">
                         <h1 className="font-bold text-lg text-slate-800">Inventory Management</h1>
                         <span className="text-xs text-slate-500">{branchName}</span>
                     </div>
 
-                    {/* Quick Nav Buttons */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                        {/* Quick Nav Buttons */}
                         {(userRole === 'ADMIN' || userRole === 'BRANCH_MANAGER') && (
                             <button
                                 onClick={goToDashboard}
-                                className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition"
+                                className="group flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-blue-50 rounded-lg text-sm font-medium transition-all duration-300 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:border hover:border-blue-200"
                             >
-                                <LayoutDashboard size={16} className="text-slate-600" />
-                                <span className="hidden sm:inline text-slate-700">Dashboard</span>
+                                <LayoutDashboard size={16} className="text-slate-600 group-hover:text-blue-600 transition-colors" />
+                                <span className="hidden sm:inline text-slate-700 group-hover:text-blue-700 transition-colors">Dashboard</span>
                             </button>
                         )}
 
-
-                    </div>
-
-                    <div className="flex items-center gap-3">
                         <div className="text-right leading-tight">
                             <div className="font-mono text-lg font-bold tracking-wider text-slate-700">
                                 {currentTime.toLocaleTimeString('en-US', { hour12: false })}
@@ -757,7 +765,6 @@ const InventorySystem = () => {
                             </div>
                         </div>
 
-                        {/* User Info */}
                         {/* User Info */}
                         <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full border border-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] transition-all duration-300 group cursor-default">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md transform group-hover:scale-110 transition-transform duration-300 ring-2 ring-blue-100">
@@ -1155,6 +1162,15 @@ const InventorySystem = () => {
                 </div>
             )}
         </div>
+    );
+};
+
+const InventorySystem = () => {
+    return (
+        <NotificationProvider>
+            <InventorySystemContent />
+            <NotificationPanel />
+        </NotificationProvider>
     );
 };
 

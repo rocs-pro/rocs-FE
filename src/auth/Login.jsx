@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, User, Lock, Loader2, Shield, AlertCircle } from 'lucide-react';
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { ShieldCheck, User, Lock, Loader2, Shield, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
 import bgImage from "../assets/images/registration-bg.png";
 import { authService } from '../services/authService';
 
@@ -21,6 +21,8 @@ const BackgroundWrapper = ({ children }) => (
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showSuccessModal, setShowSuccessModal] = useState(location.state?.registrationSuccess || false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
@@ -46,14 +48,14 @@ export default function Login() {
 
     try {
       const data = await authService.login(formData);
-      
+
       // The backend returns a flat object: { token, role, username, ... }
       if (data.token) {
         localStorage.setItem('token', data.token);
-        
+
         // Store the full user object for easy access later
         localStorage.setItem('user', JSON.stringify(data));
-        
+
         // --- ROLE BASED REDIRECT LOGIC ---
         const role = (data.role || data.userRole || '').toUpperCase();
         console.log('Login successful. Role:', role);
@@ -79,7 +81,7 @@ export default function Login() {
             break;
         }
       } else {
-         setError("Login failed: No token received.");
+        setError("Login failed: No token received.");
       }
     } catch (err) {
       console.error(err);
@@ -89,6 +91,48 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  if (showSuccessModal) {
+    return (
+      <BackgroundWrapper>
+        <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-10 text-center animate-in fade-in zoom-in duration-300 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand to-emerald-400"></div>
+
+          <div className="mb-8 relative">
+            <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto relative z-10">
+              <CheckCircle className="w-12 h-12 text-emerald-500" />
+            </div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-emerald-100 rounded-full animate-ping opacity-25"></div>
+          </div>
+
+          <h2 className="text-3xl font-bold text-slate-800 mb-3">Registration Successful!</h2>
+
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-8">
+            <p className="text-slate-600 leading-relaxed">
+              Your account has been created and is currently
+              <span className="inline-block px-2 py-0.5 mx-1.5 bg-orange-100 text-orange-600 font-bold rounded text-sm border border-orange-200">
+                Pending Approval
+              </span>
+            </p>
+            <p className="text-xs text-slate-400 mt-2">
+              Please contact your branch manager or system administrator to activate your access.
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setShowSuccessModal(false);
+              navigate(location.pathname, { replace: true, state: {} });
+            }}
+            className="w-full group bg-slate-900 hover:bg-brand text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-brand/25 transition-all duration-300 flex items-center justify-center gap-3"
+          >
+            Continue to Login
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </BackgroundWrapper>
+    );
+  }
 
   return (
     <BackgroundWrapper>
@@ -105,6 +149,20 @@ export default function Login() {
             <p className="text-slate-400 text-sm leading-relaxed">
               Sign in to secure terminal to access store operations and reporting.
             </p>
+          </div>
+
+          <div className="relative z-10 mt-auto">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="bg-white/10 p-2.5 rounded-full ring-1 ring-white/20">
+                <Shield className="h-6 w-6 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Secure Access</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  System activity is monitored and logged for security.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* CIRCLES SIDES BAR*/}
@@ -180,12 +238,7 @@ export default function Login() {
               </Link>
             </div>
 
-            <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <p className="text-xs text-slate-600 text-center">
-                <Shield className="inline h-4 w-4 text-blue-600 mr-1" />
-                This is a secure system. All activities are logged and monitored.
-              </p>
-            </div>
+
 
           </form>
         </div>
