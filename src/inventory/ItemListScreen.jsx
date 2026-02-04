@@ -48,23 +48,30 @@ const ItemListScreen = ({
                 </button>
                 <button
                     onClick={() => {
-                        const headers = ['SKU', 'Name', 'Category', 'Quantity', 'Selling Price', 'MRP', 'Reorder Level', 'Tax Rate', 'Status'];
+                        const headers = ['📌 SKU', '📦 Item Name', '🏷️ Category', '📊 Quantity', '💲 Selling Price', '💰 MRP', '📉 Reorder Level', '🔢 Tax Rate', '🟢 Status'];
                         const csvContent = [
                             headers.join(','),
-                            ...filteredItems.map(item => [
-                                item.sku,
-                                `"${item.name.replace(/"/g, '""')}"`, // Handle commas in name
-                                `"${(categories?.find(c => c.category_id === item.category_id)?.name || item.category_id || '').replace(/"/g, '""')}"`,
-                                item.quantity || 0,
-                                item.selling_price.toFixed(2),
-                                item.mrp.toFixed(2),
-                                item.reorder_level,
-                                `${item.tax_rate}%`,
-                                item.is_active ? 'Active' : 'Inactive'
-                            ].join(','))
+                            ...filteredItems.map(item => {
+                                const isLowStock = (item.quantity || 0) <= (item.reorder_level || 0);
+                                const quantityWithEmoji = isLowStock ? `⚠️ ${item.quantity || 0}` : `✅ ${item.quantity || 0}`;
+                                const statusWithEmoji = item.is_active ? '✅ Active' : '❌ Inactive';
+
+                                return [
+                                    item.sku,
+                                    `"${item.name.replace(/"/g, '""')}"`, // Handle commas in name
+                                    `"${(categories?.find(c => c.category_id === item.category_id)?.name || item.category_id || '').replace(/"/g, '""')}"`,
+                                    quantityWithEmoji,
+                                    item.selling_price.toFixed(2),
+                                    item.mrp.toFixed(2),
+                                    item.reorder_level,
+                                    `${item.tax_rate}%`,
+                                    statusWithEmoji
+                                ].join(',');
+                            })
                         ].join('\n');
 
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        // Add BOM for Excel UTF-8 compatibility
+                        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
                         const link = document.createElement('a');
                         if (link.download !== undefined) {
                             const url = URL.createObjectURL(blob);
