@@ -1,9 +1,9 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { branches as initialBranches } from "../data/mockData";
 import { getUsers } from "../../shared/storage";
 import axios from "axios";
-import { X, Eye } from "lucide-react";
+import { X, Eye, MoreVertical, Edit, Trash2, Power, MapPin } from "lucide-react";
 
 export default function Branches() {
   const [q, setQ] = useState("");
@@ -12,6 +12,26 @@ export default function Branches() {
   const [managers, setManagers] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [editBranch, setEditBranch] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const dropdownButtonRefs = useRef({});
+
+  const toggleDropdown = (id) => {
+    if (activeDropdown === id) {
+      setActiveDropdown(null);
+    } else {
+      const button = dropdownButtonRefs.current[id];
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 4,
+          left: rect.left + window.scrollX - 160
+        });
+      }
+      setActiveDropdown(id);
+    }
+  };
 
   useEffect(() => {
     // Load managers and users
@@ -71,23 +91,72 @@ export default function Branches() {
     }
   }
 
+  function handleEditBranch(branch) {
+    setEditBranch(branch);
+    setForm({
+      id: branch.id,
+      name: branch.name,
+      address: branch.address,
+      manager: branch.manager || "",
+      status: branch.status
+    });
+    setActiveDropdown(null);
+  }
+
+  function handleSaveEdit(e) {
+    e.preventDefault();
+    if (!form.name) return alert("Branch Name is required");
+    setBranches(branches.map(b =>
+      b.id === editBranch.id ? { ...b, name: form.name, address: form.address, manager: form.manager, status: form.status } : b
+    ));
+    setEditBranch(null);
+    setForm({ id: "", name: "", address: "", manager: "", status: "Inactive" });
+  }
+
+  function handleDeleteBranch(branchId) {
+    if (window.confirm("Are you sure you want to delete this branch?")) {
+      setBranches(branches.filter(b => b.id !== branchId));
+      setActiveDropdown(null);
+    }
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" onClick={() => setActiveDropdown(null)}>
       <h1 className="text-xl font-extrabold">Create & Manage Branches</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Form */}
-        <div className="lg:col-span-1 bg-white border border-brand-border rounded-2xl shadow-sm p-5">
-          <div className="font-bold mb-3">Add New Branch</div>
+        <div className={`lg:col-span-1 bg-white border rounded-2xl shadow-sm p-5 transition-all duration-300 ${editBranch ? 'border-blue-400 ring-2 ring-blue-100' : 'border-brand-border'}`}>
+          {editBranch && (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
+              <Edit size={16} className="text-blue-600" />
+              <span className="text-sm font-medium text-blue-700">Editing: {editBranch.name}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-bold">{editBranch ? "Edit Branch" : "Add New Branch"}</div>
+            {editBranch && (
+              <button
+                onClick={() => {
+                  setEditBranch(null);
+                  setForm({ id: "", name: "", address: "", manager: "", status: "Inactive" });
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
 
-          <form onSubmit={onAdd} className="space-y-3">
+          <form onSubmit={editBranch ? handleSaveEdit : onAdd} className="space-y-3">
             <div>
               <label className="text-sm font-bold">Branch ID</label>
               <input
-                className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
+                className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary disabled:bg-gray-100 disabled:text-gray-500"
                 placeholder="e.g., BR-004"
                 value={form.id}
                 onChange={(e) => setForm({ ...form, id: e.target.value })}
+                disabled={!!editBranch}
               />
             </div>
 
@@ -143,13 +212,13 @@ export default function Branches() {
               type="submit"
               className="w-full py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold transition"
             >
-              Create Branch
+              {editBranch ? "Save Changes" : "Create Branch"}
             </button>
           </form>
         </div>
 
         {/* Table */}
-        <div className="lg:col-span-2 bg-white border border-brand-border rounded-2xl shadow-sm overflow-hidden">
+        <div className="lg:col-span-2 bg-white border border-brand-border rounded-2xl shadow-sm overflow-visible">
           <div className="p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="font-bold">Branch List</div>
             <input
@@ -160,7 +229,7 @@ export default function Branches() {
             />
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
@@ -168,58 +237,55 @@ export default function Branches() {
                   <th className="text-left p-3">Name</th>
                   <th className="text-left p-3">Address</th>
                   <th className="text-left p-3">Manager</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-center p-3">View</th>
-                  <th className="text-left p-3">Action</th>
+                  <th className="text-center p-3">Status</th>
+                  <th className="text-right p-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((b) => (
                   <tr key={b.id} className="border-t hover:bg-slate-50">
                     <td className="p-3 font-mono text-xs">{b.id}</td>
-                    <td className="p-3 font-bold">{b.name}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                          <MapPin size={18} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900">{b.name}</span>
+                          <span className="text-xs text-gray-500">{b.address}</span>
+                        </div>
+                      </div>
+                    </td>
                     <td className="p-3">{b.address}</td>
                     <td className="p-3 text-sm">{b.manager || "-"}</td>
-                    <td className="p-3">
+                    <td className="p-3 text-center">
                       <span
-                        className={[
-                          "text-xs px-3 py-1 rounded-full text-white font-bold",
-                          b.status === "Active" ? "bg-green-500" : "bg-slate-500",
-                        ].join(" ")}
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                          b.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        }`}
                       >
                         {b.status}
                       </span>
                     </td>
-                    <td className="p-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedBranch(b)}
-                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
-                        title="View Details"
-                      >
-                        <Eye size={16} />
-                      </button>
-                    </td>
-                    <td className="p-3">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleStatus(b.id);
-                        }}
-                        className={`px-3 py-2 rounded-xl text-xs font-bold border transition ${b.status === "Active"
-                          ? "bg-white border-brand-border hover:bg-slate-50"
-                          : "bg-brand-primary text-white border-brand-primary hover:bg-brand-secondary"
-                          }`}
-                      >
-                        {b.status === "Active" ? "Deactivate" : "Activate"}
-                      </button>
+                    <td className="p-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          ref={(el) => (dropdownButtonRefs.current[b.id] = el)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDropdown(b.id);
+                          }}
+                          className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td className="p-6 text-center text-brand-muted" colSpan={7}>
+                    <td className="p-6 text-center text-brand-muted" colSpan={6}>
                       No branches found
                     </td>
                   </tr>
@@ -229,6 +295,58 @@ export default function Branches() {
           </div>
         </div>
       </div>
+
+      {/* Dropdown Portal */}
+      {activeDropdown && createPortal(
+        <div 
+          className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-[200] py-1 animate-in fade-in zoom-in duration-200"
+          style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const branch = branches.find(br => br.id === activeDropdown);
+              setSelectedBranch(branch);
+              setActiveDropdown(null);
+            }}
+            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+          >
+            <Eye size={14} /> View Details
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const branch = branches.find(br => br.id === activeDropdown);
+              handleEditBranch(branch);
+            }}
+            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+          >
+            <Edit size={14} /> Edit Branch
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleStatus(activeDropdown);
+              setActiveDropdown(null);
+            }}
+            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+          >
+            <Power size={14} /> {branches.find(br => br.id === activeDropdown)?.status === "Active" ? "Deactivate" : "Activate"}
+          </button>
+          <div className="h-px bg-gray-100 my-1"></div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteBranch(activeDropdown);
+            }}
+            className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+          >
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>,
+        document.body
+      )}
 
       {/* Branch Detail Modal */}
       {selectedBranch && createPortal(
