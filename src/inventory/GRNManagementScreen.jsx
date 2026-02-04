@@ -5,6 +5,7 @@ import inventoryService from '../services/inventoryService';
 const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subCategories = [] }) => {
     const [view, setView] = useState('list'); // 'list', 'create', 'detail'
     const [grns, setGrns] = useState([]);
+    const [selectedGRN, setSelectedGRN] = useState(null);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -48,7 +49,9 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
         const fetchGRNs = async () => {
             setLoading(true);
             try {
-                const data = await inventoryService.getGRNs();
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const branchId = user.branchId || branches?.[0]?.branch_id || 1;
+                const data = await inventoryService.getGRNs(branchId);
                 setGrns(data || []);
             } catch (error) {
                 console.error("Failed to fetch GRNs", error);
@@ -57,7 +60,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
             }
         };
         fetchGRNs();
-    }, []);
+    }, [branches]);
 
     const filteredGRNs = grns.filter(grn =>
         grn.grn_no?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -124,12 +127,16 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                 status: 'PENDING'
             };
 
-            await inventoryService.createGRN(grnPayload);
-            alert("GRN Created Successfully!");
+            const createdGRN = await inventoryService.createGRN(grnPayload);
+            alert(`GRN Created Successfully! GRN No: ${createdGRN.grn_no || 'N/A'}`);
             setView('list');
+            
             // Refresh list
-            const data = await inventoryService.getGRNs();
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const branchId = user.branchId || branches?.[0]?.branch_id || 1;
+            const data = await inventoryService.getGRNs(branchId);
             setGrns(data || []);
+            
             // Reset form
             setFormData({
                 supplier_id: '',
@@ -142,9 +149,214 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
             });
         } catch (error) {
             console.error("Error creating GRN:", error);
-            alert("Failed to create GRN");
+            alert("Failed to create GRN: " + (error.response?.data?.message || error.message));
         }
     };
+
+    const handleApproveGRN = async (grnId) => {
+        if (!window.confirm('Are you sure you want to approve this GRN? This will update stock levels.')) {
+            return;
+        }
+        
+        try {
+            await inventoryService.approveGRN(grnId);
+            alert('GRN approved successfully!');
+            
+            // Refresh list
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const branchId = user.branchId || branches?.[0]?.branch_id || 1;
+            const data = await inventoryService.getGRNs(branchId);
+            setGrns(data || []);
+            
+            if (selectedGRN && selectedGRN.grn_id === grnId) {
+                const updated = await inventoryService.getGRNById(grnId);
+                setSelectedGRN(updated);
+            }
+        } catch (error) {
+            console.error('Error approving GRN:', error);
+            alert('Failed to approve GRN: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const handleRejectGRN = async (grnId) => {
+        const reason = prompt('Please enter rejection reason:');
+        if (!reason) return;
+        
+        try {
+            await inventoryService.rejectGRN(grnId, reason);
+            alert('GRN rejected successfully!');
+            
+            // Refresh list
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const branchId = user.branchId || branches?.[0]?.branch_id || 1;
+            const data = await inventoryService.getGRNs(branchId);
+            setGrns(data || []);
+            
+            if (selectedGRN && selectedGRN.grn_id === grnId) {
+                setView('list');
+                setSelectedGRN(null);
+            }
+        } catch (error) {
+            console.error('Error rejecting GRN:', error);
+            alert('Failed to reject GRN: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const handleViewGRN = async (grn) => {
+        try {
+            const fullGRN = await inventoryService.getGRNById(grn.grn_id);
+            setSelectedGRN(fullGRN);
+            setView('detail');
+        } catch (error) {
+            console.error('Error fetching GRN details:', error);
+            alert('Failed to fetch GRN details');
+        }
+    };
+
+    if (view === 'detail' && selectedGRN) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => { setView('list'); setSelectedGRN(null); }} className="p-2 hover:bg-gray-100 rounded-full">
+                            <ArrowLeft size={20} className="text-gray-600" />
+                        </button>
+                        <div>
+                            <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">
+                                GRN Details - {selectedGRN.grn_no}
+                            </h2>
+                            <p className="text-gray-600 text-sm">View and manage GRN</p>
+                        </div>
+                    </div>
+                    {selectedGRN.status === 'PENDING' && (
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => handleApproveGRN(selectedGRN.grn_id)}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                            >
+                                <CheckCircle size={20} /> Approve
+                            </button>
+                            <button
+                                onClick={() => handleRejectGRN(selectedGRN.grn_id)}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                            >
+                                Reject
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Main Details */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                            <h3 className="text-lg font-semibold mb-4">GRN Information</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500">GRN No</label>
+                                    <p className="text-base font-mono font-medium">{selectedGRN.grn_no}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500">Status</label>
+                                    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                                        selectedGRN.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                                        selectedGRN.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                        selectedGRN.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                        'bg-gray-100 text-gray-700'
+                                    }`}>
+                                        {selectedGRN.status}
+                                    </span>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500">Supplier</label>
+                                    <p className="text-base">{selectedGRN.supplier_name || suppliers.find(s => s.supplier_id === selectedGRN.supplier_id)?.name || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500">GRN Date</label>
+                                    <p className="text-base">{selectedGRN.grn_date}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500">Invoice No</label>
+                                    <p className="text-base font-mono">{selectedGRN.invoice_no}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500">Invoice Date</label>
+                                    <p className="text-base">{selectedGRN.invoice_date}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500">Payment Status</label>
+                                    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                                        selectedGRN.payment_status === 'PAID' ? 'bg-green-100 text-green-700' :
+                                        selectedGRN.payment_status === 'PARTIALLY_PAID' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-red-100 text-red-700'
+                                    }`}>
+                                        {selectedGRN.payment_status || 'UNPAID'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500">Created At</label>
+                                    <p className="text-base text-sm">{selectedGRN.created_at ? new Date(selectedGRN.created_at).toLocaleString() : 'N/A'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                            <h3 className="text-lg font-semibold mb-4">Items</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-50 border-b">
+                                        <tr>
+                                            <th className="px-4 py-2 text-left">Product</th>
+                                            <th className="px-4 py-2 text-left">Batch</th>
+                                            <th className="px-4 py-2 text-left">Expiry</th>
+                                            <th className="px-4 py-2 text-right">Qty</th>
+                                            <th className="px-4 py-2 text-right">Unit Price</th>
+                                            <th className="px-4 py-2 text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {selectedGRN.items?.map((item, idx) => (
+                                            <tr key={idx}>
+                                                <td className="px-4 py-2">
+                                                    {item.product_name || items.find(i => i.product_id === item.product_id)?.name || `Product #${item.product_id}`}
+                                                </td>
+                                                <td className="px-4 py-2 text-gray-500">{item.batch_code || '-'}</td>
+                                                <td className="px-4 py-2 text-gray-500">{item.expiry_date || '-'}</td>
+                                                <td className="px-4 py-2 text-right">{item.qty_received || item.quantity}</td>
+                                                <td className="px-4 py-2 text-right font-mono">{parseFloat(item.unit_price).toFixed(2)}</td>
+                                                <td className="px-4 py-2 text-right font-mono font-medium">{parseFloat(item.total || (item.qty_received || item.quantity) * item.unit_price).toFixed(2)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Summary Card */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                            <h3 className="text-lg font-semibold mb-4">Summary</h3>
+                            <div className="space-y-3 mb-6">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Total Items</span>
+                                    <span className="font-medium">{selectedGRN.items?.length || 0}</span>
+                                </div>
+                                <div className="flex justify-between text-lg font-bold border-t pt-2">
+                                    <span>Total Amount</span>
+                                    <span>LKR {(selectedGRN.total_amount || 0).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Net Amount</span>
+                                    <span className="font-medium">LKR {(selectedGRN.net_amount || 0).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (view === 'create') {
         return (
@@ -457,17 +669,23 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                     <tbody className="divide-y divide-gray-200">
                         {filteredGRNs.length > 0 ? (
                             filteredGRNs.map((grn) => (
-                                <tr key={grn.grn_id} className="hover:bg-gray-50 transition-colors cursor-pointer">
+                                <tr 
+                                    key={grn.grn_id} 
+                                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                    onClick={() => handleViewGRN(grn)}
+                                >
                                     <td className="px-6 py-4 text-sm font-mono font-medium text-brand-primary">{grn.grn_no}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-900">{suppliers.find(s => s.supplier_id === grn.supplier_id)?.name || grn.supplier_id}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-900">{grn.supplier_name || suppliers.find(s => s.supplier_id === grn.supplier_id)?.name || grn.supplier_id}</td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{grn.invoice_no}</td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{grn.grn_date}</td>
                                     <td className="px-6 py-4 text-sm font-mono text-right font-medium">LKR {(grn.total_amount || 0).toFixed(2)}</td>
                                     <td className="px-6 py-4 text-center">
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${grn.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                            grn.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
                                             grn.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-gray-100 text-gray-700'
-                                            }`}>
+                                            grn.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                            'bg-gray-100 text-gray-700'
+                                        }`}>
                                             {grn.status}
                                         </span>
                                     </td>

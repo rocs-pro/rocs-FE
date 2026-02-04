@@ -215,4 +215,198 @@ export const createAdjustment = async (adjustmentData) => {
     return response.data.data || response.data;
 };
 
+/**
+ * ========== GRN (Goods Received Note) ==========
+ */
+
+/**
+ * Get all GRNs for a branch
+ * GET /api/inventory/grn/branch/{branchId}
+ */
+export const getGRNsByBranch = async (branchId) => {
+    console.log('[InventoryAPI] GET GRNs by branch:', branchId);
+    const response = await inventoryApi.get(`/grn/branch/${branchId}`);
+    console.log('[InventoryAPI] GET GRNs by branch response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Get GRN by ID
+ * GET /api/inventory/grn/{grnId}
+ */
+export const getGRNById = async (grnId) => {
+    console.log('[InventoryAPI] GET GRN by ID:', grnId);
+    const response = await inventoryApi.get(`/grn/${grnId}`);
+    console.log('[InventoryAPI] GET GRN by ID response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Search GRNs with filters
+ * POST /api/inventory/grn/search
+ */
+export const searchGRNs = async (filterData) => {
+    console.log('[InventoryAPI] POST GRN search:', filterData);
+    const response = await inventoryApi.post('/grn/search', filterData);
+    console.log('[InventoryAPI] POST GRN search response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Create new GRN
+ * POST /api/inventory/grn
+ */
+export const createGRN = async (grnData) => {
+    console.log('[InventoryAPI] POST GRN:', grnData);
+    // Get current user ID from localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = user.userId || user.id || 1;
+    
+    const config = {
+        headers: {
+            'User-ID': userId
+        }
+    };
+    
+    const response = await inventoryApi.post('/grn', grnData, config);
+    console.log('[InventoryAPI] POST GRN response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Update GRN (only if pending)
+ * PUT /api/inventory/grn/{grnId}
+ */
+export const updateGRN = async (grnId, grnData) => {
+    console.log('[InventoryAPI] PUT GRN:', grnId, grnData);
+    const response = await inventoryApi.put(`/grn/${grnId}`, grnData);
+    console.log('[InventoryAPI] PUT GRN response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Approve GRN
+ * PUT /api/inventory/grn/{grnId}/approve
+ */
+export const approveGRN = async (grnId) => {
+    console.log('[InventoryAPI] PUT GRN approve:', grnId);
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = user.userId || user.id || 1;
+    
+    const config = {
+        headers: {
+            'User-ID': userId
+        }
+    };
+    
+    const response = await inventoryApi.put(`/grn/${grnId}/approve`, {}, config);
+    console.log('[InventoryAPI] PUT GRN approve response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Reject GRN
+ * PUT /api/inventory/grn/{grnId}/reject
+ */
+export const rejectGRN = async (grnId, reason) => {
+    console.log('[InventoryAPI] PUT GRN reject:', grnId, reason);
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = user.userId || user.id || 1;
+    
+    const config = {
+        headers: {
+            'User-ID': userId
+        },
+        params: {
+            reason: reason
+        }
+    };
+    
+    const response = await inventoryApi.put(`/grn/${grnId}/reject`, {}, config);
+    console.log('[InventoryAPI] PUT GRN reject response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Update GRN payment status
+ * PUT /api/inventory/grn/{grnId}/payment-status
+ */
+export const updateGRNPaymentStatus = async (grnId, paymentStatus) => {
+    console.log('[InventoryAPI] PUT GRN payment status:', grnId, paymentStatus);
+    const response = await inventoryApi.put(`/grn/${grnId}/payment-status`, null, {
+        params: { paymentStatus }
+    });
+    console.log('[InventoryAPI] PUT GRN payment status response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Delete GRN (only if pending)
+ * DELETE /api/inventory/grn/{grnId}
+ */
+export const deleteGRN = async (grnId) => {
+    console.log('[InventoryAPI] DELETE GRN:', grnId);
+    const response = await inventoryApi.delete(`/grn/${grnId}`);
+    console.log('[InventoryAPI] DELETE GRN response:', response.data);
+    return response.data;
+};
+
+/**
+ * Get GRN statistics for a branch
+ * GET /api/inventory/grn/branch/{branchId}/stats
+ */
+export const getGRNStats = async (branchId, period) => {
+    console.log('[InventoryAPI] GET GRN stats:', branchId, period);
+    const params = period ? { period } : {};
+    const response = await inventoryApi.get(`/grn/branch/${branchId}/stats`, { params });
+    console.log('[InventoryAPI] GET GRN stats response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Get pending GRNs for approval
+ * GET /api/inventory/grn/pending
+ */
+export const getPendingGRNs = async (branchId) => {
+    console.log('[InventoryAPI] GET pending GRNs:', branchId);
+    const params = branchId ? { branchId } : {};
+    const response = await inventoryApi.get('/grn/pending', { params });
+    console.log('[InventoryAPI] GET pending GRNs response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Get GRN items by product
+ * GET /api/inventory/grn/product/{productId}/items
+ */
+export const getGRNItemsByProduct = async (productId, branchId) => {
+    console.log('[InventoryAPI] GET GRN items by product:', productId, branchId);
+    const params = branchId ? { branchId } : {};
+    const response = await inventoryApi.get(`/grn/product/${productId}/items`, { params });
+    console.log('[InventoryAPI] GET GRN items by product response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Get GRNs by supplier
+ * GET /api/inventory/grn/supplier/{supplierId}
+ */
+export const getGRNsBySupplier = async (supplierId) => {
+    console.log('[InventoryAPI] GET GRNs by supplier:', supplierId);
+    const response = await inventoryApi.get(`/grn/supplier/${supplierId}`);
+    console.log('[InventoryAPI] GET GRNs by supplier response:', response.data);
+    return response.data.data || response.data;
+};
+
+/**
+ * Check if GRN number exists
+ * GET /api/inventory/grn/check-number/{grnNo}
+ */
+export const checkGRNNumber = async (grnNo) => {
+    console.log('[InventoryAPI] GET check GRN number:', grnNo);
+    const response = await inventoryApi.get(`/grn/check-number/${grnNo}`);
+    console.log('[InventoryAPI] GET check GRN number response:', response.data);
+    return response.data.data || response.data;
+};
+
 export default inventoryApi;

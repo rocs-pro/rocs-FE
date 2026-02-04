@@ -441,50 +441,317 @@ export const inventoryService = {
     // ============= GRNS =============
 
     /**
-     * Get all GRNs
+     * Get all GRNs for a branch
+     * @param {number} branchId - Branch ID
      * @returns {Promise} Array of GRNs in frontend format
      */
-    getGRNs: async () => {
+    getGRNs: async (branchId) => {
         try {
-            console.log('[InventoryService] GET GRNs');
-            const response = await api.get('/grns');
+            console.log('[InventoryService] GET GRNs for branch:', branchId);
+            // If no branchId provided, get from localStorage or use default
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const effectiveBranchId = branchId || user.branchId || 1;
+            
+            const response = await api.get(`/grn/branch/${effectiveBranchId}`);
+            const grns = response.data.data || response.data;
+            const mapped = mapGRNsFromBackend(grns);
+            console.log('[InventoryService] GET GRNs mapped:', mapped.length, 'items');
+            return mapped;
+        } catch (error) {
+            console.error('[InventoryService] Error fetching GRNs:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Search GRNs with filters
+     * @param {Object} filter - Filter object { branchId, supplierId, status, paymentStatus, startDate, endDate, grnNo, invoiceNo }
+     * @returns {Promise} Array of GRNs
+     */
+    searchGRNs: async (filter = {}) => {
+        try {
+            console.log('[InventoryService] Search GRNs with filter:', filter);
+            const backendFilter = mapGRNToBackend(filter);
+            const response = await api.post('/grn/search', backendFilter);
             const grns = response.data.data || response.data;
             return mapGRNsFromBackend(grns);
         } catch (error) {
-            console.error('Error fetching GRNs:', error);
+            console.error('[InventoryService] Error searching GRNs:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get pending GRNs for approval
+     * @param {number} branchId - Optional branch ID filter
+     * @returns {Promise} Array of pending GRNs
+     */
+    getPendingGRNs: async (branchId) => {
+        try {
+            console.log('[InventoryService] GET pending GRNs for branch:', branchId);
+            const response = await api.get('/grn/pending', {
+                params: branchId ? { branchId } : {}
+            });
+            const grns = response.data.data || response.data;
+            return mapGRNsFromBackend(grns);
+        } catch (error) {
+            console.error('[InventoryService] Error fetching pending GRNs:', error);
             throw error;
         }
     },
 
     /**
      * Get GRN by ID
-     * @param {number} grnId
-     * @returns {Promise} GRN object
+     * @param {number} grnId - GRN ID
+     * @returns {Promise} GRN object in frontend format
      */
     getGRNById: async (grnId) => {
         try {
-            const response = await api.get(`/grns/${grnId}`);
+            console.log('[InventoryService] GET GRN by ID:', grnId);
+            const response = await api.get(`/grn/${grnId}`);
             const grn = response.data.data || response.data;
             return mapGRNFromBackend(grn);
         } catch (error) {
-            console.error('Error fetching GRN:', error);
+            console.error('[InventoryService] Error fetching GRN:', error);
             throw error;
         }
     },
 
     /**
      * Create new GRN
-     * @param {Object} grnData
+     * @param {Object} grnData - GRN data in frontend format (snake_case)
      * @returns {Promise} Created GRN
      */
     createGRN: async (grnData) => {
         try {
-            const backendData = mapGRNToBackend(grnData);
-            const response = await api.post('/grns', backendData);
+            console.log('[InventoryService] Create GRN:', grnData);
+            
+            // Transform GRN data to backend format
+            const backendData = {
+                branchId: grnData.branch_id,
+                supplierId: grnData.supplier_id,
+                poId: grnData.po_id || null,
+                grnDate: grnData.grn_date,
+                invoiceNo: grnData.invoice_no,
+                invoiceDate: grnData.invoice_date,
+                items: grnData.items.map(item => ({
+                    productId: item.product_id,
+                    batchCode: item.batch_code || null,
+                    expiryDate: item.expiry_date || null,
+                    qtyReceived: item.quantity,
+                    unitPrice: item.unit_price
+                }))
+            };
+            
+            console.log('[InventoryService] Create GRN backend data:', backendData);
+            
+            // Get current user ID
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userId = user.userId || user.id || 1;
+            
+            const response = await api.post('/grn', backendData, {
+                headers: {
+                    'User-ID': userId
+                }
+            });
+            
+            const grn = response.data.data || response.data;
+            console.log('[InventoryService] Create GRN response:', grn);
+            return mapGRNFromBackend(grn);
+        } catch (error) {
+            console.error('[InventoryService] Error creating GRN:', error);
+            console.error('[InventoryService] Error details:', error.response?.data);
+            throw error;
+        }
+    },
+
+    /**
+     * Update GRN (only if pending)
+     * @param {number} grnId - GRN ID
+     * @param {Object} grnData - GRN update data
+     * @returns {Promise} Updated GRN
+     */
+    updateGRN: async (grnId, grnData) => {
+        try {
+            console.log('[InventoryService] Update GRN:', grnId, grnData);
+            
+            const backendData = {
+                grnDate: grnData.grn_date,
+                invoiceNo: grnData.invoice_no,
+                invoiceDate: grnData.invoice_date,
+                items: grnData.items?.map(item => ({
+                    productId: item.product_id,
+                    batchCode: item.batch_code || null,
+                    expiryDate: item.expiry_date || null,
+                    qtyReceived: item.quantity,
+                    unitPrice: item.unit_price
+                }))
+            };
+            
+            const response = await api.put(`/grn/${grnId}`, backendData);
             const grn = response.data.data || response.data;
             return mapGRNFromBackend(grn);
         } catch (error) {
-            console.error('Error creating GRN:', error);
+            console.error('[InventoryService] Error updating GRN:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Approve GRN
+     * @param {number} grnId - GRN ID
+     * @returns {Promise} Approved GRN
+     */
+    approveGRN: async (grnId) => {
+        try {
+            console.log('[InventoryService] Approve GRN:', grnId);
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userId = user.userId || user.id || 1;
+            
+            const response = await api.put(`/grn/${grnId}/approve`, {}, {
+                headers: {
+                    'User-ID': userId
+                }
+            });
+            const grn = response.data.data || response.data;
+            return mapGRNFromBackend(grn);
+        } catch (error) {
+            console.error('[InventoryService] Error approving GRN:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Reject GRN
+     * @param {number} grnId - GRN ID
+     * @param {string} reason - Rejection reason
+     * @returns {Promise} Rejected GRN
+     */
+    rejectGRN: async (grnId, reason) => {
+        try {
+            console.log('[InventoryService] Reject GRN:', grnId, reason);
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userId = user.userId || user.id || 1;
+            
+            const response = await api.put(`/grn/${grnId}/reject`, {}, {
+                headers: {
+                    'User-ID': userId
+                },
+                params: {
+                    reason: reason
+                }
+            });
+            const grn = response.data.data || response.data;
+            return mapGRNFromBackend(grn);
+        } catch (error) {
+            console.error('[InventoryService] Error rejecting GRN:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Update GRN payment status
+     * @param {number} grnId - GRN ID
+     * @param {string} paymentStatus - Payment status (UNPAID, PARTIALLY_PAID, PAID)
+     * @returns {Promise} Updated GRN
+     */
+    updateGRNPaymentStatus: async (grnId, paymentStatus) => {
+        try {
+            console.log('[InventoryService] Update GRN payment status:', grnId, paymentStatus);
+            const response = await api.put(`/grn/${grnId}/payment-status`, null, {
+                params: { paymentStatus }
+            });
+            const grn = response.data.data || response.data;
+            return mapGRNFromBackend(grn);
+        } catch (error) {
+            console.error('[InventoryService] Error updating GRN payment status:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Delete GRN (only if pending)
+     * @param {number} grnId - GRN ID
+     * @returns {Promise}
+     */
+    deleteGRN: async (grnId) => {
+        try {
+            console.log('[InventoryService] Delete GRN:', grnId);
+            const response = await api.delete(`/grn/${grnId}`);
+            return response.data;
+        } catch (error) {
+            console.error('[InventoryService] Error deleting GRN:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get GRN statistics for a branch
+     * @param {number} branchId - Branch ID
+     * @param {string} period - Optional period filter
+     * @returns {Promise} GRN statistics
+     */
+    getGRNStats: async (branchId, period) => {
+        try {
+            console.log('[InventoryService] GET GRN stats:', branchId, period);
+            const params = period ? { period } : {};
+            const response = await api.get(`/grn/branch/${branchId}/stats`, { params });
+            const stats = response.data.data || response.data;
+            return mapGRNFromBackend(stats);
+        } catch (error) {
+            console.error('[InventoryService] Error fetching GRN stats:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get GRN items by product
+     * @param {number} productId - Product ID
+     * @param {number} branchId - Optional branch ID filter
+     * @returns {Promise} Array of GRN items
+     */
+    getGRNItemsByProduct: async (productId, branchId) => {
+        try {
+            console.log('[InventoryService] GET GRN items by product:', productId, branchId);
+            const params = branchId ? { branchId } : {};
+            const response = await api.get(`/grn/product/${productId}/items`, { params });
+            const items = response.data.data || response.data;
+            return mapGRNsFromBackend(items);
+        } catch (error) {
+            console.error('[InventoryService] Error fetching GRN items by product:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get GRNs by supplier
+     * @param {number} supplierId - Supplier ID
+     * @returns {Promise} Array of GRNs
+     */
+    getGRNsBySupplier: async (supplierId) => {
+        try {
+            console.log('[InventoryService] GET GRNs by supplier:', supplierId);
+            const response = await api.get(`/grn/supplier/${supplierId}`);
+            const grns = response.data.data || response.data;
+            return mapGRNsFromBackend(grns);
+        } catch (error) {
+            console.error('[InventoryService] Error fetching GRNs by supplier:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Check if GRN number exists
+     * @param {string} grnNo - GRN number
+     * @returns {Promise<boolean>} True if exists, false otherwise
+     */
+    checkGRNNumber: async (grnNo) => {
+        try {
+            console.log('[InventoryService] Check GRN number:', grnNo);
+            const response = await api.get(`/grn/check-number/${grnNo}`);
+            return response.data.data || response.data;
+        } catch (error) {
+            console.error('[InventoryService] Error checking GRN number:', error);
             throw error;
         }
     },
@@ -537,7 +804,15 @@ export const inventoryService = {
             // eslint-disable-next-line no-unused-vars
             const { supplier_id, ...rest } = supplierData;
 
-            const backendData = mapSupplierToBackend(rest);
+            // Add required fields for backend
+            const dataWithDefaults = {
+                ...rest,
+                contacts: rest.contacts || [],
+                branches: rest.branches || [],
+                createdBy: rest.createdBy || 1
+            };
+
+            const backendData = mapSupplierToBackend(dataWithDefaults);
             console.log('[InventoryService] Creating supplier with data:', backendData);
 
             const response = await api.post('/suppliers', backendData);
