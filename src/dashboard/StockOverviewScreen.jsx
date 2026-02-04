@@ -70,7 +70,7 @@ const StockOverviewScreen = ({
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Expiry By Date</label>
-                        <input value={stockFilterDate} onChange={(e) => setStockFilterDate(e.target.value)} type="date" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                        <input value={stockFilterDate} onChange={(e) => setStockFilterDate(e.target.value)} type="date" className="w-full" />
                     </div>
                 </div>
                 <button onClick={() => { setStockFilterCategory(''); setStockFilterBranch(''); setStockFilterDate(''); }} className="mt-4 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Clear Filters</button>

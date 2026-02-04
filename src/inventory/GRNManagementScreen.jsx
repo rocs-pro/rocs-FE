@@ -206,7 +206,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
                                     <input
                                         type="date"
-                                        className="w-full border border-gray-300 rounded-lg p-2.5"
+                                        className="w-full"
                                         value={formData.invoice_date}
                                         onChange={(e) => setFormData({ ...formData, invoice_date: e.target.value })}
                                     />
@@ -215,7 +215,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Received Date</label>
                                     <input
                                         type="date"
-                                        className="w-full border border-gray-300 rounded-lg p-2.5"
+                                        className="w-full"
                                         value={formData.grn_date}
                                         onChange={(e) => setFormData({ ...formData, grn_date: e.target.value })}
                                     />
@@ -290,7 +290,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Expiry Date</label>
                                     <input
                                         type="date"
-                                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                        className="w-full text-sm"
                                         value={currentItem.expiry_date}
                                         onChange={(e) => setCurrentItem({ ...currentItem, expiry_date: e.target.value })}
                                         placeholder="Optional"

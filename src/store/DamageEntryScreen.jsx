@@ -105,7 +105,7 @@ const DamageEntryScreen = ({
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                        <input value={damageForm.date} onChange={(e) => setDamageForm({ ...damageForm, date: e.target.value })} type="date" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <input value={damageForm.date} onChange={(e) => setDamageForm({ ...damageForm, date: e.target.value })} type="date" className="w-full" />
                     </div>
                     <div></div>
                 </div>
