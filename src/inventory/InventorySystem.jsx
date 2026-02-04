@@ -1011,7 +1011,7 @@ const InventorySystem = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                                            <select value={brandForm.is_active} onChange={(e) => setBrandForm({ ...brandForm, is_active: e.target.value === 'true' })} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                            <select value={brandForm.is_active} onChange={(e) => setBrandForm({ ...brandForm, is_active: e.target.value === 'true' })} className="w-full">
                                                 <option value="true">Active</option>
                                                 <option value="false">Inactive</option>
                                             </select>
@@ -1097,7 +1097,7 @@ const InventorySystem = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Type</label>
-                                            <select value={supplierForm.supplier_type} onChange={(e) => setSupplierForm({ ...supplierForm, supplier_type: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                            <select value={supplierForm.supplier_type} onChange={(e) => setSupplierForm({ ...supplierForm, supplier_type: e.target.value })} className="w-full">
                                                 <option value="LOCAL">Local</option>
                                                 <option value="INTERNATIONAL">International</option>
                                                 <option value="DISTRIBUTOR">Distributor</option>
@@ -1106,7 +1106,7 @@ const InventorySystem = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Category</label>
-                                            <select value={supplierForm.supplier_category} onChange={(e) => setSupplierForm({ ...supplierForm, supplier_category: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                            <select value={supplierForm.supplier_category} onChange={(e) => setSupplierForm({ ...supplierForm, supplier_category: e.target.value })} className="w-full">
                                                 <option value="PRIMARY">Primary</option>
                                                 <option value="SECONDARY">Secondary</option>
                                                 <option value="OCCASIONAL">Occasional</option>

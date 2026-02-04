@@ -83,14 +83,14 @@ const StockTransferCreateScreen = ({
                 <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">From Branch</label>
-                        <select value={transferForm.fromBranch} onChange={(e) => setTransferForm({ ...transferForm, fromBranch: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={transferForm.fromBranch} onChange={(e) => setTransferForm({ ...transferForm, fromBranch: e.target.value })} className="w-full">
                             <option value="">Select Source</option>
                             {branches.map((b) => <option key={b.branch_id} value={b.branch_id}>{b.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">To Branch</label>
-                        <select value={transferForm.toBranch} onChange={(e) => setTransferForm({ ...transferForm, toBranch: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={transferForm.toBranch} onChange={(e) => setTransferForm({ ...transferForm, toBranch: e.target.value })} className="w-full">
                             <option value="">Select Destination</option>
                             {branches.filter(b => b.branch_id !== parseInt(transferForm.fromBranch)).map((b) => <option key={b.branch_id} value={b.branch_id}>{b.name}</option>)}
                         </select>
@@ -99,14 +99,14 @@ const StockTransferCreateScreen = ({
                 <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Product</label>
-                        <select value={transferForm.product_id} onChange={(e) => setTransferForm({ ...transferForm, product_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={transferForm.product_id} onChange={(e) => setTransferForm({ ...transferForm, product_id: e.target.value })} className="w-full">
                             <option value="">Select Product</option>
                             {items.map((item) => <option key={item.product_id} value={item.product_id}>{item.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Batch</label>
-                        <select value={transferForm.batch_id} onChange={(e) => setTransferForm({ ...transferForm, batch_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={transferForm.batch_id} onChange={(e) => setTransferForm({ ...transferForm, batch_id: e.target.value })} className="w-full">
                             <option value="">Select Batch</option>
                             {batches.filter(b => !transferForm.product_id || b.product_id === parseInt(transferForm.product_id)).map((batch) => <option key={batch.batch_id} value={batch.batch_id}>{batch.batch_code}</option>)}
                         </select>

@@ -75,14 +75,14 @@ const DamageEntryScreen = ({
                 <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Product</label>
-                        <select value={damageForm.product_id} onChange={(e) => setDamageForm({ ...damageForm, product_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={damageForm.product_id} onChange={(e) => setDamageForm({ ...damageForm, product_id: e.target.value })} className="w-full">
                             <option value="">Select Product</option>
                             {items.map((item) => <option key={item.product_id} value={item.product_id}>{item.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Batch</label>
-                        <select value={damageForm.batch_id} onChange={(e) => setDamageForm({ ...damageForm, batch_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={damageForm.batch_id} onChange={(e) => setDamageForm({ ...damageForm, batch_id: e.target.value })} className="w-full">
                             <option value="">Select Batch</option>
                             {batches.filter(b => !damageForm.product_id || b.product_id === parseInt(damageForm.product_id)).map((batch) => <option key={batch.batch_id} value={batch.batch_id}>{batch.batch_code}</option>)}
                         </select>
@@ -95,7 +95,7 @@ const DamageEntryScreen = ({
                 <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
-                        <select value={damageForm.reason} onChange={(e) => setDamageForm({ ...damageForm, reason: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={damageForm.reason} onChange={(e) => setDamageForm({ ...damageForm, reason: e.target.value })} className="w-full">
                             <option value="">Select Reason</option>
                             <option value="Breakage">Breakage</option>
                             <option value="Expiry">Expiry</option>

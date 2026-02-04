@@ -111,7 +111,7 @@ const BatchWiseStockScreen = ({
             <div className="bg-white rounded-lg border border-gray-200 p-6 flex items-end gap-4">
                 <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Product</label>
-                    <select value={batchFilterItem} onChange={(e) => setBatchFilterItem(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <select value={batchFilterItem} onChange={(e) => setBatchFilterItem(e.target.value)} className="w-full">
                         <option value="">All Products</option>
                         {items.map((item) => <option key={item.product_id} value={item.product_id}>{item.name}</option>)}
                     </select>

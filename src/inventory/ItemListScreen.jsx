@@ -103,7 +103,7 @@ const ItemListScreen = ({
                                     <select
                                         value={filters.category}
                                         onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                                        className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                                        className="w-full text-sm"
                                     >
                                         <option value="">All Categories</option>
                                         {categories?.map(cat => (
@@ -117,7 +117,7 @@ const ItemListScreen = ({
                                     <select
                                         value={filters.stockStatus}
                                         onChange={(e) => setFilters({ ...filters, stockStatus: e.target.value })}
-                                        className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                                        className="w-full text-sm"
                                     >
                                         <option value="">All Stock Levels</option>
                                         <option value="in">In Stock</option>

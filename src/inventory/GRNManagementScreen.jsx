@@ -170,7 +170,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
                                     <select
-                                        className="w-full border border-gray-300 rounded-lg p-2.5"
+                                        className="w-full"
                                         value={formData.supplier_id}
                                         onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
                                     >
@@ -183,7 +183,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
                                     <select
-                                        className="w-full border border-gray-300 rounded-lg p-2.5"
+                                        className="w-full"
                                         value={formData.branch_id}
                                         onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}
                                     >
@@ -229,7 +229,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 <div className="md:col-span-3">
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
                                     <select
-                                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                        className="w-full text-sm"
                                         value={selectedCategoryId}
                                         onChange={(e) => {
                                             setSelectedCategoryId(e.target.value);
@@ -245,7 +245,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 <div className="md:col-span-3">
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Subcategory</label>
                                     <select
-                                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                        className="w-full text-sm"
                                         value={selectedSubCategoryId}
                                         onChange={(e) => setSelectedSubCategoryId(e.target.value)}
                                         disabled={!selectedCategoryId}
@@ -259,7 +259,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 <div className="md:col-span-6">
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Product</label>
                                     <select
-                                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                        className="w-full text-sm"
                                         value={currentItem.product_id}
                                         onChange={(e) => {
                                             const prod = items.find(i => i.product_id === parseInt(e.target.value));

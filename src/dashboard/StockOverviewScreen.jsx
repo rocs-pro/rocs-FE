@@ -56,14 +56,14 @@ const StockOverviewScreen = ({
                 <div className="grid grid-cols-3 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">By Category</label>
-                        <select value={stockFilterCategory} onChange={(e) => setStockFilterCategory(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <select value={stockFilterCategory} onChange={(e) => setStockFilterCategory(e.target.value)} className="w-full">
                             <option value="">All Categories</option>
                             {categories.map((c) => <option key={c.category_id} value={c.category_id}>{c.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">By Branch / Store</label>
-                        <select value={stockFilterBranch} onChange={(e) => setStockFilterBranch(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <select value={stockFilterBranch} onChange={(e) => setStockFilterBranch(e.target.value)} className="w-full">
                             <option value="">All Locations</option>
                             {branches.map((b) => <option key={b.branch_id} value={b.branch_id}>{b.name}</option>)}
                         </select>

@@ -78,14 +78,14 @@ const StockAdjustmentScreen = ({
                 <div className="grid grid-cols-4 gap-4 mb-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Item</label>
-                        <select value={adjustmentForm.itemId} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, itemId: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={adjustmentForm.itemId} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, itemId: e.target.value })} className="w-full">
                             <option value="">Select Item</option>
                             {items.map((item) => <option key={item.product_id} value={item.product_id}>{item.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Batch</label>
-                        <select value={adjustmentForm.batchId} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, batchId: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={adjustmentForm.batchId} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, batchId: e.target.value })} className="w-full">
                             <option value="">Select Batch</option>
                             {batches.filter(b => !adjustmentForm.itemId || b.product_id === parseInt(adjustmentForm.itemId)).map((batch) => <option key={batch.batch_id} value={batch.batch_id}>{batch.batch_code}</option>)}
                         </select>
@@ -102,14 +102,14 @@ const StockAdjustmentScreen = ({
                 <div className="grid grid-cols-4 gap-4 mb-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Adjustment Type</label>
-                        <select value={adjustmentForm.adjustmentType} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, adjustmentType: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={adjustmentForm.adjustmentType} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, adjustmentType: e.target.value })} className="w-full">
                             <option value="Increase">Increase</option>
                             <option value="Decrease">Decrease</option>
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
-                        <select value={adjustmentForm.reason} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, reason: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <select value={adjustmentForm.reason} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, reason: e.target.value })} className="w-full">
                             <option value="Damage">Damage</option>
                             <option value="Loss">Loss</option>
                             <option value="Audit">Audit</option>

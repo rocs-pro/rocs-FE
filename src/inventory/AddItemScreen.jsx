@@ -184,7 +184,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="category_id"
                             value={formData.category_id}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full text-base"
                         >
                             <option value="">Select category</option>
                             {categories && categories.map(cat => (
@@ -200,7 +200,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="subcategory_id"
                             value={formData.subcategory_id}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full text-base"
                             disabled={!formData.category_id}
                         >
                             <option value="">Select subcategory</option>
@@ -219,7 +219,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="brand_id"
                             value={formData.brand_id}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full text-base"
                         >
                             <option value="">Select brand</option>
                             {brands && brands.map(brand => (
@@ -235,7 +235,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="unit"
                             value={formData.unit}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full text-base"
                         >
                             <option value="">Select unit</option>
                             <option value="PIECE">Piece</option>
