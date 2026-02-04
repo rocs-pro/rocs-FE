@@ -66,7 +66,7 @@ const CategoryManagementScreen = ({
             <div className={`flex-1 flex flex-col space-y-6 transition-all duration-300 ${selectedCategory ? 'w-2/3' : 'w-full'}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
+                        <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Category Management</h2>
                         <p className="text-gray-600 mt-1">Organize your inventory categories</p>
                     </div>
                     <div className="flex items-center gap-3">

@@ -155,7 +155,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                             <ArrowLeft size={20} className="text-gray-600" />
                         </button>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Create New GRN</h2>
+                            <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Create New GRN</h2>
                             <p className="text-gray-600 text-sm">Receive stock from suppliers</p>
                         </div>
                     </div>
@@ -418,7 +418,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Goods Received Note (GRN)</h2>
+                    <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Goods Received Note (GRN)</h2>
                     <p className="text-gray-600 mt-1">Manage inbound stock</p>
                 </div>
                 <div className="flex items-center gap-3">
