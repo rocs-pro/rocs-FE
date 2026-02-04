@@ -2,15 +2,27 @@ import { useEffect, useMemo, useState } from "react";
 import { getDashboardStats } from "../../services/managerService";
 import SetTargetModal from "./SetTargetModal";
 
-// Persist per-day target per-branch
-const BRANCH = "Colombo Main";
-
 export default function TargetProgress() {
   const [targetToday, setTargetToday] = useState(250000);
   const [achievedToday, setAchievedToday] = useState(0);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Get branch name from user data
+  const getBranchName = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user.branchName || user.branch || "Main Branch";
+      }
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+    }
+    return "Main Branch";
+  };
+
+  const BRANCH = getBranchName();
   const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const storageKey = `srp_target_${BRANCH.replace(/\s+/g, "_")}_${dayKey}`;
 
