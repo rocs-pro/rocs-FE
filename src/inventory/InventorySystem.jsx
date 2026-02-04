@@ -4,7 +4,8 @@ import {
     Package, Plus, Search, Filter, Edit, Trash2, Printer,
     BarChart3, Tag, Box, Calendar, AlertTriangle, ArrowRightLeft,
     CheckCircle, FileText, TrendingUp, Clock, ChevronRight,
-    Download, Upload, RefreshCw, Archive, X, LogOut, Monitor, LayoutDashboard
+    Download, Upload, RefreshCw, Archive, X, LogOut, Monitor, LayoutDashboard,
+    Layers, ShoppingBag, Coffee, Smartphone, Headphones, Shirt, Watch, Utensils, Zap, Gift, Briefcase, Camera, Music, Anchor, Globe, Key, Map, Sun, Moon, Star, Heart, Cloud, Umbrella, Droplet, Flame, Smile
 } from 'lucide-react';
 
 import ItemListScreen from './ItemListScreen';
@@ -151,7 +152,7 @@ const InventorySystem = () => {
 
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
-    const [categoryForm, setCategoryForm] = useState({ category_id: '', name: '', description: '', is_active: true });
+    const [categoryForm, setCategoryForm] = useState({ category_id: '', name: '', description: '', is_active: true, icon: 'Tag', color: 'blue' });
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
     const [subCategoryForm, setSubCategoryForm] = useState({ subcategory_id: '', category_id: '', name: '', description: '', is_active: true });
@@ -163,7 +164,7 @@ const InventorySystem = () => {
             try {
                 const createdCategory = await inventoryService.createCategory(categoryForm);
                 setCategories([...categories, createdCategory]);
-                setCategoryForm({ category_id: '', name: '', description: '', is_active: true });
+                setCategoryForm({ category_id: '', name: '', description: '', is_active: true, icon: 'Tag', color: 'blue' });
                 setIsAddCategoryOpen(false);
             } catch (err) {
                 console.error('Error creating category:', err);
@@ -860,6 +861,52 @@ const InventorySystem = () => {
                                         className="rounded"
                                     />
                                     <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Active</label>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category Icon</label>
+                                    <div className="grid grid-cols-6 gap-2">
+                                        {['Tag', 'Box', 'Archive', 'Layers', 'ShoppingBag', 'Coffee', 'Smartphone', 'Headphones', 'Shirt', 'Watch', 'Utensils', 'Zap', 'Gift', 'Briefcase', 'Camera', 'Music', 'Anchor', 'Globe', 'Key', 'Map', 'Sun', 'Moon', 'Star', 'Heart'].map((iconName) => {
+                                            // Dynamic Icon Component Render
+                                            const IconComponent = { Tag, Box, Archive, Layers, ShoppingBag, Coffee, Smartphone, Headphones, Shirt, Watch, Utensils, Zap, Gift, Briefcase, Camera, Music, Anchor, Globe, Key, Map, Sun, Moon, Star, Heart }[iconName] || Tag;
+                                            return (
+                                                <button
+                                                    key={iconName}
+                                                    onClick={() => setCategoryForm({ ...categoryForm, icon: iconName })}
+                                                    className={`p-2 rounded-lg flex items-center justify-center transition-all ${categoryForm.icon === iconName ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-500' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+                                                    title={iconName}
+                                                >
+                                                    <IconComponent size={20} />
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Color Theme</label>
+                                    <div className="flex flex-wrap gap-3">
+                                        {[
+                                            { id: 'blue', bg: 'bg-blue-500' },
+                                            { id: 'green', bg: 'bg-green-500' },
+                                            { id: 'red', bg: 'bg-red-500' },
+                                            { id: 'yellow', bg: 'bg-yellow-500' },
+                                            { id: 'purple', bg: 'bg-purple-500' },
+                                            { id: 'pink', bg: 'bg-pink-500' },
+                                            { id: 'orange', bg: 'bg-orange-500' },
+                                            { id: 'indigo', bg: 'bg-indigo-500' },
+                                            { id: 'teal', bg: 'bg-teal-500' },
+                                            { id: 'cyan', bg: 'bg-cyan-500' },
+                                        ].map((color) => (
+                                            <button
+                                                key={color.id}
+                                                onClick={() => setCategoryForm({ ...categoryForm, color: color.id })}
+                                                className={`w-8 h-8 rounded-full ${color.bg} transition-transform hover:scale-110 flex items-center justify-center ${categoryForm.color === color.id ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
+                                            >
+                                                {categoryForm.color === color.id && <CheckCircle size={14} className="text-white" />}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 

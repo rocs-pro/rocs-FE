@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Plus, Tag, Edit, Trash2, X, Search, ChevronDown, ChevronRight, MoreVertical, FolderPlus } from 'lucide-react';
+import {
+    Plus, Tag, Edit, Trash2, X, Search, ChevronDown, ChevronRight, MoreVertical, FolderPlus,
+    Box, Archive, Layers, ShoppingBag, Coffee, Smartphone, Headphones, Shirt, Watch, Utensils, Zap, Gift, Briefcase, Camera, Music, Anchor, Globe, Key, Map, Sun, Moon, Star, Heart
+} from 'lucide-react';
 
 const CategoryManagementScreen = ({
     categories,
@@ -39,6 +42,23 @@ const CategoryManagementScreen = ({
     // Helper to get subcategories for a specific category
     const getSubCategoriesForCategory = (categoryId) => {
         return subCategories ? subCategories.filter(sc => sc.category_id === categoryId) : [];
+    };
+
+    const ICON_MAP = {
+        Tag, Box, Archive, Layers, ShoppingBag, Coffee, Smartphone, Headphones, Shirt, Watch, Utensils, Zap, Gift, Briefcase, Camera, Music, Anchor, Globe, Key, Map, Sun, Moon, Star, Heart
+    };
+
+    const COLOR_MAP = {
+        blue: 'bg-blue-100 text-blue-600',
+        green: 'bg-green-100 text-green-600',
+        red: 'bg-red-100 text-red-600',
+        yellow: 'bg-yellow-100 text-yellow-600',
+        purple: 'bg-purple-100 text-purple-600',
+        pink: 'bg-pink-100 text-pink-600',
+        orange: 'bg-orange-100 text-orange-600',
+        indigo: 'bg-indigo-100 text-indigo-600',
+        teal: 'bg-teal-100 text-teal-600',
+        cyan: 'bg-cyan-100 text-cyan-600',
     };
 
     return (
@@ -86,6 +106,8 @@ const CategoryManagementScreen = ({
                                     filteredCategories.map((cat) => {
                                         const categorySubCats = getSubCategoriesForCategory(cat.category_id);
                                         const isSelected = selectedCategory?.category_id === cat.category_id;
+                                        const IconComponent = ICON_MAP[cat.icon] || Tag;
+                                        const colorClass = COLOR_MAP[cat.color] || 'bg-gray-100 text-gray-500';
 
                                         return (
                                             <tr
@@ -95,8 +117,8 @@ const CategoryManagementScreen = ({
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
-                                                            <Tag size={18} />
+                                                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-100 text-blue-600' : colorClass}`}>
+                                                            <IconComponent size={18} />
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className={`font-medium ${isSelected ? 'text-blue-700' : 'text-gray-900'}`}>{cat.name}</span>
