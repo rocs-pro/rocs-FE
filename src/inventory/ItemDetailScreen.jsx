@@ -26,211 +26,181 @@ const ItemDetailScreen = ({
 
     const handlePrint = () => {
         const printWindow = window.open('', '_blank');
+
+        // Helper to generate table rows
+        const generateRows = (data, mapFn) => data.map(mapFn).join('');
+
+        // Generate sections based on available data
+        const batchRows = batches.filter(b => b.product_id === itemId).map(batch => `
+            <tr>
+                <td>${batch.batch_code}</td>
+                <td style="text-align: center">${batch.qty}</td>
+                <td>${batch.manufacturing_date}</td>
+                <td>${batch.expiry_date}</td>
+                <td>${batch.branch_id}</td>
+            </tr>
+        `).join('');
+
+        const historyRows = (detail?.stockHistory || []).map(entry => `
+            <tr>
+                <td>${entry.date}</td>
+                <td>${entry.type}</td>
+                <td>${entry.reference}</td>
+                <td style="text-align: center; color: ${entry.quantity > 0 ? 'green' : 'red'}">${entry.quantity > 0 ? '+' : ''}${entry.quantity}</td>
+                <td>${entry.notes}</td>
+            </tr>
+        `).join('');
+
+        const supplierRows = (detail?.supplierHistory || []).map(supplier => `
+            <tr>
+                <td>${supplier.name}</td>
+                <td>${supplier.lastPO}</td>
+                <td>${supplier.leadTime}</td>
+                <td style="text-align: right">LKR ${supplier.cost_price.toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        const salesRows = (detail?.salesData || []).map(sale => `
+            <tr>
+                <td>${sale.date}</td>
+                <td style="text-align: center">${sale.quantity}</td>
+                <td style="text-align: right">LKR ${sale.revenue.toFixed(2)}</td>
+            </tr>
+        `).join('');
+
         const htmlContent = `
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Item Details - ${item.name}</title>
+                <title>Item Report - ${item.name}</title>
                 <style>
-                    body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-                        margin: 20px;
-                        padding: 0;
-                        background: white;
-                        color: #111827;
+                    body { font-family: sans-serif; margin: 20px; color: #111827; }
+                    .container { max-width: 900px; margin: 0 auto; }
+                    h1 { margin-bottom: 5px; color: #1e3a8a; }
+                    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 20px; }
+                    
+                    .section { margin-bottom: 30px; page-break-inside: avoid; }
+                    .section-title { 
+                        font-size: 16px; font-weight: bold; border-bottom: 2px solid #e5e7eb; 
+                        padding-bottom: 8px; margin-bottom: 15px; color: #374151;
                     }
-                    .container {
-                        max-width: 900px;
-                        margin: 0 auto;
-                    }
-                    h1, h2, h3 {
-                        margin-top: 20px;
-                        margin-bottom: 10px;
-                    }
-                    .info-grid {
-                        display: grid;
-                        grid-template-columns: repeat(2, 1fr);
-                        gap: 20px;
-                        margin-bottom: 30px;
-                    }
-                    .info-card {
-                        border: 1px solid #d1d5db;
-                        padding: 15px;
-                        border-radius: 4px;
-                    }
-                    .info-label {
-                        font-size: 12px;
-                        color: #6b7280;
-                        font-weight: 600;
-                        text-transform: uppercase;
-                        margin-bottom: 5px;
-                    }
-                    .info-value {
-                        font-size: 16px;
-                        font-weight: 600;
-                        color: #1f2937;
-                        word-break: break-word;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 20px 0;
-                    }
-                    th {
-                        background-color: #f3f4f6;
-                        border: 1px solid #d1d5db;
-                        padding: 10px;
-                        text-align: left;
-                        font-weight: 600;
-                        font-size: 12px;
-                    }
-                    td {
-                        border: 1px solid #d1d5db;
-                        padding: 10px;
-                    }
-                    .quick-stats {
-                        display: grid;
-                        grid-template-columns: repeat(5, 1fr);
-                        gap: 15px;
-                        margin-bottom: 30px;
-                    }
-                    .stat-box {
-                        border: 1px solid #d1d5db;
-                        padding: 15px;
-                        text-align: center;
-                        border-radius: 4px;
-                    }
-                    .stat-label {
-                        font-size: 11px;
-                        color: #6b7280;
-                        font-weight: 600;
-                        text-transform: uppercase;
-                    }
-                    .stat-value {
-                        font-size: 18px;
-                        font-weight: 700;
-                        margin-top: 5px;
-                    }
-                    .section-title {
-                        font-size: 14px;
-                        font-weight: 700;
-                        margin-top: 30px;
-                        margin-bottom: 15px;
-                        border-bottom: 2px solid #2563eb;
-                        padding-bottom: 10px;
-                    }
-                    .badge {
-                        display: inline-block;
-                        padding: 4px 8px;
-                        border-radius: 4px;
-                        font-size: 12px;
-                        font-weight: 600;
-                    }
-                    .badge-active {
-                        background-color: #dbeafe;
-                        color: #1e40af;
-                    }
-                    .badge-inactive {
-                        background-color: #fee2e2;
-                        color: #991b1b;
-                    }
+                    
+                    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                    .card { border: 1px solid #e5e7eb; padding: 15px; border-radius: 6px; }
+                    .label { font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 600; }
+                    .value { font-size: 15px; font-weight: 600; margin-top: 2px; }
+                    
+                    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+                    th { background: #f9fafb; padding: 8px 12px; text-align: left; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #374151; }
+                    td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; }
+                    
+                    .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+                    .badge-active { background: #dcfce7; color: #166534; }
+                    .badge-inactive { background: #fee2e2; color: #991b1b; }
+                    
                     @media print {
-                        body {
-                            margin: 0;
-                            padding: 10px;
-                        }
-                        table {
-                            page-break-inside: avoid;
-                        }
-                        tr {
-                            page-break-inside: avoid;
-                        }
+                        body { margin: 0; }
+                        .no-print { display: none; }
                     }
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <h1>${item.name}</h1>
-                    
-                    <div class="quick-stats">
-                        <div class="stat-box">
-                            <div class="stat-label">SKU</div>
-                            <div class="stat-value">${item.sku}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h1>${item.name}</h1>
+                            <div class="subtitle">SKU: ${item.sku} &bull; Barcode: ${item.barcode}</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Cost Price</div>
-                            <div class="stat-value">LKR ${item.cost_price.toFixed(2)}</div>
+                        <div style="text-align: right;">
+                             <span class="badge ${item.is_active ? 'badge-active' : 'badge-inactive'}">
+                                ${item.is_active ? 'ACTIVE' : 'INACTIVE'}
+                            </span>
+                            <div style="margin-top: 5px; font-size: 12px; color: #6b7280;">${new Date().toLocaleDateString()}</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Selling Price</div>
-                            <div class="stat-value">LKR ${item.selling_price.toFixed(2)}</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Reorder Level</div>
-                            <div class="stat-value">${item.reorder_level}</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Status</div>
-                            <div class="stat-value">
-                                <span class="badge ${item.is_active ? 'badge-active' : 'badge-inactive'}">
-                                    ${item.is_active ? 'Active' : 'Inactive'}
-                                </span>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Overview</div>
+                        <div class="grid-2">
+                            <div class="card">
+                                <div class="label">Price Information</div>
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                                    <div>
+                                        <div class="label">Cost Price</div>
+                                        <div class="value">LKR ${(item.cost_price || 0).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div class="label">Selling Price</div>
+                                        <div class="value">LKR ${(item.selling_price || 0).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div class="label">MRP</div>
+                                        <div class="value">LKR ${(item.mrp || 0).toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="label">Stock Information</div>
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                                    <div>
+                                        <div class="label">Current Stock</div>
+                                        <div class="value" style="font-size: 18px;">${item.quantity || 0}</div>
+                                    </div>
+                                    <div>
+                                        <div class="label">Reorder Level</div>
+                                        <div class="value">${item.reorder_level}</div>
+                                    </div>
+                                    <div>
+                                        <div class="label">Category</div>
+                                        <div class="value" style="font-size: 13px;">${categoryName}</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="section-title">Item Information</div>
-                    <div class="info-grid">
-                        <div class="info-card">
-                            <div class="info-label">Product ID</div>
-                            <div class="info-value">${item.product_id}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Barcode</div>
-                            <div class="info-value">${item.barcode}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Category</div>
-                            <div class="info-value">${categoryName}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Subcategory</div>
-                            <div class="info-value">${subCategoryName}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Brand</div>
-                            <div class="info-value">${brandName}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Tax Rate</div>
-                            <div class="info-value">${item.tax_rate}%</div>
-                        </div>
-                    </div>
+                    ${batchRows ? `
+                    <div class="section">
+                        <div class="section-title">Active Batches</div>
+                        <table>
+                            <thead><tr><th>Batch Code</th><th style="text-align: center">Qty</th><th>Mfg Date</th><th>Expiry Date</th><th>Branch</th></tr></thead>
+                            <tbody>${batchRows}</tbody>
+                        </table>
+                    </div>` : ''}
 
-                    <div class="section-title">Pricing Details</div>
-                    <div class="info-grid">
-                        <div class="info-card">
-                            <div class="info-label">Cost Price</div>
-                            <div class="info-value">LKR ${item.cost_price.toFixed(2)}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Selling Price</div>
-                            <div class="info-value">LKR ${item.selling_price.toFixed(2)}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">MRP</div>
-                            <div class="info-value">LKR ${item.mrp.toFixed(2)}</div>
-                        </div>
-                    </div>
+                    ${historyRows ? `
+                    <div class="section">
+                        <div class="section-title">Stock History (Last 10 Actions)</div>
+                        <table>
+                            <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th style="text-align: center">Qty Change</th><th>Notes</th></tr></thead>
+                            <tbody>${historyRows}</tbody>
+                        </table>
+                    </div>` : ''}
 
-                    <div class="section-title">Description</div>
-                    <div class="info-card">
-                        <div class="info-value">${item.description || 'N/A'}</div>
-                    </div>
+                    ${supplierRows ? `
+                    <div class="section">
+                        <div class="section-title">Supplier Information</div>
+                        <table>
+                            <thead><tr><th>Supplier</th><th>Last PO</th><th>Lead Time</th><th style="text-align: right">Cost Price</th></tr></thead>
+                            <tbody>${supplierRows}</tbody>
+                        </table>
+                    </div>` : ''}
+                    
+                    ${salesRows ? `
+                    <div class="section">
+                        <div class="section-title">Recent Sales</div>
+                        <table>
+                            <thead><tr><th>Date</th><th style="text-align: center">Qty</th><th style="text-align: right">Revenue</th></tr></thead>
+                            <tbody>${salesRows}</tbody>
+                        </table>
+                    </div>` : ''}
+
                 </div>
                 <script>
-                    window.print();
-                    window.close();
+                    setTimeout(() => {
+                        window.print();
+                        window.close();
+                    }, 500);
                 </script>
             </body>
             </html>
