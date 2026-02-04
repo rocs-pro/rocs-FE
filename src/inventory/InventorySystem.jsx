@@ -418,7 +418,6 @@ const InventorySystem = () => {
                     items={items}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
-                    setIsAddModalOpen={setIsAddModalOpen}
                     setSelectedItemId={setSelectedItemId}
                     setActiveScreen={setActiveScreen}
                     handleDeleteItem={handleDeleteItem}
@@ -570,30 +569,49 @@ const InventorySystem = () => {
                 return <StockAgingScreen batches={batches} />;
             case 'barcode-print':
                 return (
-                    <div className="flex flex-col items-center justify-center h-full bg-gray-50/50">
-                        <div className="text-center p-12 bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 max-w-lg mx-auto transform hover:scale-105 transition-transform duration-500">
-                            <div className="relative mb-8 inline-block">
-                                <div className="absolute inset-0 bg-blue-400/30 rounded-full blur-2xl animate-pulse"></div>
-                                <div className="relative z-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                    <Printer size={64} className="text-brand-primary animate-bounce duration-3000" />
+                    <div className="flex flex-col items-center justify-center h-full relative overflow-hidden bg-slate-50/50">
+                        {/* Background Decoration */}
+                        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+                            <div className="absolute top-[20%] left-[20%] w-72 h-72 bg-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
+                            <div className="absolute bottom-[20%] right-[20%] w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+                        </div>
+
+                        <div className="relative z-10 text-center p-12 bg-white/70 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white max-w-xl mx-auto transform transition-all duration-500 hover:scale-[1.01] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+                            <div className="relative mb-8 inline-block group">
+                                <div className="absolute inset-0 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
+                                <div className="relative z-10 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 group-hover:border-blue-100 transition-colors">
+                                    <Printer size={48} className="text-blue-600" strokeWidth={1.5} />
+                                </div>
+                                <div className="absolute -top-3 -right-3 bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg border border-white">DEV</div>
+                            </div>
+
+                            <h2 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+                                Barcode Studio
+                            </h2>
+                            <h3 className="text-xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-6">
+                                Coming Soon
+                            </h3>
+
+                            <p className="text-slate-500 text-[15px] mb-8 leading-relaxed max-w-sm mx-auto">
+                                We are building a powerful barcode generation tool. Create custom labels, support multiple formats, and print directly from your browser.
+                            </p>
+
+                            {/* Progress Bar */}
+                            <div className="max-w-sm mx-auto mb-8 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                                <div className="flex justify-between text-xs font-semibold text-slate-500 mb-2">
+                                    <span>Development Status</span>
+                                    <span className="text-blue-600">In Progress</span>
+                                </div>
+                                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full w-[65%] relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-white/30 animate-[shimmer_2s_infinite]"></div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <h2 className="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-blue-600 animate-pulse">
-                                    Coming Soon
-                                </span>
-                            </h2>
-
-                            <p className="text-gray-500 text-lg mb-8 leading-relaxed">
-                                We're working hard to bring you a powerful Barcode Printing module.
-                                <br />Get ready to print custom labels effortlessly!
-                            </p>
-
-                            <div className="flex items-center justify-center gap-3">
-                                <div className="w-2.5 h-2.5 bg-brand-primary rounded-full animate-bounce border border-brand-primary/50" style={{ animationDelay: '0ms' }}></div>
-                                <div className="w-2.5 h-2.5 bg-brand-primary/70 rounded-full animate-bounce border border-brand-primary/50" style={{ animationDelay: '150ms' }}></div>
-                                <div className="w-2.5 h-2.5 bg-brand-primary/40 rounded-full animate-bounce border border-brand-primary/50" style={{ animationDelay: '300ms' }}></div>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100/50 rounded-full border border-slate-200/50">
+                                <Clock size={14} className="text-slate-400" />
+                                <span className="text-xs font-medium text-slate-500">Expected Update: Next Release</span>
                             </div>
                         </div>
                     </div>
