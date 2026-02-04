@@ -94,16 +94,17 @@ const InventorySystem = () => {
             console.log('[InventorySystem] Starting to load inventory data...');
             try {
                 // Fetch all data in parallel
-                console.log('[InventorySystem] Calling Promise.all for products, categories, brands, suppliers');
-                // Fetch all data in parallel
-                console.log('[InventorySystem] Calling Promise.all for products, categories, brands, suppliers, subcategories');
+                console.log('[InventorySystem] Calling Promise.all for products, categories, brands, suppliers, subcategories, branches');
                 const [productsData, categoriesData, brandsData, suppliersData, subCategoriesData, branchesData] = await Promise.all([
                     inventoryService.getProducts(),
                     inventoryService.getCategories(),
                     inventoryService.getBrands(),
                     inventoryService.getSuppliers(),
                     inventoryService.getSubCategories(),
-                    inventoryService.getBranches()
+                    inventoryService.getBranches().catch(err => {
+                        console.warn('Failed to fetch branches, using empty list:', err);
+                        return [];
+                    })
                 ]);
 
                 console.log('[InventorySystem] Data received:', {
