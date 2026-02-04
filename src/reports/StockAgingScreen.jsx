@@ -22,7 +22,7 @@ const StockAgingScreen = ({ batches }) => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900">Stock Aging Report</h2>
+                <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Stock Aging Report</h2>
                 <p className="text-gray-600 mt-1">Identify dead stock and optimize purchasing decisions</p>
             </div>
 

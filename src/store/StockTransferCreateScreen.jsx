@@ -32,7 +32,7 @@ const StockTransferCreateScreen = ({
             try {
                 const item = items.find(i => i.product_id === parseInt(transferForm.product_id));
                 const batch = batches.find(b => b.batch_id === parseInt(transferForm.batch_id));
-                
+
                 const payload = {
                     from_branch: transferForm.fromBranch,
                     to_branch: transferForm.toBranch,
@@ -45,20 +45,20 @@ const StockTransferCreateScreen = ({
                 };
 
                 const createdTransfer = await storeService.createTransfer(payload);
-                
+
                 const newTransfer = {
                     ...createdTransfer,
                     product_name: item?.name || '',
                     batch_code: batch?.batch_code || '',
                     requestedBy: 'Current User'
                 };
-                
+
                 const updatedTransfers = [...transfers, newTransfer];
                 setLocalTransfers(updatedTransfers);
                 if (setTransfers) setTransfers(updatedTransfers);
-                
+
                 setTransferForm({ fromBranch: '', toBranch: '', product_id: '', quantity: '', batch_id: '', transferDate: '', remarks: '', status: 'Draft' });
-                
+
                 if (submit) {
                     alert('Transfer submitted for approval');
                 }
@@ -74,7 +74,7 @@ const StockTransferCreateScreen = ({
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900">Create Stock Transfer</h2>
+                <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Create Stock Transfer</h2>
                 <p className="text-gray-600 mt-1">Transfer stock between warehouses</p>
             </div>
 

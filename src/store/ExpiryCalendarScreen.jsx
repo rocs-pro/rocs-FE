@@ -44,7 +44,7 @@ const ExpiryCalendarScreen = ({ batches: initialBatches }) => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900">Expiry Calendar View</h2>
+                <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Expiry Calendar View</h2>
                 <p className="text-gray-600 mt-1">Monitor inventory by expiry date</p>
             </div>
 

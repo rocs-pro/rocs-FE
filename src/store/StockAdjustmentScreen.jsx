@@ -31,7 +31,7 @@ const StockAdjustmentScreen = ({
             try {
                 const item = items.find(i => i.product_id === parseInt(adjustmentForm.itemId));
                 const batch = batches.find(b => b.batch_id === parseInt(adjustmentForm.batchId));
-                
+
                 const payload = {
                     product_id: parseInt(adjustmentForm.itemId),
                     batch_id: adjustmentForm.batchId ? parseInt(adjustmentForm.batchId) : null,
@@ -43,7 +43,7 @@ const StockAdjustmentScreen = ({
                 };
 
                 const createdAdjustment = await storeService.createAdjustment(payload);
-                
+
                 const newAdj = {
                     ...createdAdjustment,
                     itemName: item?.name || '',
@@ -51,11 +51,11 @@ const StockAdjustmentScreen = ({
                     previousQty: parseInt(adjustmentForm.currentQty),
                     currentQty: parseInt(adjustmentForm.physicalQty)
                 };
-                
+
                 const updatedAdjustments = [...adjustments, newAdj];
                 setLocalAdjustments(updatedAdjustments);
                 if (setAdjustments) setAdjustments(updatedAdjustments);
-                
+
                 setAdjustmentForm({ itemId: '', batchId: '', currentQty: '', physicalQty: '', adjustmentType: 'Increase', reason: 'Audit', approvedBy: '' });
             } catch (err) {
                 console.error('Error creating adjustment:', err);
@@ -69,7 +69,7 @@ const StockAdjustmentScreen = ({
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900">Stock Adjustment</h2>
+                <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Stock Adjustment</h2>
                 <p className="text-gray-600 mt-1">Fix stock mismatches between system and physical count</p>
             </div>
 

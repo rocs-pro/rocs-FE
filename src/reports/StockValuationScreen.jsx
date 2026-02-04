@@ -41,7 +41,7 @@ const StockValuationScreen = ({ batches, items }) => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Stock Valuation Report</h2>
+                    <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Stock Valuation Report</h2>
                     <p className="text-gray-600 mt-1">Calculate inventory value using different methods</p>
                 </div>
                 <button onClick={handleExportReport} className="px-4 py-2 bg-brand-primary text-white rounded-lg flex items-center gap-2 hover:bg-brand-secondary transition-colors">

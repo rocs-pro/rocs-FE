@@ -35,7 +35,7 @@ const TransferApprovalScreen = ({ stockTransfers: initialTransfers, branches }) 
     const handleReject = async (transferId) => {
         const reason = prompt('Enter rejection reason:');
         if (!reason) return;
-        
+
         try {
             await storeService.rejectTransfer(transferId, reason);
             await loadPendingTransfers();
@@ -49,7 +49,7 @@ const TransferApprovalScreen = ({ stockTransfers: initialTransfers, branches }) 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900">Transfer Approval</h2>
+                <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Transfer Approval</h2>
                 <p className="text-gray-600 mt-1">Review and approve stock transfers</p>
             </div>
 
@@ -71,36 +71,36 @@ const TransferApprovalScreen = ({ stockTransfers: initialTransfers, branches }) 
                             const fromBranch = branches?.find(b => b.branch_id === transfer.fromBranch)?.name || 'Unknown';
                             const toBranch = branches?.find(b => b.branch_id === transfer.toBranch)?.name || 'Unknown';
                             return (
-                            <tr key={transfer.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 text-sm font-mono text-gray-900">{transfer.id}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{fromBranch}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{toBranch}</td>
-                                <td className="px-6 py-4 text-sm text-gray-900">{transfer.product_name} x {transfer.quantity}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{transfer.date}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(transfer.status)}`}>
-                                        {transfer.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    {transfer.status === 'Pending' && (
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button onClick={() => handleApprove(transfer.transfer_id || transfer.id)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700">
-                                                Approve
+                                <tr key={transfer.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 text-sm font-mono text-gray-900">{transfer.id}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{fromBranch}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{toBranch}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-900">{transfer.product_name} x {transfer.quantity}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{transfer.date}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(transfer.status)}`}>
+                                            {transfer.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        {transfer.status === 'Pending' && (
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button onClick={() => handleApprove(transfer.transfer_id || transfer.id)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700">
+                                                    Approve
+                                                </button>
+                                                <button onClick={() => handleReject(transfer.transfer_id || transfer.id)} className="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        )}
+                                        {transfer.status !== 'Pending' && (
+                                            <button className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200">
+                                                View Details
                                             </button>
-                                            <button onClick={() => handleReject(transfer.transfer_id || transfer.id)} className="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700">
-                                                Reject
-                                            </button>
-                                        </div>
-                                    )}
-                                    {transfer.status !== 'Pending' && (
-                                        <button className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200">
-                                            View Details
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        );
+                                        )}
+                                    </td>
+                                </tr>
+                            );
                         })}
                     </tbody>
                 </table>

@@ -31,7 +31,7 @@ const DamageEntryScreen = ({
             try {
                 const item = items.find(i => i.product_id === parseInt(damageForm.product_id));
                 const batch = batches.find(b => b.batch_id === parseInt(damageForm.batch_id));
-                
+
                 const payload = {
                     product_id: parseInt(damageForm.product_id),
                     batch_id: damageForm.batch_id ? parseInt(damageForm.batch_id) : null,
@@ -42,17 +42,17 @@ const DamageEntryScreen = ({
                 };
 
                 const createdDamage = await storeService.createDamage(payload);
-                
+
                 const newDmg = {
                     ...createdDamage,
                     product_name: item?.name || '',
                     batch_code: batch?.batch_code || ''
                 };
-                
+
                 const updatedDamages = [...damageEntries, newDmg];
                 setLocalDamageEntries(updatedDamages);
                 if (setDamageEntries) setDamageEntries(updatedDamages);
-                
+
                 setDamageForm({ product_id: '', batch_id: '', quantity: '', reason: '', date: '', note: '' });
             } catch (err) {
                 console.error('Error creating damage entry:', err);
@@ -66,7 +66,7 @@ const DamageEntryScreen = ({
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900">Damage / Wastage Entry</h2>
+                <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-500 drop-shadow-sm">Damage / Wastage Entry</h2>
                 <p className="text-gray-600 mt-1">Log damaged or wasted stock</p>
             </div>
 
