@@ -38,7 +38,7 @@ export const inventoryService = {
     getProducts: async () => {
         try {
             console.log('[InventoryService] GET products');
-            const response = await api.get('/products');
+            const response = await api.get('/inventory/products');
             console.log('[InventoryService] GET products response:', response.data);
             // Backend returns { success, data: [...], message }
             const products = response.data.data || response.data;
@@ -58,7 +58,7 @@ export const inventoryService = {
      */
     getProductById: async (productId) => {
         try {
-            const response = await api.get(`/products/${productId}`);
+            const response = await api.get(`/inventory/products/${productId}`);
             const product = response.data.data || response.data;
             return mapProductFromBackend(product);
         } catch (error) {
@@ -91,7 +91,7 @@ export const inventoryService = {
     createProduct: async (productData) => {
         try {
             const backendData = mapProductToBackend(productData);
-            const response = await api.post('/products', backendData);
+            const response = await api.post('/inventory/products', backendData);
             const product = response.data.data || response.data;
             return mapProductFromBackend(product);
         } catch (error) {
@@ -109,7 +109,7 @@ export const inventoryService = {
     updateProduct: async (productId, productData) => {
         try {
             const backendData = mapProductToBackend(productData);
-            const response = await api.put(`/products/${productId}`, backendData);
+            const response = await api.put(`/inventory/products/${productId}`, backendData);
             const product = response.data.data || response.data;
             return mapProductFromBackend(product);
         } catch (error) {
@@ -125,7 +125,7 @@ export const inventoryService = {
      */
     deleteProduct: async (productId) => {
         try {
-            const response = await api.delete(`/products/${productId}`);
+            const response = await api.delete(`/inventory/products/${productId}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting product:', error);
@@ -174,7 +174,7 @@ export const inventoryService = {
     getCategories: async () => {
         try {
             console.log('[InventoryService] GET categories');
-            const response = await api.get('/categories');
+            const response = await api.get('/inventory/categories');
             console.log('[InventoryService] GET categories response:', response.data);
             const categories = response.data.data || response.data;
             const mapped = mapCategoriesFromBackend(categories);
@@ -193,7 +193,7 @@ export const inventoryService = {
      */
     getCategoryById: async (categoryId) => {
         try {
-            const response = await api.get(`/categories/${categoryId}`);
+            const response = await api.get(`/inventory/categories/${categoryId}`);
             const category = response.data.data || response.data;
             return mapCategoryFromBackend(category);
         } catch (error) {
@@ -214,7 +214,7 @@ export const inventoryService = {
             console.log('[InventoryService] POST category:', rest);
             const backendData = mapCategoryToBackend(rest);
             console.log('[InventoryService] POST category (mapped):', backendData);
-            const response = await api.post('/categories', backendData);
+            const response = await api.post('/inventory/categories', backendData);
             console.log('[InventoryService] POST category response:', response.data);
             const category = response.data.data || response.data;
             return mapCategoryFromBackend(category);
@@ -249,7 +249,7 @@ export const inventoryService = {
      */
     deleteCategory: async (categoryId) => {
         try {
-            const response = await api.delete(`/categories/${categoryId}`);
+            const response = await api.delete(`/inventory/categories/${categoryId}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting category:', error);
@@ -264,7 +264,7 @@ export const inventoryService = {
      */
     getSubCategories: async () => {
         try {
-            const response = await api.get('/subcategories');
+            const response = await api.get('/inventory/subcategories');
             const subcategories = response.data.data || response.data;
             return mapSubCategoriesFromBackend(subcategories);
         } catch (error) {
@@ -283,7 +283,7 @@ export const inventoryService = {
             // eslint-disable-next-line no-unused-vars
             const { subcategory_id, ...rest } = subCategoryData;
             const backendData = mapSubCategoryToBackend(rest);
-            const response = await api.post('/subcategories', backendData);
+            const response = await api.post('/inventory/subcategories', backendData);
             const subCategory = response.data.data || response.data;
             return mapSubCategoryFromBackend(subCategory);
         } catch (error) {
@@ -317,7 +317,7 @@ export const inventoryService = {
      */
     deleteSubCategory: async (subCategoryId) => {
         try {
-            const response = await api.delete(`/subcategories/${subCategoryId}`);
+            const response = await api.delete(`/inventory/subcategories/${subCategoryId}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting subcategory:', error);
@@ -334,7 +334,7 @@ export const inventoryService = {
     getBrands: async () => {
         try {
             console.log('[InventoryService] GET brands');
-            const response = await api.get('/brands');
+            const response = await api.get('/inventory/brands');
             console.log('[InventoryService] GET brands response:', response.data);
             const brands = response.data.data || response.data;
             const mapped = mapBrandsFromBackend(brands);
@@ -353,7 +353,7 @@ export const inventoryService = {
      */
     getBrandById: async (brandId) => {
         try {
-            const response = await api.get(`/brands/${brandId}`);
+            const response = await api.get(`/inventory/brands/${brandId}`);
             const brand = response.data.data || response.data;
             return mapBrandFromBackend(brand);
         } catch (error) {
@@ -372,7 +372,7 @@ export const inventoryService = {
             // eslint-disable-next-line no-unused-vars
             const { brand_id, ...rest } = brandData;
             const backendData = mapBrandToBackend(rest);
-            const response = await api.post('/brands', backendData);
+            const response = await api.post('/inventory/brands', backendData);
             const brand = response.data.data || response.data;
             return mapBrandFromBackend(brand);
         } catch (error) {
@@ -406,7 +406,7 @@ export const inventoryService = {
      */
     deleteBrand: async (brandId) => {
         try {
-            const response = await api.delete(`/brands/${brandId}`);
+            const response = await api.delete(`/inventory/brands/${brandId}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting brand:', error);
@@ -426,7 +426,7 @@ export const inventoryService = {
     getBranches: async () => {
         try {
             console.log('[InventoryService] GET branches');
-            const response = await api.get('/branches');
+            const response = await api.get('/inventory/branches');
             console.log('[InventoryService] GET branches response:', response.data);
             const branches = response.data.data || response.data;
             const mapped = mapBranchesFromBackend(branches);
@@ -452,7 +452,7 @@ export const inventoryService = {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const effectiveBranchId = branchId || user.branchId || 1;
             
-            const response = await api.get(`/grn/branch/${effectiveBranchId}`);
+            const response = await api.get(`/inventory/grn/branch/${effectiveBranchId}`);
             const grns = response.data.data || response.data;
             const mapped = mapGRNsFromBackend(grns);
             console.log('[InventoryService] GET GRNs mapped:', mapped.length, 'items');
@@ -472,7 +472,7 @@ export const inventoryService = {
         try {
             console.log('[InventoryService] Search GRNs with filter:', filter);
             const backendFilter = mapGRNToBackend(filter);
-            const response = await api.post('/grn/search', backendFilter);
+            const response = await api.post('/inventory/grn/search', backendFilter);
             const grns = response.data.data || response.data;
             return mapGRNsFromBackend(grns);
         } catch (error) {
@@ -489,7 +489,7 @@ export const inventoryService = {
     getPendingGRNs: async (branchId) => {
         try {
             console.log('[InventoryService] GET pending GRNs for branch:', branchId);
-            const response = await api.get('/grn/pending', {
+            const response = await api.get('/inventory/grn/pending', {
                 params: branchId ? { branchId } : {}
             });
             const grns = response.data.data || response.data;
@@ -508,7 +508,7 @@ export const inventoryService = {
     getGRNById: async (grnId) => {
         try {
             console.log('[InventoryService] GET GRN by ID:', grnId);
-            const response = await api.get(`/grn/${grnId}`);
+            const response = await api.get(`/inventory/grn/${grnId}`);
             const grn = response.data.data || response.data;
             return mapGRNFromBackend(grn);
         } catch (error) {
@@ -549,7 +549,7 @@ export const inventoryService = {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const userId = user.userId || user.id || 1;
             
-            const response = await api.post('/grn', backendData, {
+            const response = await api.post('/inventory/grn', backendData, {
                 headers: {
                     'User-ID': userId
                 }
@@ -588,7 +588,7 @@ export const inventoryService = {
                 }))
             };
             
-            const response = await api.put(`/grn/${grnId}`, backendData);
+            const response = await api.put(`/inventory/grn/${grnId}`, backendData);
             const grn = response.data.data || response.data;
             return mapGRNFromBackend(grn);
         } catch (error) {
@@ -608,7 +608,7 @@ export const inventoryService = {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const userId = user.userId || user.id || 1;
             
-            const response = await api.put(`/grn/${grnId}/approve`, {}, {
+            const response = await api.put(`/inventory/grn/${grnId}/approve`, {}, {
                 headers: {
                     'User-ID': userId
                 }
@@ -633,7 +633,7 @@ export const inventoryService = {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const userId = user.userId || user.id || 1;
             
-            const response = await api.put(`/grn/${grnId}/reject`, {}, {
+            const response = await api.put(`/inventory/grn/${grnId}/reject`, {}, {
                 headers: {
                     'User-ID': userId
                 },
@@ -658,7 +658,7 @@ export const inventoryService = {
     updateGRNPaymentStatus: async (grnId, paymentStatus) => {
         try {
             console.log('[InventoryService] Update GRN payment status:', grnId, paymentStatus);
-            const response = await api.put(`/grn/${grnId}/payment-status`, null, {
+            const response = await api.put(`/inventory/grn/${grnId}/payment-status`, null, {
                 params: { paymentStatus }
             });
             const grn = response.data.data || response.data;
@@ -677,7 +677,7 @@ export const inventoryService = {
     deleteGRN: async (grnId) => {
         try {
             console.log('[InventoryService] Delete GRN:', grnId);
-            const response = await api.delete(`/grn/${grnId}`);
+            const response = await api.delete(`/inventory/grn/${grnId}`);
             return response.data;
         } catch (error) {
             console.error('[InventoryService] Error deleting GRN:', error);
@@ -695,7 +695,7 @@ export const inventoryService = {
         try {
             console.log('[InventoryService] GET GRN stats:', branchId, period);
             const params = period ? { period } : {};
-            const response = await api.get(`/grn/branch/${branchId}/stats`, { params });
+            const response = await api.get(`/inventory/grn/branch/${branchId}/stats`, { params });
             const stats = response.data.data || response.data;
             return mapGRNFromBackend(stats);
         } catch (error) {
@@ -714,7 +714,7 @@ export const inventoryService = {
         try {
             console.log('[InventoryService] GET GRN items by product:', productId, branchId);
             const params = branchId ? { branchId } : {};
-            const response = await api.get(`/grn/product/${productId}/items`, { params });
+            const response = await api.get(`/inventory/grn/product/${productId}/items`, { params });
             const items = response.data.data || response.data;
             return mapGRNsFromBackend(items);
         } catch (error) {
@@ -731,7 +731,7 @@ export const inventoryService = {
     getGRNsBySupplier: async (supplierId) => {
         try {
             console.log('[InventoryService] GET GRNs by supplier:', supplierId);
-            const response = await api.get(`/grn/supplier/${supplierId}`);
+            const response = await api.get(`/inventory/grn/supplier/${supplierId}`);
             const grns = response.data.data || response.data;
             return mapGRNsFromBackend(grns);
         } catch (error) {
@@ -748,7 +748,7 @@ export const inventoryService = {
     checkGRNNumber: async (grnNo) => {
         try {
             console.log('[InventoryService] Check GRN number:', grnNo);
-            const response = await api.get(`/grn/check-number/${grnNo}`);
+            const response = await api.get(`/inventory/grn/check-number/${grnNo}`);
             return response.data.data || response.data;
         } catch (error) {
             console.error('[InventoryService] Error checking GRN number:', error);
@@ -765,7 +765,7 @@ export const inventoryService = {
     getSuppliers: async () => {
         try {
             console.log('[InventoryService] GET suppliers');
-            const response = await api.get('/suppliers');
+            const response = await api.get('/inventory/suppliers');
             console.log('[InventoryService] GET suppliers response:', response.data);
             const suppliers = response.data.data || response.data;
             const mapped = mapSuppliersFromBackend(suppliers);
@@ -784,7 +784,7 @@ export const inventoryService = {
      */
     getSupplierById: async (supplierId) => {
         try {
-            const response = await api.get(`/suppliers/${supplierId}`);
+            const response = await api.get(`/inventory/suppliers/${supplierId}`);
             const supplier = response.data.data || response.data;
             return mapSupplierFromBackend(supplier);
         } catch (error) {
@@ -815,7 +815,7 @@ export const inventoryService = {
             const backendData = mapSupplierToBackend(dataWithDefaults);
             console.log('[InventoryService] Creating supplier with data:', backendData);
 
-            const response = await api.post('/suppliers', backendData);
+            const response = await api.post('/inventory/suppliers', backendData);
             const supplier = response.data.data || response.data;
             return mapSupplierFromBackend(supplier);
         } catch (error) {
@@ -852,7 +852,7 @@ export const inventoryService = {
      */
     deleteSupplier: async (supplierId) => {
         try {
-            const response = await api.delete(`/suppliers/${supplierId}`);
+            const response = await api.delete(`/inventory/suppliers/${supplierId}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting supplier:', error);

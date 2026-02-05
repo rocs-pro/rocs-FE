@@ -31,7 +31,7 @@ export const storeService = {
     getBatches: async () => {
         try {
             console.log('[StoreService] GET batches');
-            const response = await api.get('/batches');
+            const response = await api.get('/inventory/batches');
             console.log('[StoreService] GET batches response:', response.data);
             const batches = response.data.data || response.data;
             const mapped = mapBatchesFromBackend(batches);
@@ -84,7 +84,7 @@ export const storeService = {
     createBatch: async (batchData) => {
         try {
             const backendData = mapBatchToBackend(batchData);
-            const response = await api.post('/batches', backendData);
+            const response = await api.post('/inventory/batches', backendData);
             const batch = response.data.data || response.data;
             return mapBatchFromBackend(batch);
         } catch (error) {
@@ -129,14 +129,23 @@ export const storeService = {
     // ============= STOCK ADJUSTMENTS =============
 
     /**
-     * Get all stock adjustments
+     * Get all stock adjustments with optional filters
+     * @param {Object} filters - Filter options { branchId, productId }
      * @returns {Promise} Array of adjustments
      */
-    getAdjustments: async () => {
+    getAdjustments: async (filters = {}) => {
         try {
-            console.log('[StoreService] GET adjustments');
-            const response = await api.get('/adjustments');
+            console.log('[StoreService] GET adjustments with filters:', filters);
+            
+            // Build query parameters
+            const params = new URLSearchParams();
+            if (filters.branchId) params.append('branchId', filters.branchId);
+            if (filters.productId) params.append('productId', filters.productId);
+            
+            const url = params.toString() ? `/inventory/adjustments?${params.toString()}` : '/inventory/adjustments';
+            const response = await api.get(url);
             console.log('[StoreService] GET adjustments response:', response.data);
+            
             const adjustments = response.data.data || response.data;
             const mapped = mapAdjustmentsFromBackend(adjustments);
             console.log('[StoreService] GET adjustments mapped:', mapped.length, 'items');
@@ -149,13 +158,13 @@ export const storeService = {
     },
 
     /**
-     * Get adjustment by ID
+     * Get adjustment by ID (Note: Backend doesn't have this endpoint yet)
      * @param {number} adjustmentId - Adjustment ID
      * @returns {Promise} Adjustment object
      */
     getAdjustmentById: async (adjustmentId) => {
         try {
-            const response = await api.get(`/adjustments/${adjustmentId}`);
+            const response = await api.get(`/inventory/adjustments/${adjustmentId}`);
             const adjustment = response.data.data || response.data;
             return mapAdjustmentFromBackend(adjustment);
         } catch (error) {
@@ -174,7 +183,7 @@ export const storeService = {
             console.log('[StoreService] POST adjustment:', adjustmentData);
             const backendData = mapAdjustmentToBackend(adjustmentData);
             console.log('[StoreService] POST adjustment (mapped):', backendData);
-            const response = await api.post('/adjustments', backendData);
+            const response = await api.post('/inventory/adjustments', backendData);
             console.log('[StoreService] POST adjustment response:', response.data);
             const adjustment = response.data.data || response.data;
             return mapAdjustmentFromBackend(adjustment);
@@ -185,15 +194,14 @@ export const storeService = {
     },
 
     /**
-     * Get adjustments by product
+     * Get adjustments by product (Use getAdjustments with productId filter instead)
      * @param {number} productId - Product ID
      * @returns {Promise} Array of adjustments
      */
     getAdjustmentsByProduct: async (productId) => {
         try {
-            const response = await api.get(`/adjustments/product/${productId}`);
-            const adjustments = response.data.data || response.data;
-            return mapAdjustmentsFromBackend(adjustments);
+            // Use the main getAdjustments with productId filter
+            return await storeService.getAdjustments({ productId });
         } catch (error) {
             console.error('Error fetching adjustments by product:', error);
             throw error;
@@ -203,21 +211,31 @@ export const storeService = {
     // ============= STOCK TRANSFERS =============
 
     /**
-     * Get all stock transfers
+     * Get all stock transfers with optional filters
+     * @param {Object} filters - Filter options { status, fromBranchId, toBranchId, requestedBy }
      * @returns {Promise} Array of transfers
      */
-    getTransfers: async () => {
+    getTransfers: async (filters = {}) => {
         try {
-            console.log('[StoreService] GET transfers');
-            const response = await api.get('/transfers');
+            console.log('[StoreService] GET transfers with filters:', filters);
+            
+            // Build query parameters object for Axios
+            const params = {};
+            if (filters.status) params.status = filters.status;
+            if (filters.fromBranchId) params.fromBranchId = filters.fromBranchId;
+            if (filters.toBranchId) params.toBranchId = filters.toBranchId;
+            if (filters.requestedBy) params.requestedBy = filters.requestedBy;
+            
+            const response = await api.get('/inventory/transfers', { params });
             console.log('[StoreService] GET transfers response:', response.data);
+            
             const transfers = response.data.data || response.data;
             const mapped = mapTransfersFromBackend(transfers);
             console.log('[StoreService] GET transfers mapped:', mapped.length, 'items');
             return mapped;
         } catch (error) {
             console.error('[StoreService] GET transfers error:', error?.response || error);
-            throw error;
+            return []; // Return empty array on error
         }
     },
 
@@ -228,11 +246,12 @@ export const storeService = {
      */
     getTransferById: async (transferId) => {
         try {
-            const response = await api.get(`/transfers/${transferId}`);
+            console.log('[StoreService] GET transfer by ID:', transferId);
+            const response = await api.get(`/inventory/transfers/${transferId}`);
             const transfer = response.data.data || response.data;
             return mapTransferFromBackend(transfer);
         } catch (error) {
-            console.error('Error fetching transfer:', error);
+            console.error('[StoreService] GET transfer by ID error:', error?.response?.data || error?.response || error);
             throw error;
         }
     },
@@ -244,30 +263,53 @@ export const storeService = {
      */
     createTransfer: async (transferData) => {
         try {
+            console.log('[StoreService] POST create transfer:', transferData);
             const backendData = mapTransferToBackend(transferData);
-            const response = await api.post('/transfers', backendData);
+            console.log('[StoreService] Mapped backend data:', backendData);
+            
+            const response = await api.post('/inventory/transfers', backendData);
+            console.log('[StoreService] Create transfer response:', response.data);
+            
             const transfer = response.data.data || response.data;
             return mapTransferFromBackend(transfer);
         } catch (error) {
-            console.error('Error creating transfer:', error);
+            console.error('[StoreService] Create transfer error:', error?.response?.data || error?.response || error);
             throw error;
         }
     },
 
     /**
-     * Update transfer
+     * Update transfer (only DRAFT status)
      * @param {number} transferId - Transfer ID
      * @param {Object} transferData - Transfer data in frontend format
      * @returns {Promise} Updated transfer
      */
     updateTransfer: async (transferId, transferData) => {
         try {
+            console.log('[StoreService] PUT update transfer:', transferId, transferData);
             const backendData = mapTransferToBackend(transferData);
-            const response = await api.put(`/transfers/${transferId}`, backendData);
+            const response = await api.put(`/inventory/transfers/${transferId}`, backendData);
             const transfer = response.data.data || response.data;
             return mapTransferFromBackend(transfer);
         } catch (error) {
-            console.error('Error updating transfer:', error);
+            console.error('Error updating transfer:', error?.response?.data || error);
+            throw error;
+        }
+    },
+
+    /**
+     * Submit transfer for approval (DRAFT -> PENDING)
+     * @param {number} transferId - Transfer ID
+     * @returns {Promise} Submit response
+     */
+    submitTransfer: async (transferId) => {
+        try {
+            console.log('[StoreService] POST submit transfer:', transferId);
+            const response = await api.post(`/inventory/transfers/${transferId}/submit`);
+            console.log('[StoreService] Submit transfer response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error submitting transfer:', error?.response?.data || error);
             throw error;
         }
     },
@@ -275,15 +317,21 @@ export const storeService = {
     /**
      * Approve stock transfer
      * @param {number} transferId - Transfer ID
-     * @returns {Promise} Approved transfer
+     * @param {string} approvalNotes - Optional approval notes
+     * @returns {Promise} Approval response
      */
-    approveTransfer: async (transferId) => {
+    approveTransfer: async (transferId, approvalNotes = '') => {
         try {
-            const response = await api.post(`/transfers/${transferId}/approve`);
-            const transfer = response.data.data || response.data;
-            return mapTransferFromBackend(transfer);
+            console.log('[StoreService] POST approve transfer:', transferId, approvalNotes);
+            const response = await api.post(
+                `/inventory/transfers/${transferId}/approve`, 
+                null,
+                { params: { approvalNotes } }
+            );
+            console.log('[StoreService] Approve transfer response:', response.data);
+            return response.data;
         } catch (error) {
-            console.error('Error approving transfer:', error);
+            console.error('Error approving transfer:', error?.response?.data || error);
             throw error;
         }
     },
@@ -291,16 +339,38 @@ export const storeService = {
     /**
      * Reject stock transfer
      * @param {number} transferId - Transfer ID
-     * @param {string} reason - Rejection reason
-     * @returns {Promise} Rejected transfer
+     * @param {string} rejectionReason - Rejection reason
+     * @returns {Promise} Rejection response
      */
-    rejectTransfer: async (transferId, reason) => {
+    rejectTransfer: async (transferId, rejectionReason) => {
         try {
-            const response = await api.post(`/transfers/${transferId}/reject`, { reason });
-            const transfer = response.data.data || response.data;
-            return mapTransferFromBackend(transfer);
+            console.log('[StoreService] POST reject transfer:', transferId, rejectionReason);
+            const response = await api.post(
+                `/inventory/transfers/${transferId}/reject`, 
+                null,
+                { params: { rejectionReason } }
+            );
+            console.log('[StoreService] Reject transfer response:', response.data);
+            return response.data;
         } catch (error) {
-            console.error('Error rejecting transfer:', error);
+            console.error('Error rejecting transfer:', error?.response?.data || error);
+            throw error;
+        }
+    },
+
+    /**
+     * Delete transfer (only DRAFT status)
+     * @param {number} transferId - Transfer ID
+     * @returns {Promise} Delete response
+     */
+    deleteTransfer: async (transferId) => {
+        try {
+            console.log('[StoreService] DELETE transfer:', transferId);
+            const response = await api.delete(`/inventory/transfers/${transferId}`);
+            console.log('[StoreService] Delete transfer response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting transfer:', error?.response?.data || error);
             throw error;
         }
     },
@@ -312,12 +382,8 @@ export const storeService = {
     getPendingTransfers: async () => {
         try {
             console.log('[StoreService] GET pending transfers');
-            const response = await api.get('/transfers/pending');
-            console.log('[StoreService] GET pending transfers response:', response.data);
-            const transfers = response.data.data || response.data;
-            const mapped = mapTransfersFromBackend(transfers);
-            console.log('[StoreService] GET pending transfers mapped:', mapped.length, 'items');
-            return mapped;
+            // Use the main getTransfers with status filter
+            return await storeService.getTransfers({ status: 'PENDING' });
         } catch (error) {
             console.error('[StoreService] GET pending transfers error:', error?.response?.data || error?.response || error);
             // Return empty array as fallback
@@ -334,7 +400,7 @@ export const storeService = {
     getDamages: async () => {
         try {
             console.log('[StoreService] GET damages');
-            const response = await api.get('/damages');
+            const response = await api.get('/inventory/damages');
             console.log('[StoreService] GET damages response:', response.data);
             const damages = response.data.data || response.data;
             const mapped = mapDamagesFromBackend(damages);
@@ -371,7 +437,7 @@ export const storeService = {
     createDamage: async (damageData) => {
         try {
             const backendData = mapDamageToBackend(damageData);
-            const response = await api.post('/damages', backendData);
+            const response = await api.post('/inventory/damages', backendData);
             const damage = response.data.data || response.data;
             return mapDamageFromBackend(damage);
         } catch (error) {
@@ -420,7 +486,7 @@ export const storeService = {
      */
     getExpiredProducts: async () => {
         try {
-            const response = await api.get('/batches/expired');
+            const response = await api.get('/inventory/batches/expired');
             const batches = response.data.data || response.data;
             return mapBatchesFromBackend(batches);
         } catch (error) {
@@ -438,7 +504,7 @@ export const storeService = {
     getExpiryCalendar: async (startDate, endDate) => {
         try {
             console.log('[StoreService] GET expiry calendar', { startDate, endDate });
-            const response = await api.get(`/expiry-calendar?start=${startDate}&end=${endDate}`);
+            const response = await api.get(`/inventory/expiry-calendar?start=${startDate}&end=${endDate}`);
             console.log('[StoreService] GET expiry calendar response:', response.data);
             const batches = response.data.data || response.data;
             const mapped = mapBatchesFromBackend(batches);
@@ -488,7 +554,7 @@ export const storeService = {
     getStockOverview: async () => {
         try {
             console.log('[StoreService] GET stock overview');
-            const response = await api.get('/stock-overview');
+            const response = await api.get('/inventory/stock-overview');
             console.log('[StoreService] GET stock overview response:', response.data);
             return response.data.data || response.data;
         } catch (error) {
@@ -504,7 +570,7 @@ export const storeService = {
      */
     getLowStockItems: async () => {
         try {
-            const response = await api.get('/stock-overview/low-stock');
+            const response = await api.get('/inventory/stock-overview/low-stock');
             const products = response.data.data || response.data;
             return mapBatchesFromBackend(products);
         } catch (error) {

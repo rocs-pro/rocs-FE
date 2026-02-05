@@ -549,7 +549,6 @@ const InventorySystemContent = () => {
         {
             id: 'transfers', label: 'Transfers & Valuation', icon: ArrowRightLeft, screens: [
                 { id: 'transfer-create', label: 'Create Transfer', icon: ArrowRightLeft },
-                { id: 'approve-transfer', label: 'Transfer Approval', icon: CheckCircle },
                 { id: 'stock-valuation', label: 'Stock Valuation', icon: TrendingUp },
                 { id: 'stock-aging', label: 'Stock Aging Report', icon: Clock },
             ]
