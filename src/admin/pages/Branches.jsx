@@ -14,7 +14,7 @@ import {
 export default function Branches() {
   const [q, setQ] = useState("");
   const [branches, setBranches] = useState([]);
-  const [form, setForm] = useState({ branchId: "", branchName: "", address: "", managerId: "", status: "INACTIVE" });
+  const [form, setForm] = useState({ code: "", branchName: "", address: "", managerId: "", status: "INACTIVE" });
   const [managers, setManagers] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [branchUsers, setBranchUsers] = useState([]);
@@ -67,12 +67,12 @@ export default function Branches() {
   const filtered = branches.filter((b) => {
     const s = q.trim().toLowerCase();
     if (!s) return true;
-    const branchId = b.branchId || b.branch_id || "";
-    const branchName = b.branchName || b.branch_name || "";
+    const code = b.code || "";
+    const branchName = b.branchName || b.branch_name || b.name || "";
     const address = b.address || "";
     const status = b.status || "";
     return (
-      branchId.toLowerCase().includes(s) ||
+      code.toLowerCase().includes(s) ||
       branchName.toLowerCase().includes(s) ||
       address.toLowerCase().includes(s) ||
       status.toLowerCase().includes(s)
@@ -80,24 +80,34 @@ export default function Branches() {
   });
 
   const resetForm = () => {
-    setForm({ branchId: "", branchName: "", address: "", managerId: "", status: "INACTIVE" });
+    setForm({ code: "", branchName: "", address: "", managerId: "", status: "INACTIVE" });
     setEditBranch(null);
   };
 
   async function onAdd(e) {
     e.preventDefault();
-    if (!form.branchId || !form.branchName) return alert("Branch ID and Name are required");
-    
+    if (!form.code || !form.branchName) return alert("Branch Code and Name are required");
+
     try {
       setSubmitting(true);
-      await createBranch(form);
+      // Map form to DTO structure
+      const payload = {
+        code: form.code,
+        name: form.branchName,
+        address: form.address,
+        managerId: form.managerId,
+        isActive: form.status === "ACTIVE"
+      };
+      await createBranch(payload);
       const data = await getAllBranches();
       setBranches(data || []);
       resetForm();
     } catch (err) {
       console.error("Error creating branch:", err);
-      if (err.response?.data?.message?.includes("exists")) {
-        alert("Branch ID already exists");
+      // Backend returns ResponseStatusException(BAD_REQUEST) which might be wrapped or come as err.response.data
+      const msg = err.response?.data?.message || "";
+      if (msg.includes("exists") || msg.includes("Duplicate")) {
+        alert("Branch Code already exists");
       } else {
         alert("Failed to create branch. Please try again.");
       }
@@ -121,11 +131,11 @@ export default function Branches() {
   function handleEditBranch(branch) {
     setEditBranch(branch);
     setForm({
-      branchId: branch.branchId || branch.branch_id || "",
-      branchName: branch.branchName || branch.branch_name || "",
+      code: branch.code || "",
+      branchName: branch.branchName || branch.branch_name || branch.name || "",
       address: branch.address || "",
       managerId: branch.managerId || branch.manager_id || "",
-      status: branch.status || "INACTIVE"
+      status: isActive(branch) ? "ACTIVE" : "INACTIVE"
     });
     setActiveDropdown(null);
   }
@@ -133,11 +143,18 @@ export default function Branches() {
   async function handleSaveEdit(e) {
     e.preventDefault();
     if (!form.branchName) return alert("Branch Name is required");
-    
+
     try {
       setSubmitting(true);
-      const branchId = editBranch.branchId || editBranch.branch_id;
-      await updateBranch(branchId, form);
+      const branchId = getBranchId(editBranch);
+      const payload = {
+        code: form.code,
+        name: form.branchName,
+        address: form.address,
+        managerId: form.managerId,
+        isActive: form.status === "ACTIVE"
+      };
+      await updateBranch(branchId, payload);
       const data = await getAllBranches();
       setBranches(data || []);
       resetForm();
@@ -167,7 +184,7 @@ export default function Branches() {
     setSelectedBranch(branch);
     setActiveDropdown(null);
     try {
-      const branchId = branch.branchId || branch.branch_id;
+      const branchId = getBranchId(branch);
       const users = await getUsersByBranch(branchId);
       setBranchUsers(users || []);
     } catch (err) {
@@ -176,9 +193,15 @@ export default function Branches() {
     }
   }
 
-  const getBranchId = (b) => b.branchId || b.branch_id;
-  const getBranchName = (b) => b.branchName || b.branch_name;
-  const isActive = (status) => status === "ACTIVE" || status === "Active";
+  const getBranchId = (b) => b.id || b.branchId || b.branch_id;
+  const getBranchName = (b) => b.name || b.branchName || b.branch_name;
+  const getBranchStatus = (b) => isActive(b) ? "ACTIVE" : "INACTIVE";
+  const isActive = (b) => {
+    if (typeof b === 'object') {
+      return b.isActive === true || b.status === "ACTIVE" || b.status === "Active";
+    }
+    return b === "ACTIVE" || b === "Active" || b === true;
+  };
 
   if (loading) {
     return (
@@ -220,12 +243,12 @@ export default function Branches() {
 
           <form onSubmit={editBranch ? handleSaveEdit : onAdd} className="space-y-3">
             <div>
-              <label className="text-sm font-bold">Branch ID</label>
+              <label className="text-sm font-bold">Branch Code (ID)</label>
               <input
                 className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary disabled:bg-gray-100 disabled:text-gray-500"
                 placeholder="e.g., BR-004"
-                value={form.branchId}
-                onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+                value={form.code}
+                onChange={(e) => setForm({ ...form, code: e.target.value })}
                 disabled={!!editBranch}
               />
             </div>
@@ -340,11 +363,10 @@ export default function Branches() {
                       <td className="p-3 text-sm">{managerName}</td>
                       <td className="p-3 text-center">
                         <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                            isActive(b.status) ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                          }`}
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${isActive(b) ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                            }`}
                         >
-                          {b.status}
+                          {getBranchStatus(b)}
                         </span>
                       </td>
                       <td className="p-3 text-right">
@@ -377,7 +399,7 @@ export default function Branches() {
 
       {/* Dropdown Portal */}
       {activeDropdown && createPortal(
-        <div 
+        <div
           className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-[200] py-1"
           style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
           onClick={(e) => e.stopPropagation()}
@@ -398,7 +420,7 @@ export default function Branches() {
             onClick={() => handleToggleStatus(activeDropdown)}
             className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
           >
-            <Power size={14} /> {isActive(branches.find(br => getBranchId(br) === activeDropdown)?.status) ? "Deactivate" : "Activate"}
+            <Power size={14} /> {isActive(branches.find(br => getBranchId(br) === activeDropdown)) ? "Deactivate" : "Activate"}
           </button>
           <div className="h-px bg-gray-100 my-1"></div>
           <button
@@ -476,8 +498,8 @@ export default function Branches() {
 
               <div>
                 <div className="text-sm font-bold text-slate-600 mb-2">Status</div>
-                <span className={`px-3 py-1 rounded-full text-sm font-bold text-white ${isActive(selectedBranch.status) ? "bg-brand-success" : "bg-slate-500"}`}>
-                  {selectedBranch.status}
+                <span className={`px-3 py-1 rounded-full text-sm font-bold text-white ${isActive(selectedBranch) ? "bg-brand-success" : "bg-slate-500"}`}>
+                  {getBranchStatus(selectedBranch)}
                 </span>
               </div>
             </div>

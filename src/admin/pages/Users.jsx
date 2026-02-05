@@ -63,7 +63,8 @@ export default function Users() {
         setUsersState(usersData || []);
         setBranches(branchesData || []);
         if (branchesData?.length > 0) {
-          setBranch(branchesData[0].branchId || branchesData[0].branch_id || "");
+          // BranchDTO uses 'id', check variations
+          setBranch(branchesData[0].id || branchesData[0].branchId || branchesData[0].branch_id || "");
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -119,7 +120,8 @@ export default function Users() {
     setUsername("");
     setEmail("");
     setEmployeeId("");
-    setBranch(branches[0]?.branchId || branches[0]?.branch_id || "");
+    // BranchDTO uses 'id'
+    setBranch(branches[0]?.id || branches[0]?.branchId || branches[0]?.branch_id || "");
     setEditUser(null);
   }
 
@@ -129,14 +131,16 @@ export default function Users() {
     setUsername(user.username || "");
     setEmail(user.email || "");
     setEmployeeId(user.employeeId || user.employee_id || "");
-    setBranch(user.branchId || user.branch_id || "");
+    // UserProfile has 'branch' object with 'branchId'. Logic: user.branch.branchId OR user.branchId (if flat)
+    const bId = user.branch?.branchId || user.branch?.id || user.branchId || user.branch_id || "";
+    setBranch(bId);
     setActiveDropdown(null);
   }
 
   async function handleSaveEdit(e) {
     e.preventDefault();
     if (!fullName.trim() || !email.trim()) return alert("Full name and email are required");
-    
+
     try {
       setSubmitting(true);
       const userId = editUser.userId || editUser.user_id || editUser.id;
@@ -146,7 +150,7 @@ export default function Users() {
         employeeId: employeeId.trim(),
         branchId: branch,
       });
-      
+
       // Refresh users list
       const data = await getAllUsers();
       setUsersState(data || []);
@@ -195,8 +199,8 @@ export default function Users() {
         email: em,
         employeeId: empId,
         branchId: branch,
-        role: "MANAGER", // Admin can only register managers
-        status: "INACTIVE", // default
+        role: "BRANCH_MANAGER", // Admin can only register managers
+        status: "ACTIVE", // default
       });
 
       // Refresh users list
@@ -247,7 +251,7 @@ export default function Users() {
   }
 
   const getUserId = (u) => u.userId || u.user_id || u.id;
-  const getUserStatus = (u) => u.status || "INACTIVE";
+  const getUserStatus = (u) => u.accountStatus || u.account_status || u.status || "INACTIVE";
   const isActive = (status) => status === "ACTIVE" || status === "Active";
 
   return (
@@ -255,7 +259,7 @@ export default function Users() {
       <div>
         <h1 className="text-xl font-extrabold">User Management</h1>
         <p className="text-sm text-brand-muted">
-          Admin can register <span className="font-bold">Managers only</span>. New managers are created as <span className="font-bold">Inactive</span>. Search any user by Employee ID or Name.
+          Admin can register <span className="font-bold">Managers only</span>. New managers are created as <span className="font-bold">Active</span>. Search any user by Employee ID or Name.
         </p>
       </div>
 
@@ -334,8 +338,8 @@ export default function Users() {
                 onChange={(e) => setBranch(e.target.value)}
               >
                 {branches.map((b) => (
-                  <option key={b.branchId || b.branch_id} value={b.branchId || b.branch_id}>
-                    {b.branchName || b.branch_name || b.name}
+                  <option key={b.id || b.branchId || b.branch_id} value={b.id || b.branchId || b.branch_id}>
+                    {b.name || b.branchName || b.branch_name}
                   </option>
                 ))}
               </select>
@@ -355,7 +359,7 @@ export default function Users() {
               className="w-full py-2 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting && <Loader2 size={16} className="animate-spin" />}
-              {editUser ? "Save Changes" : "Register Manager (Inactive)"}
+              {editUser ? "Save Changes" : "Register Manager"}
             </button>
           </form>
         </div>
@@ -409,22 +413,20 @@ export default function Users() {
                       </td>
                       <td className="p-3 font-mono text-gray-600">{u.employeeId || u.employee_id || "-"}</td>
                       <td className="p-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          (u.role || "").toUpperCase() === "MANAGER" ? "bg-purple-100 text-purple-700" :
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${(u.role || "").toUpperCase() === "MANAGER" || (u.role || "").toUpperCase() === "BRANCH_MANAGER" ? "bg-purple-100 text-purple-700" :
                           (u.role || "").toUpperCase() === "CASHIER" ? "bg-blue-100 text-blue-700" :
-                          (u.role || "").toUpperCase() === "ADMIN" ? "bg-red-100 text-red-700" :
-                          "bg-gray-100 text-gray-700"
-                        }`}>
+                            (u.role || "").toUpperCase() === "ADMIN" ? "bg-red-100 text-red-700" :
+                              "bg-gray-100 text-gray-700"
+                          }`}>
                           {u.role || "N/A"}
                         </span>
                       </td>
-                      <td className="p-3">{u.branchName || u.branch_name || u.branch || "-"}</td>
+                      <td className="p-3">{u.branch?.name || u.branchName || u.branch_name || "-"}</td>
                       <td className="p-3 text-center">
-                        <span className={`text-xs px-3 py-1 rounded-full font-bold ${
-                          isActive(status)
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}>
+                        <span className={`text-xs px-3 py-1 rounded-full font-bold ${isActive(status)
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                          }`}>
                           {status}
                         </span>
                       </td>
@@ -547,13 +549,12 @@ export default function Users() {
                   </div>
                   <div className="bg-gray-50 p-3 rounded-xl">
                     <div className="text-gray-500 text-xs">Branch</div>
-                    <div className="font-medium">{selectedUser.branchName || selectedUser.branch_name || selectedUser.branch || "-"}</div>
+                    <div className="font-medium">{selectedUser.branch?.name || selectedUser.branchName || selectedUser.branch_name || "-"}</div>
                   </div>
                   <div className="col-span-2 bg-gray-50 p-3 rounded-xl">
                     <div className="text-gray-500 text-xs">Status</div>
-                    <div className={`font-medium ${
-                      isActive(getUserStatus(selectedUser)) ? "text-green-600" : "text-red-600"
-                    }`}>
+                    <div className={`font-medium ${isActive(getUserStatus(selectedUser)) ? "text-green-600" : "text-red-600"
+                      }`}>
                       {getUserStatus(selectedUser)}
                     </div>
                   </div>

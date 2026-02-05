@@ -50,7 +50,7 @@ export default function BranchOverview() {
             (b) =>
               b.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
               b.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              b.manager?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+              b.managerName?.toLowerCase().includes(searchQuery.toLowerCase())
           );
           setFilteredBranches(filtered);
         } finally {
@@ -71,7 +71,7 @@ export default function BranchOverview() {
       if (selectedBranchId) {
         try {
           const summary = await getBranchSummary(selectedBranchId);
-          setSelectedBranch(summary);
+          setSelectedBranch({ ...summary.branch, users: summary.users, userCount: summary.userCount });
         } catch (err) {
           console.error("Failed to fetch branch summary:", err);
           // Fallback to basic branch data
@@ -202,7 +202,7 @@ export default function BranchOverview() {
                       {branch.name}
                     </div>
                     <div className="text-xs text-gray-500 truncate">
-                      {branch.manager?.name || "No Manager"} • {branch.address || branch.location}
+                      {branch.managerName || "No Manager"} • {branch.address || branch.location}
                     </div>
                   </div>
                   <div className="text-right">
@@ -236,7 +236,7 @@ export default function BranchOverview() {
                     {branch.name}
                   </div>
                   <div className="text-xs text-gray-500">
-                    Manager: {branch.manager?.name || "Not Assigned"}
+                    Manager: {branch.managerName || "Not Assigned"}
                   </div>
                 </div>
               </div>

@@ -47,7 +47,8 @@ export default function BranchSummaryModal({ branch, onClose }) {
   const activeUsers = users.filter((u) => u.status === "Active" || u.accountStatus === "ACTIVE").length;
   const totalUsers = users.length;
 
-  const manager = branchData?.manager || {};
+  // Derive manager from users list if not directly available
+  const manager = users.find(u => (u.userId || u.id) === branchData?.managerId) || { name: branchData?.managerName };
   const isActive = branchData?.isActive || branchData?.status === "Active";
 
   return (
@@ -174,9 +175,8 @@ export default function BranchSummaryModal({ branch, onClose }) {
               </div>
               <div className="text-xs text-gray-500 mt-1">Branch Status</div>
               <div
-                className={`text-xs ${
-                  isActive ? "text-green-500" : "text-red-500"
-                }`}
+                className={`text-xs ${isActive ? "text-green-500" : "text-red-500"
+                  }`}
               >
                 {isActive ? "Operational" : "Closed"}
               </div>
@@ -211,11 +211,10 @@ export default function BranchSummaryModal({ branch, onClose }) {
                       </div>
                     </div>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.status === "Active" || user.accountStatus === "ACTIVE"
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${user.status === "Active" || user.accountStatus === "ACTIVE"
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-200 text-gray-600"
-                      }`}
+                        }`}
                     >
                       {user.status || user.accountStatus}
                     </span>

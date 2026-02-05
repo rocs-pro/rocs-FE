@@ -69,17 +69,16 @@ export default function Terminals() {
   const filtered = terminals.filter((t) => {
     const s = q.trim().toLowerCase();
     if (!s) return true;
-    const terminalId = t.terminalId || t.terminal_id || "";
-    const terminalName = t.terminalName || t.terminal_name || "";
-    const branchName = t.branchName || t.branch_name || "";
-    const location = t.location || "";
-    const status = t.status || "";
+    const terminalCode = t.terminalCode || ""; // Display ID
+    const terminalName = t.name || t.terminalName || "";
+    // Lookup branch name
+    const branch = branches.find(b => getBranchId(b) === t.branchId);
+    const branchName = branch ? getBranchName(branch) : "";
+
     return (
-      terminalId.toLowerCase().includes(s) ||
+      terminalCode.toLowerCase().includes(s) ||
       terminalName.toLowerCase().includes(s) ||
-      branchName.toLowerCase().includes(s) ||
-      location.toLowerCase().includes(s) ||
-      status.toLowerCase().includes(s)
+      branchName.toLowerCase().includes(s)
     );
   });
 
@@ -91,16 +90,27 @@ export default function Terminals() {
   async function onAdd(e) {
     e.preventDefault();
     if (!form.terminalId || !form.terminalName || !form.branchId) return alert("Terminal ID, Name, and Branch are required");
-    
+
     try {
       setSubmitting(true);
-      await createTerminal(form);
+      // Map to Backend Entity
+      const payload = {
+        terminalCode: form.terminalId,
+        name: form.terminalName,
+        branchId: form.branchId,
+        // location: form.location, // Not supported by backend 
+        // assignedUserId: form.assignedUserId, // Not supported by backend
+        isActive: form.status === "ACTIVE"
+      };
+
+      await createTerminal(payload);
       const data = await getAllTerminals();
       setTerminals(data || []);
       resetForm();
     } catch (err) {
       console.error("Error creating terminal:", err);
-      if (err.response?.data?.message?.includes("exists")) {
+      const msg = err.response?.data?.message || "";
+      if (msg.includes("exists") || msg.includes("Duplicate")) {
         alert("Terminal ID already exists");
       } else {
         alert("Failed to create terminal. Please try again.");
@@ -125,12 +135,12 @@ export default function Terminals() {
   function handleEditTerminal(terminal) {
     setEditTerminal(terminal);
     setForm({
-      terminalId: terminal.terminalId || terminal.terminal_id || "",
-      terminalName: terminal.terminalName || terminal.terminal_name || "",
-      branchId: terminal.branchId || terminal.branch_id || "",
-      location: terminal.location || "",
-      assignedUserId: terminal.assignedUserId || terminal.assigned_user_id || "",
-      status: terminal.status || "INACTIVE"
+      terminalId: terminal.terminalCode || "", // Display ID
+      terminalName: terminal.name || "",
+      branchId: terminal.branchId || "",
+      location: "", // Not supported
+      assignedUserId: "", // Not supported
+      status: terminal.isActive ? "ACTIVE" : "INACTIVE"
     });
     setActiveDropdown(null);
   }
@@ -138,11 +148,18 @@ export default function Terminals() {
   async function handleSaveEdit(e) {
     e.preventDefault();
     if (!form.terminalName || !form.branchId) return alert("Terminal Name and Branch are required");
-    
+
     try {
       setSubmitting(true);
-      const terminalId = editTerminal.terminalId || editTerminal.terminal_id;
-      await updateTerminal(terminalId, form);
+      const pkId = editTerminal.terminalId; // The PK
+      const payload = {
+        terminalCode: form.terminalId,
+        name: form.terminalName,
+        branchId: form.branchId,
+        isActive: form.status === "ACTIVE"
+      };
+
+      await updateTerminal(pkId, payload);
       const data = await getAllTerminals();
       setTerminals(data || []);
       resetForm();
@@ -168,11 +185,20 @@ export default function Terminals() {
     }
   }
 
-  const getTerminalId = (t) => t.terminalId || t.terminal_id;
-  const getTerminalName = (t) => t.terminalName || t.terminal_name;
-  const getBranchId = (b) => b.branchId || b.branch_id;
-  const getBranchName = (b) => b.branchName || b.branch_name;
-  const isActive = (status) => status === "ACTIVE" || status === "Active";
+  // Helpers
+  const getBranchId = (b) => b.id || b.branchId || b.branch_id;
+  const getBranchName = (b) => b.name || b.branchName || b.branch_name;
+
+  // Terminal Helpers
+  // We use PK for operations, but terminalCode for display "ID"
+  const getTerminalPk = (t) => t.terminalId;
+  const getTerminalCode = (t) => t.terminalCode;
+
+  const isActive = (t) => {
+    if (t === undefined) return false;
+    if (typeof t === 'object') return t.isActive === true;
+    return t === "ACTIVE" || t === "Active" || t === true;
+  };
 
   if (loading) {
     return (
@@ -200,7 +226,7 @@ export default function Terminals() {
           {editTerminal && (
             <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
               <Edit size={16} className="text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">Editing: {getTerminalName(editTerminal)}</span>
+              <span className="text-sm font-medium text-blue-700">Editing: {editTerminal.name}</span>
             </div>
           )}
           <div className="flex items-center justify-between mb-3">
@@ -214,13 +240,13 @@ export default function Terminals() {
 
           <form onSubmit={editTerminal ? handleSaveEdit : onAdd} className="space-y-3">
             <div>
-              <label className="text-sm font-bold">Terminal ID</label>
+              <label className="text-sm font-bold">Terminal ID (Code)</label>
               <input
                 className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary disabled:bg-gray-100 disabled:text-gray-500"
                 placeholder="e.g., POS-004"
                 value={form.terminalId}
                 onChange={(e) => setForm({ ...form, terminalId: e.target.value })}
-                disabled={!!editTerminal}
+              // allow editing code? Usually yes, unless PK. Code is unique but mutable.
               />
             </div>
 
@@ -250,37 +276,7 @@ export default function Terminals() {
               </select>
             </div>
 
-            <div>
-              <label className="text-sm font-bold">Location</label>
-              <input
-                className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
-                placeholder="e.g., Counter 1"
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-bold">Assign User</label>
-              <select
-                className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border bg-white"
-                value={form.assignedUserId}
-                onChange={(e) => setForm({ ...form, assignedUserId: e.target.value })}
-              >
-                <option value="">Select User</option>
-                {users
-                  .filter(u => form.branchId ? (u.branchId || u.branch_id) === form.branchId : true)
-                  .map((user) => {
-                    const userId = user.userId || user.user_id || user.id;
-                    const userName = user.fullName || user.full_name;
-                    return (
-                      <option key={userId} value={userId}>
-                        {userName} ({user.role})
-                      </option>
-                    );
-                  })}
-              </select>
-            </div>
+            {/* Location & User Removed as backend doesn't support them yet */}
 
             <div>
               <label className="text-sm font-bold">Status</label>
@@ -324,19 +320,23 @@ export default function Terminals() {
                   <th className="text-left p-3">Terminal ID</th>
                   <th className="text-left p-3">Name</th>
                   <th className="text-left p-3">Branch</th>
-                  <th className="text-left p-3">Location</th>
                   <th className="text-center p-3">Status</th>
                   <th className="text-right p-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((t) => {
-                  const terminalId = getTerminalId(t);
-                  const terminalName = getTerminalName(t);
-                  const branchName = t.branchName || t.branch_name || "-";
+                  const pkId = getTerminalPk(t);
+                  const terminalCode = getTerminalCode(t);
+                  const terminalName = t.name;
+
+                  // Lookup branch name
+                  const branch = branches.find(b => getBranchId(b) === t.branchId);
+                  const branchName = branch ? getBranchName(branch) : "Unknown Branch";
+
                   return (
-                    <tr key={terminalId} className="border-t hover:bg-slate-50">
-                      <td className="p-3 font-mono text-xs">{terminalId}</td>
+                    <tr key={pkId} className="border-t hover:bg-slate-50">
+                      <td className="p-3 font-mono text-xs">{terminalCode}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
@@ -344,27 +344,24 @@ export default function Terminals() {
                           </div>
                           <div className="flex flex-col">
                             <span className="font-bold text-gray-900">{terminalName}</span>
-                            <span className="text-xs text-gray-500">{t.location}</span>
                           </div>
                         </div>
                       </td>
                       <td className="p-3">{branchName}</td>
-                      <td className="p-3">{t.location}</td>
                       <td className="p-3 text-center">
                         <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                            isActive(t.status) ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                          }`}
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${isActive(t) ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                            }`}
                         >
-                          {t.status}
+                          {isActive(t) ? "ACTIVE" : "INACTIVE"}
                         </span>
                       </td>
                       <td className="p-3 text-right">
                         <button
-                          ref={(el) => (dropdownButtonRefs.current[terminalId] = el)}
+                          ref={(el) => (dropdownButtonRefs.current[pkId] = el)}
                           onClick={(e) => {
                             e.stopPropagation();
-                            toggleDropdown(terminalId);
+                            toggleDropdown(pkId);
                           }}
                           className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
                         >
@@ -376,7 +373,7 @@ export default function Terminals() {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td className="p-6 text-center text-brand-muted" colSpan={6}>
+                    <td className="p-6 text-center text-brand-muted" colSpan={5}>
                       No terminals found
                     </td>
                   </tr>
@@ -389,23 +386,13 @@ export default function Terminals() {
 
       {/* Dropdown Portal */}
       {activeDropdown && createPortal(
-        <div 
+        <div
           className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-[200] py-1"
           style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            onClick={() => {
-              const terminal = terminals.find(t => getTerminalId(t) === activeDropdown);
-              setSelectedTerminal(terminal);
-              setActiveDropdown(null);
-            }}
-            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <Eye size={14} /> View Details
-          </button>
-          <button
-            onClick={() => handleEditTerminal(terminals.find(t => getTerminalId(t) === activeDropdown))}
+            onClick={() => handleEditTerminal(terminals.find(t => getTerminalPk(t) === activeDropdown))}
             className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
           >
             <Edit size={14} /> Edit Terminal
@@ -414,7 +401,7 @@ export default function Terminals() {
             onClick={() => handleToggleStatus(activeDropdown)}
             className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
           >
-            <Power size={14} /> {isActive(terminals.find(t => getTerminalId(t) === activeDropdown)?.status) ? "Deactivate" : "Activate"}
+            <Power size={14} /> {isActive(terminals.find(t => getTerminalPk(t) === activeDropdown)) ? "Deactivate" : "Activate"}
           </button>
           <div className="h-px bg-gray-100 my-1"></div>
           <button
@@ -432,7 +419,7 @@ export default function Terminals() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-brand-border sticky top-0 bg-white">
-              <h2 className="text-2xl font-extrabold">{getTerminalName(selectedTerminal)}</h2>
+              <h2 className="text-2xl font-extrabold">{selectedTerminal.name}</h2>
               <button
                 onClick={() => setSelectedTerminal(null)}
                 className="text-slate-500 hover:text-slate-700 transition"
@@ -444,38 +431,24 @@ export default function Terminals() {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm font-bold text-slate-600 mb-1">Terminal ID</div>
-                  <div className="text-lg font-mono">{getTerminalId(selectedTerminal)}</div>
+                  <div className="text-sm font-bold text-slate-600 mb-1">Terminal ID (Code)</div>
+                  <div className="text-lg font-mono">{selectedTerminal.terminalCode}</div>
                 </div>
                 <div>
                   <div className="text-sm font-bold text-slate-600 mb-1">Branch</div>
-                  <div className="text-lg">{selectedTerminal.branchName || selectedTerminal.branch_name}</div>
-                </div>
-              </div>
-
-              <div>
-                <div className="text-sm font-bold text-slate-600 mb-1">Location</div>
-                <div className="bg-slate-50 p-4 rounded-xl">{selectedTerminal.location}</div>
-              </div>
-
-              <div>
-                <div className="text-sm font-bold text-slate-600 mb-2">Assigned User</div>
-                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                  {selectedTerminal.assignedUserName || selectedTerminal.assigned_user_name ? (
-                    <div>
-                      <div className="font-bold text-blue-900">{selectedTerminal.assignedUserName || selectedTerminal.assigned_user_name}</div>
-                      <div className="text-sm text-blue-700">Assigned Cashier/Operator</div>
-                    </div>
-                  ) : (
-                    <div className="text-slate-500">No user assigned</div>
-                  )}
+                  <div className="text-lg">
+                    {(() => {
+                      const b = branches.find(br => getBranchId(br) === selectedTerminal.branchId);
+                      return b ? getBranchName(b) : "Unknown Branch";
+                    })()}
+                  </div>
                 </div>
               </div>
 
               <div>
                 <div className="text-sm font-bold text-slate-600 mb-2">Status</div>
-                <span className={`px-3 py-1 rounded-full text-sm font-bold text-white ${isActive(selectedTerminal.status) ? "bg-brand-success" : "bg-slate-500"}`}>
-                  {selectedTerminal.status}
+                <span className={`px-3 py-1 rounded-full text-sm font-bold text-white ${isActive(selectedTerminal) ? "bg-brand-success" : "bg-slate-500"}`}>
+                  {isActive(selectedTerminal) ? "ACTIVE" : "INACTIVE"}
                 </span>
               </div>
             </div>

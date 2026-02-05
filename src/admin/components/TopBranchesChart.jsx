@@ -83,7 +83,7 @@ export default function TopBranchesChart() {
                 />
                 <YAxis
                   type="category"
-                  dataKey="name"
+                  dataKey="branchName"
                   tick={{ fill: "#374151", fontSize: 12, fontWeight: 500 }}
                   axisLine={false}
                   tickLine={false}
@@ -99,7 +99,7 @@ export default function TopBranchesChart() {
                   }}
                   cursor={{ fill: "rgba(31, 60, 136, 0.1)" }}
                 />
-                <Bar dataKey="sales" radius={[0, 8, 8, 0]} barSize={32}>
+                <Bar dataKey="totalSales" radius={[0, 8, 8, 0]} barSize={32}>
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
@@ -111,13 +111,13 @@ export default function TopBranchesChart() {
           {/* Legend */}
           <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-100">
             {data.slice(0, 3).map((branch, index) => (
-              <div key={branch.name} className="flex items-center gap-2">
+              <div key={branch.branchId || branch.branchName || index} className="flex items-center gap-2">
                 <div
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: COLORS[index] }}
                 ></div>
                 <span className="text-xs text-gray-600">
-                  {index + 1}. {branch.name}
+                  {index + 1}. {branch.branchName}
                 </span>
               </div>
             ))}
