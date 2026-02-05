@@ -66,6 +66,7 @@ const BrandManagementScreen = ({
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
+                            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase w-16">#</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Brand Name</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Description</th>
                             <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Status</th>
@@ -74,12 +75,15 @@ const BrandManagementScreen = ({
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {filteredBrands.length > 0 ? (
-                            filteredBrands.map((b) => {
+                            filteredBrands.map((b, index) => {
                                 const IconComponent = ICON_MAP[b.icon] || Archive;
                                 const colorClass = COLOR_MAP[b.color] || 'bg-gray-100 text-gray-500';
 
                                 return (
                                     <tr key={b.brand_id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 text-center text-sm font-medium text-gray-500">
+                                            {index + 1}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
                                                 <div className={`p-2 rounded-lg ${colorClass}`}>
@@ -117,7 +121,7 @@ const BrandManagementScreen = ({
                             })
                         ) : (
                             <tr>
-                                <td colSpan="4" className="px-6 py-12 text-center">
+                                <td colSpan="5" className="px-6 py-12 text-center">
                                     <div className="flex flex-col items-center justify-center text-gray-400">
                                         <Archive size={48} className="mb-4 text-gray-300" />
                                         <p className="text-lg font-medium text-gray-900">No Brands Found</p>

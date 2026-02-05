@@ -95,6 +95,7 @@ const CategoryManagementScreen = ({
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-16">#</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/3">Category Name</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/3">Description</th>
                                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider w-1/6">Status</th>
@@ -103,7 +104,7 @@ const CategoryManagementScreen = ({
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {filteredCategories.length > 0 ? (
-                                    filteredCategories.map((cat) => {
+                                    filteredCategories.map((cat, index) => {
                                         const categorySubCats = getSubCategoriesForCategory(cat.category_id);
                                         const isSelected = selectedCategory?.category_id === cat.category_id;
                                         const IconComponent = ICON_MAP[cat.icon] || Tag;
@@ -115,6 +116,9 @@ const CategoryManagementScreen = ({
                                                 className={`hover:bg-gray-50 transition-colors cursor-pointer ${isSelected ? 'bg-blue-50/50 ring-1 ring-inset ring-blue-500/20' : ''}`}
                                                 onClick={() => setSelectedCategory(isSelected ? null : cat)}
                                             >
+                                                <td className="px-6 py-4 text-center text-sm font-medium text-gray-500">
+                                                    {index + 1}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-3">
                                                         <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-100 text-blue-600' : colorClass}`}>
@@ -192,7 +196,7 @@ const CategoryManagementScreen = ({
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="4" className="px-6 py-12 text-center">
+                                        <td colSpan="5" className="px-6 py-12 text-center">
                                             <div className="flex flex-col items-center justify-center text-gray-400">
                                                 <Tag size={48} className="mb-4 text-gray-300" />
                                                 <p className="text-lg font-medium text-gray-900">No Categories Found</p>

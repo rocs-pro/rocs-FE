@@ -51,6 +51,7 @@ const SupplierManagementScreen = ({
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
+                            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase w-16">#</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Supplier Name</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Company & Code</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Type</th>
@@ -60,8 +61,11 @@ const SupplierManagementScreen = ({
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {filteredSuppliers.length > 0 ? (
-                            filteredSuppliers.map((s) => (
+                            filteredSuppliers.map((s, index) => (
                                 <tr key={s.supplier_id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 text-center text-sm font-medium text-gray-500">
+                                        {index + 1}
+                                    </td>
                                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 rounded-lg bg-blue-50">
@@ -98,7 +102,7 @@ const SupplierManagementScreen = ({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
                                     No suppliers found.
                                 </td>
                             </tr>
