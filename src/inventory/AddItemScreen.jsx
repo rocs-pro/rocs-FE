@@ -291,6 +291,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="reorder_level"
                             value={formData.reorder_level}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="10"
                         />
