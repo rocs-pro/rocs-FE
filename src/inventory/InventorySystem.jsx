@@ -128,10 +128,18 @@ const InventorySystemContent = () => {
                     color: categoryMetadata[cat.category_id]?.color || cat.color || 'blue'
                 }));
 
+                // MERGE BRANDS WITH LOCAL METADATA
+                const brandMetadata = JSON.parse(localStorage.getItem('brand_metadata') || '{}');
+                const enhancedBrands = brandsData.map(brand => ({
+                    ...brand,
+                    icon: brandMetadata[brand.brand_id]?.icon || brand.icon || 'Archive',
+                    color: brandMetadata[brand.brand_id]?.color || brand.color || 'blue'
+                }));
+
                 // Set state with fetched data (already mapped to snake_case by service)
                 setItems(productsData);
                 setCategories(enhancedCategories);
-                setBrands(brandsData);
+                setBrands(enhancedBrands);
                 setSuppliers(suppliersData);
                 setSubCategories(subCategoriesData);
                 setBranches(branchesData);
@@ -166,7 +174,7 @@ const InventorySystemContent = () => {
     const [supplierForm, setSupplierForm] = useState({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false });
 
     const [brands, setBrands] = useState([]);
-    const [brandForm, setBrandForm] = useState({ brand_id: '', name: '', description: '', is_active: true });
+    const [brandForm, setBrandForm] = useState({ brand_id: '', name: '', description: '', is_active: true, icon: 'Archive', color: 'blue' });
 
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
@@ -259,6 +267,14 @@ const InventorySystemContent = () => {
         if (window.confirm('Are you sure you want to delete this brand?')) {
             try {
                 await inventoryService.deleteBrand(brandId);
+
+                // REMOVE METADATA FROM LOCAL STORAGE
+                const metadata = JSON.parse(localStorage.getItem('brand_metadata') || '{}');
+                if (metadata[brandId]) {
+                    delete metadata[brandId];
+                    localStorage.setItem('brand_metadata', JSON.stringify(metadata));
+                }
+
                 setBrands(brands.filter(b => b.brand_id !== brandId));
             } catch (err) {
                 console.error('Error deleting brand:', err);
@@ -310,7 +326,12 @@ const InventorySystemContent = () => {
     const handleEditBrand = (brandId) => {
         const brand = brands.find(b => b.brand_id === brandId);
         if (brand) {
-            setBrandForm({ ...brand });
+            setBrandForm({
+                ...brand,
+                // Ensure form gets defaults if missing
+                icon: brand.icon || 'Archive',
+                color: brand.color || 'blue'
+            });
             setEditingId(brandId);
             setEditingType('brand');
             setIsEditMode(true);
@@ -367,7 +388,23 @@ const InventorySystemContent = () => {
                 setIsAddCategoryOpen(false);
             } else if (editingType === 'brand' && brandForm.name.trim()) {
                 const updatedBrand = await inventoryService.updateBrand(editingId, brandForm);
-                setBrands(brands.map(b => b.brand_id === editingId ? updatedBrand : b));
+
+                // UPDATE METADATA IN LOCAL STORAGE
+                const metadata = JSON.parse(localStorage.getItem('brand_metadata') || '{}');
+                metadata[editingId] = {
+                    icon: brandForm.icon,
+                    color: brandForm.color
+                };
+                localStorage.setItem('brand_metadata', JSON.stringify(metadata));
+
+                // Merge update with meta
+                const brandWithMeta = {
+                    ...updatedBrand,
+                    icon: brandForm.icon,
+                    color: brandForm.color
+                };
+
+                setBrands(brands.map(b => b.brand_id === editingId ? brandWithMeta : b));
                 setIsEditMode(false);
                 setEditingId(null);
                 setEditingType(null);
@@ -1005,8 +1042,8 @@ const InventorySystemContent = () => {
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h2 className="text-2xl font-bold text-gray-900">Add Brand</h2>
-                                        <p className="text-gray-600 mt-1">Create a new brand</p>
+                                        <h2 className="text-2xl font-bold text-gray-900">{isEditMode ? 'Edit Brand' : 'Add Brand'}</h2>
+                                        <p className="text-gray-600 mt-1">{isEditMode ? 'Update brand details' : 'Create a new brand'}</p>
                                     </div>
                                     <button onClick={() => setIsAddBrandOpen(false)} className="text-gray-500 hover:text-gray-700">
                                         <X size={20} />
@@ -1030,10 +1067,58 @@ const InventorySystemContent = () => {
                                                 <option value="false">Inactive</option>
                                             </select>
                                         </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Brand Icon</label>
+                                            <div className="grid grid-cols-6 gap-2">
+                                                {['Archive', 'Box', 'Tag', 'Layers', 'ShoppingBag', 'Coffee', 'Smartphone', 'Headphones', 'Shirt', 'Watch', 'Utensils', 'Zap', 'Gift', 'Briefcase', 'Camera', 'Music', 'Anchor', 'Globe', 'Key', 'Map', 'Sun', 'Moon', 'Star', 'Heart'].map((iconName) => {
+                                                    // Dynamic Icon Component Render
+                                                    const IconComponent = { Archive, Tag, Box, Layers, ShoppingBag, Coffee, Smartphone, Headphones, Shirt, Watch, Utensils, Zap, Gift, Briefcase, Camera, Music, Anchor, Globe, Key, Map, Sun, Moon, Star, Heart }[iconName] || Archive;
+                                                    return (
+                                                        <button
+                                                            key={iconName}
+                                                            type="button"
+                                                            onClick={() => setBrandForm({ ...brandForm, icon: iconName })}
+                                                            className={`p-2 rounded-lg flex items-center justify-center transition-all ${brandForm.icon === iconName ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-500' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+                                                            title={iconName}
+                                                        >
+                                                            <IconComponent size={20} />
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Color Theme</label>
+                                            <div className="flex flex-wrap gap-3">
+                                                {[
+                                                    { id: 'blue', bg: 'bg-blue-500' },
+                                                    { id: 'green', bg: 'bg-green-500' },
+                                                    { id: 'red', bg: 'bg-red-500' },
+                                                    { id: 'yellow', bg: 'bg-yellow-500' },
+                                                    { id: 'purple', bg: 'bg-purple-500' },
+                                                    { id: 'pink', bg: 'bg-pink-500' },
+                                                    { id: 'orange', bg: 'bg-orange-500' },
+                                                    { id: 'indigo', bg: 'bg-indigo-500' },
+                                                    { id: 'teal', bg: 'bg-teal-500' },
+                                                    { id: 'cyan', bg: 'bg-cyan-500' },
+                                                ].map((color) => (
+                                                    <button
+                                                        key={color.id}
+                                                        type="button"
+                                                        onClick={() => setBrandForm({ ...brandForm, color: color.id })}
+                                                        className={`w-8 h-8 rounded-full ${color.bg} transition-transform hover:scale-110 flex items-center justify-center ${brandForm.color === color.id ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
+                                                    >
+                                                        {brandForm.color === color.id && <CheckCircle size={14} className="text-white" />}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-                                        <button onClick={() => { setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                                        <button onClick={() => { setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true, icon: 'Archive', color: 'blue' }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
                                         <button onClick={async () => {
                                             if (!brandForm.name) {
                                                 alert('Please fill required fields');
@@ -1044,9 +1129,25 @@ const InventorySystemContent = () => {
                                             } else {
                                                 try {
                                                     const createdBrand = await inventoryService.createBrand(brandForm);
-                                                    setBrands([...brands, createdBrand]);
+
+                                                    // SAVE METADATA TO LOCAL STORAGE
+                                                    const metadata = JSON.parse(localStorage.getItem('brand_metadata') || '{}');
+                                                    metadata[createdBrand.brand_id] = {
+                                                        icon: brandForm.icon,
+                                                        color: brandForm.color
+                                                    };
+                                                    localStorage.setItem('brand_metadata', JSON.stringify(metadata));
+
+                                                    // Merge with local state
+                                                    const brandWithMeta = {
+                                                        ...createdBrand,
+                                                        icon: brandForm.icon,
+                                                        color: brandForm.color
+                                                    };
+
+                                                    setBrands([...brands, brandWithMeta]);
                                                     setIsAddBrandOpen(false);
-                                                    setBrandForm({ brand_id: '', name: '', description: '', is_active: true });
+                                                    setBrandForm({ brand_id: '', name: '', description: '', is_active: true, icon: 'Archive', color: 'blue' });
                                                 } catch (err) {
                                                     console.error('Error creating brand:', err);
                                                     alert('Failed to create brand');
