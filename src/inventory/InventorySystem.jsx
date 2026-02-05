@@ -39,7 +39,7 @@ const InventorySystemContent = () => {
     const navigate = useNavigate();
     const [activeScreen, setActiveScreen] = useState('item-list');
     const [currentTime, setCurrentTime] = useState(new Date());
-    const { success, error, warning, info } = useInventoryNotification();
+    const { success, error, warning, info, confirm } = useInventoryNotification();
 
     // Get user info
     const userStr = localStorage.getItem('user');
@@ -232,10 +232,17 @@ const InventorySystemContent = () => {
     };
 
     const handleDeleteSubCategory = async (subCategoryId) => {
-        if (window.confirm('Are you sure you want to delete this subcategory?')) {
+        const confirmed = await confirm(
+            'Delete Subcategory',
+            'Are you sure you want to delete this subcategory? This action cannot be undone.',
+            'danger'
+        );
+
+        if (confirmed) {
             try {
                 await inventoryService.deleteSubCategory(subCategoryId);
                 setSubCategories(subCategories.filter(s => s.subcategory_id !== subCategoryId));
+                success('Subcategory deleted successfully!');
             } catch (err) {
                 console.error('Error deleting subcategory:', err);
                 error('Failed to delete subcategory. Please try again.');
@@ -244,7 +251,13 @@ const InventorySystemContent = () => {
     };
 
     const handleDeleteCategory = async (categoryId) => {
-        if (window.confirm('Are you sure you want to delete this category?')) {
+        const confirmed = await confirm(
+            'Delete Category',
+            'Are you sure you want to delete this category? This action cannot be undone.',
+            'danger'
+        );
+
+        if (confirmed) {
             try {
                 await inventoryService.deleteCategory(categoryId);
 
@@ -256,6 +269,7 @@ const InventorySystemContent = () => {
                 }
 
                 setCategories(categories.filter(c => c.category_id !== categoryId));
+                success('Category deleted successfully!');
             } catch (err) {
                 console.error('Error deleting category:', err);
                 error('Failed to delete category. Please try again.');
@@ -264,7 +278,13 @@ const InventorySystemContent = () => {
     };
 
     const handleDeleteBrand = async (brandId) => {
-        if (window.confirm('Are you sure you want to delete this brand?')) {
+        const confirmed = await confirm(
+            'Delete Brand',
+            'Are you sure you want to delete this brand? This action cannot be undone.',
+            'danger'
+        );
+
+        if (confirmed) {
             try {
                 await inventoryService.deleteBrand(brandId);
 
@@ -276,6 +296,7 @@ const InventorySystemContent = () => {
                 }
 
                 setBrands(brands.filter(b => b.brand_id !== brandId));
+                success('Brand deleted successfully!');
             } catch (err) {
                 console.error('Error deleting brand:', err);
                 error('Failed to delete brand. Please try again.');
@@ -284,10 +305,17 @@ const InventorySystemContent = () => {
     };
 
     const handleDeleteSupplier = async (supplierId) => {
-        if (window.confirm('Are you sure you want to delete this supplier?')) {
+        const confirmed = await confirm(
+            'Delete Supplier',
+            'Are you sure you want to delete this supplier? This action cannot be undone.',
+            'danger'
+        );
+
+        if (confirmed) {
             try {
                 await inventoryService.deleteSupplier(supplierId);
                 setSuppliers(suppliers.filter(s => s.supplier_id !== supplierId));
+                success('Supplier deleted successfully!');
             } catch (err) {
                 console.error('Error deleting supplier:', err);
                 error('Failed to delete supplier. Please try again.');
@@ -296,10 +324,17 @@ const InventorySystemContent = () => {
     };
 
     const handleDeleteItem = async (productId) => {
-        if (window.confirm('Are you sure you want to delete this item?')) {
+        const confirmed = await confirm(
+            'Delete Product',
+            'Are you sure you want to delete this product? This action cannot be undone.',
+            'danger'
+        );
+
+        if (confirmed) {
             try {
                 await inventoryService.deleteProduct(productId);
                 setItems(items.filter(i => i.product_id !== productId));
+                success('Product deleted successfully!');
             } catch (err) {
                 console.error('Error deleting product:', err);
                 error('Failed to delete product. Please try again.');

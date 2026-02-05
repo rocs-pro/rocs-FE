@@ -46,6 +46,42 @@ export const InventoryNotificationProvider = ({ children }) => {
         showNotification(message, 'info', duration);
     }, [showNotification]);
 
+    // Dialog states
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', message: '', onConfirm: null, type: 'danger' });
+    const [promptDialog, setPromptDialog] = useState({ isOpen: false, title: '', message: '', onConfirm: null, placeholder: '' });
+
+    const confirm = useCallback((title, message, type = 'danger') => {
+        return new Promise((resolve) => {
+            setConfirmDialog({
+                isOpen: true,
+                title,
+                message,
+                type,
+                onConfirm: () => resolve(true)
+            });
+        });
+    }, []);
+
+    const prompt = useCallback((title, message, placeholder = '') => {
+        return new Promise((resolve) => {
+            setPromptDialog({
+                isOpen: true,
+                title,
+                message,
+                placeholder,
+                onConfirm: (value) => resolve(value)
+            });
+        });
+    }, []);
+
+    const closeConfirmDialog = useCallback(() => {
+        setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: null, type: 'danger' });
+    }, []);
+
+    const closePromptDialog = useCallback(() => {
+        setPromptDialog({ isOpen: false, title: '', message: '', onConfirm: null, placeholder: '' });
+    }, []);
+
     return (
         <InventoryNotificationContext.Provider
             value={{
@@ -55,7 +91,13 @@ export const InventoryNotificationProvider = ({ children }) => {
                 success,
                 error,
                 warning,
-                info
+                info,
+                confirm,
+                prompt,
+                confirmDialog,
+                promptDialog,
+                closeConfirmDialog,
+                closePromptDialog
             }}
         >
             {children}

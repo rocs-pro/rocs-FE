@@ -4,7 +4,7 @@ import inventoryService from '../services/inventoryService';
 import { useInventoryNotification } from './context/InventoryNotificationContext';
 
 const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subCategories = [] }) => {
-    const { success, error, warning } = useInventoryNotification();
+    const { success, error, warning, confirm, prompt } = useInventoryNotification();
     const [view, setView] = useState('list'); // 'list', 'create', 'detail'
     const [grns, setGrns] = useState([]);
     const [selectedGRN, setSelectedGRN] = useState(null);
@@ -99,8 +99,14 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
         });
     };
 
-    const handleRemoveItem = (index) => {
-        if (window.confirm('Are you sure you want to remove this item?')) {
+    const handleRemoveItem = async (index) => {
+        const confirmed = await confirm(
+            'Remove Item',
+            'Are you sure you want to remove this item from the GRN?',
+            'warning'
+        );
+
+        if (confirmed) {
             const newItems = [...formData.items];
             newItems.splice(index, 1);
             setFormData({ ...formData, items: newItems });
@@ -156,9 +162,13 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
     };
 
     const handleApproveGRN = async (grnId) => {
-        if (!window.confirm('Are you sure you want to approve this GRN? This will update stock levels.')) {
-            return;
-        }
+        const confirmed = await confirm(
+            'Approve GRN',
+            'Are you sure you want to approve this GRN? This will update stock levels.',
+            'info'
+        );
+
+        if (!confirmed) return;
 
         try {
             await inventoryService.approveGRN(grnId);
@@ -181,7 +191,12 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
     };
 
     const handleRejectGRN = async (grnId) => {
-        const reason = prompt('Please enter rejection reason:');
+        const reason = await prompt(
+            'Reject GRN',
+            'Please enter rejection reason:',
+            'Enter reason...'
+        );
+
         if (!reason) return;
 
         try {
@@ -261,9 +276,9 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500">Status</label>
                                     <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${selectedGRN.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                                            selectedGRN.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                                                selectedGRN.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                                                    'bg-gray-100 text-gray-700'
+                                        selectedGRN.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                            selectedGRN.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                                'bg-gray-100 text-gray-700'
                                         }`}>
                                         {selectedGRN.status}
                                     </span>
@@ -287,8 +302,8 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500">Payment Status</label>
                                     <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${selectedGRN.payment_status === 'PAID' ? 'bg-green-100 text-green-700' :
-                                            selectedGRN.payment_status === 'PARTIALLY_PAID' ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-red-100 text-red-700'
+                                        selectedGRN.payment_status === 'PARTIALLY_PAID' ? 'bg-yellow-100 text-yellow-700' :
+                                            'bg-red-100 text-red-700'
                                         }`}>
                                         {selectedGRN.payment_status || 'UNPAID'}
                                     </span>
@@ -681,9 +696,9 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                     <td className="px-6 py-4 text-sm font-mono text-right font-medium">LKR {(grn.total_amount || 0).toFixed(2)}</td>
                                     <td className="px-6 py-4 text-center">
                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${grn.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                                                grn.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                                                    grn.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                            grn.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                                grn.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                                    'bg-gray-100 text-gray-700'
                                             }`}>
                                             {grn.status}
                                         </span>
