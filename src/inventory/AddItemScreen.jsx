@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import inventoryService from '../services/inventoryService';
 import { useInventoryNotification } from './context/InventoryNotificationContext';
+import { useEnterKeyNavigation } from '../hooks/useEnterKeyNavigation';
 
 const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [], brands, onSaved, itemToEdit }) => {
     const { success, error, warning } = useInventoryNotification();
@@ -124,31 +125,8 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
         }
     };
 
-    // Handle Enter key to move to next field (forward only)
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
-            e.preventDefault();
-
-            // Get all input/select/textarea elements (exclude buttons)
-            const form = e.target.form;
-            if (!form) return;
-
-            const focusableElements = Array.from(
-                form.querySelectorAll('input:not([disabled]):not([type="button"]), select:not([disabled]), textarea:not([disabled])')
-            );
-
-            const currentIndex = focusableElements.indexOf(e.target);
-            const nextIndex = currentIndex + 1;
-
-            // Move to next element only if not at the end
-            if (nextIndex < focusableElements.length) {
-                focusableElements[nextIndex].focus();
-            } else {
-                // At the last field, trigger save
-                handleSave();
-            }
-        }
-    };
+    // Use Enter key navigation hook
+    const handleKeyDown = useEnterKeyNavigation(handleSave);
 
     return (
         <div className="space-y-6">

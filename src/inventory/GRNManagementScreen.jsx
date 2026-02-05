@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, FileText, CheckCircle, Clock, Save, Trash2, ArrowLeft } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 import { useInventoryNotification } from './context/InventoryNotificationContext';
+import { useEnterKeyNavigation } from '../hooks/useEnterKeyNavigation';
 
 const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subCategories = [] }) => {
     const { success, error, warning, confirm, prompt } = useInventoryNotification();
@@ -10,6 +11,10 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
     const [selectedGRN, setSelectedGRN] = useState(null);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Keyboard navigation
+    const handleSupplierInfoKeyDown = useEnterKeyNavigation();
+    const handleAddItemKeyDown = useEnterKeyNavigation(handleAddItem);
 
     // Create Form State
     const [formData, setFormData] = useState({
@@ -391,7 +396,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Form Info */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <form className="bg-white rounded-lg border border-gray-200 p-6" onKeyDown={handleSupplierInfoKeyDown}>
                             <h3 className="text-lg font-semibold mb-4">Supplier & Invoice Details</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -448,11 +453,11 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                     />
                                 </div>
                             </div>
-                        </div>
+                        </form>
 
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
                             <h3 className="text-lg font-semibold mb-4">Add Items</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end mb-4">
+                            <form className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end mb-4" onKeyDown={handleAddItemKeyDown}>
                                 <div className="md:col-span-3">
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
                                     <select
@@ -489,11 +494,12 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                         className="w-full text-sm"
                                         value={currentItem.product_id}
                                         onChange={(e) => {
-                                            const prod = items.find(i => i.product_id === parseInt(e.target.value));
+                                            const product = items.find(i => i.product_id === parseInt(e.target.value));
                                             setCurrentItem({
                                                 ...currentItem,
                                                 product_id: e.target.value,
-                                                unit_price: prod ? prod.cost_price : ''
+                                                unit_price: product ? product.cost_price : '',
+                                                quantity: ''
                                             });
                                         }}
                                     >
@@ -553,13 +559,14 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 </div>
                                 <div className="md:col-span-12 flex justify-end">
                                     <button
+                                        type="button"
                                         onClick={handleAddItem}
                                         className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 flex items-center gap-2"
                                     >
                                         <Plus size={16} /> Add Item
                                     </button>
                                 </div>
-                            </div>
+                            </form>
 
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">

@@ -33,6 +33,7 @@ import inventoryService from '../services/inventoryService';
 import { InventoryNotificationProvider, useInventoryNotification } from './context/InventoryNotificationContext';
 import InventoryToastNotification from './components/InventoryToastNotification';
 import ActivityLogScreen from './ActivityLogScreen';
+import { useEnterKeyNavigation } from '../hooks/useEnterKeyNavigation';
 
 
 const InventorySystemContent = () => {
@@ -40,6 +41,12 @@ const InventorySystemContent = () => {
     const [activeScreen, setActiveScreen] = useState('item-list');
     const [currentTime, setCurrentTime] = useState(new Date());
     const { success, error, warning, info, confirm } = useInventoryNotification();
+
+    // Keyboard navigation hooks for forms
+    const handleCategoryKeyDown = useEnterKeyNavigation();
+    const handleSubCategoryKeyDown = useEnterKeyNavigation();
+    const handleBrandKeyDown = useEnterKeyNavigation();
+    const handleSupplierKeyDown = useEnterKeyNavigation();
 
     // Get user info
     const userStr = localStorage.getItem('user');
@@ -901,7 +908,7 @@ const InventorySystemContent = () => {
                                 </button>
                             </div>
 
-                            <div className="space-y-4">
+                            <form className="space-y-4" onKeyDown={handleSubCategoryKeyDown}>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory Name</label>
                                     <input
@@ -934,22 +941,24 @@ const InventorySystemContent = () => {
                                     />
                                     <label htmlFor="isSubActive" className="text-sm font-medium text-gray-700">Active</label>
                                 </div>
-                            </div>
 
-                            <div className="flex gap-2 mt-6">
-                                <button
-                                    onClick={() => setIsAddSubCategoryOpen(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={isEditMode ? handleSaveEdit : handleAddSubCategory}
-                                    className="flex-1 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary"
-                                >
-                                    {isEditMode ? 'Save Changes' : 'Add Subcategory'}
-                                </button>
-                            </div>
+                                <div className="flex gap-2 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddSubCategoryOpen(false)}
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={isEditMode ? handleSaveEdit : handleAddSubCategory}
+                                        className="flex-1 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary"
+                                    >
+                                        {isEditMode ? 'Save Changes' : 'Add Subcategory'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -968,7 +977,7 @@ const InventorySystemContent = () => {
                                 </button>
                             </div>
 
-                            <div className="space-y-4">
+                            <form className="space-y-4" onKeyDown={handleCategoryKeyDown}>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
                                     <input
@@ -1011,6 +1020,7 @@ const InventorySystemContent = () => {
                                             return (
                                                 <button
                                                     key={iconName}
+                                                    type="button"
                                                     onClick={() => setCategoryForm({ ...categoryForm, icon: iconName })}
                                                     className={`p-2 rounded-lg flex items-center justify-center transition-all ${categoryForm.icon === iconName ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-500' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                                                     title={iconName}
@@ -1039,6 +1049,7 @@ const InventorySystemContent = () => {
                                         ].map((color) => (
                                             <button
                                                 key={color.id}
+                                                type="button"
                                                 onClick={() => setCategoryForm({ ...categoryForm, color: color.id })}
                                                 className={`w-8 h-8 rounded-full ${color.bg} transition-transform hover:scale-110 flex items-center justify-center ${categoryForm.color === color.id ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
                                             >
@@ -1047,22 +1058,24 @@ const InventorySystemContent = () => {
                                         ))}
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex gap-2 mt-6">
-                                <button
-                                    onClick={() => setIsAddCategoryOpen(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={isEditMode ? handleSaveEdit : handleAddCategory}
-                                    className="flex-1 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary"
-                                >
-                                    {isEditMode ? 'Save Changes' : 'Add Category'}
-                                </button>
-                            </div>
+                                <div className="flex gap-2 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddCategoryOpen(false)}
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={isEditMode ? handleSaveEdit : handleAddCategory}
+                                        className="flex-1 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary"
+                                    >
+                                        {isEditMode ? 'Save Changes' : 'Add Category'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -1085,7 +1098,7 @@ const InventorySystemContent = () => {
                                     </button>
                                 </div>
 
-                                <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+                                <form className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6" onKeyDown={handleBrandKeyDown}>
                                     <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Brand Name *</label>
@@ -1153,8 +1166,8 @@ const InventorySystemContent = () => {
                                     </div>
 
                                     <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-                                        <button onClick={() => { setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true, icon: 'Archive', color: 'blue' }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-                                        <button onClick={async () => {
+                                        <button type="button" onClick={() => { setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true, icon: 'Archive', color: 'blue' }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                                        <button type="button" onClick={async () => {
                                             if (!brandForm.name) {
                                                 warning('Please fill in the brand name');
                                                 return;
@@ -1190,7 +1203,7 @@ const InventorySystemContent = () => {
                                             }
                                         }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">{isEditMode ? 'Save Changes' : 'Save Brand'}</button>
                                     </div>
-                                </div>
+                                </form>
 
                             </div>
                         </div>
@@ -1215,7 +1228,7 @@ const InventorySystemContent = () => {
                                     </button>
                                 </div>
 
-                                <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+                                <form className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6" onKeyDown={handleSupplierKeyDown}>
                                     <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Code *</label>
@@ -1265,10 +1278,10 @@ const InventorySystemContent = () => {
                                     </div>
 
                                     <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-                                        <button onClick={() => { setIsAddSupplierOpen(false); setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                        <button type="button" onClick={() => { setIsAddSupplierOpen(false); setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                                             Cancel
                                         </button>
-                                        <button onClick={async () => {
+                                        <button type="button" onClick={async () => {
                                             if (!supplierForm.code || !supplierForm.name) {
                                                 warning('Please fill in the required fields (Code and Name)');
                                                 return;
@@ -1290,7 +1303,7 @@ const InventorySystemContent = () => {
                                             {isEditMode ? 'Save Changes' : 'Save Supplier'}
                                         </button>
                                     </div>
-                                </div>
+                                </form>
 
                             </div>
                         </div>

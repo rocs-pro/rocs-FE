@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import storeService from '../services/storeService';
+import { useEnterKeyNavigation } from '../hooks/useEnterKeyNavigation';
 
 const StockAdjustmentScreen = ({
     adjustmentForm,
@@ -11,6 +12,9 @@ const StockAdjustmentScreen = ({
 }) => {
     const [adjustments, setLocalAdjustments] = useState(initialAdjustments || []);
     const [loading, setLoading] = useState(false);
+
+    // Keyboard navigation
+    const handleKeyDown = useEnterKeyNavigation();
 
     useEffect(() => {
         const loadAdjustments = async () => {
@@ -73,7 +77,7 @@ const StockAdjustmentScreen = ({
                 <p className="text-gray-600 mt-1">Fix stock mismatches between system and physical count</p>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <form className="bg-white rounded-lg border border-gray-200 p-6" onKeyDown={handleKeyDown}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Stock Adjustment</h3>
                 <div className="grid grid-cols-4 gap-4 mb-4">
                     <div>
@@ -120,8 +124,8 @@ const StockAdjustmentScreen = ({
                         <input value={adjustmentForm.approvedBy} onChange={(e) => setAdjustmentForm({ ...adjustmentForm, approvedBy: e.target.value })} type="text" placeholder="Enter name" className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                     </div>
                 </div>
-                <button onClick={handleAddAdjustment} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Creating...' : 'Add Adjustment'}</button>
-            </div>
+                <button type="button" onClick={handleAddAdjustment} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Creating...' : 'Add Adjustment'}</button>
+            </form>
 
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                 <table className="w-full">

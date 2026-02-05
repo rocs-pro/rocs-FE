@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import storeService from '../services/storeService';
+import { useEnterKeyNavigation } from '../hooks/useEnterKeyNavigation';
 
 const StockTransferCreateScreen = ({
     transferForm,
@@ -12,6 +13,9 @@ const StockTransferCreateScreen = ({
 }) => {
     const [transfers, setLocalTransfers] = useState(initialTransfers || []);
     const [loading, setLoading] = useState(false);
+
+    // Keyboard navigation
+    const handleKeyDown = useEnterKeyNavigation();
 
     useEffect(() => {
         const loadTransfers = async () => {
@@ -78,7 +82,7 @@ const StockTransferCreateScreen = ({
                 <p className="text-gray-600 mt-1">Transfer stock between warehouses</p>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <form className="bg-white rounded-lg border border-gray-200 p-6" onKeyDown={handleKeyDown}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">New Transfer</h3>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
@@ -127,10 +131,10 @@ const StockTransferCreateScreen = ({
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={() => handleCreateTransfer(false)} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Saving...' : 'Save as Draft'}</button>
-                    <button onClick={() => handleCreateTransfer(true)} disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Submitting...' : 'Submit'}</button>
+                    <button type="button" onClick={() => handleCreateTransfer(false)} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Saving...' : 'Save as Draft'}</button>
+                    <button type="button" onClick={() => handleCreateTransfer(true)} disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Submitting...' : 'Submit'}</button>
                 </div>
-            </div>
+            </form>
 
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                 <table className="w-full">

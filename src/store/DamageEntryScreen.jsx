@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import storeService from '../services/storeService';
+import { useEnterKeyNavigation } from '../hooks/useEnterKeyNavigation';
 
 const DamageEntryScreen = ({
     damageForm,
@@ -11,6 +12,9 @@ const DamageEntryScreen = ({
 }) => {
     const [damageEntries, setLocalDamageEntries] = useState(initialDamageEntries || []);
     const [loading, setLoading] = useState(false);
+
+    // Keyboard navigation
+    const handleKeyDown = useEnterKeyNavigation();
 
     useEffect(() => {
         const loadDamages = async () => {
@@ -70,7 +74,7 @@ const DamageEntryScreen = ({
                 <p className="text-gray-600 mt-1">Log damaged or wasted stock</p>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <form className="bg-white rounded-lg border border-gray-200 p-6" onKeyDown={handleKeyDown}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Damage Entry</h3>
                 <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
@@ -113,8 +117,8 @@ const DamageEntryScreen = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">Supporting Note</label>
                     <textarea value={damageForm.note} onChange={(e) => setDamageForm({ ...damageForm, note: e.target.value })} placeholder="Enter details..." className="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="2"></textarea>
                 </div>
-                <button onClick={handleAddDamage} disabled={loading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Creating...' : 'Log Damage Entry'}</button>
-            </div>
+                <button type="button" onClick={handleAddDamage} disabled={loading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Creating...' : 'Log Damage Entry'}</button>
+            </form>
 
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                 <table className="w-full">
