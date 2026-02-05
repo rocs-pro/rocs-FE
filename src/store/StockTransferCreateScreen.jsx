@@ -344,7 +344,7 @@ const StockTransferCreateScreen = ({
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900">Transfer Out</td>
                                         <td className="px-6 py-4 text-sm text-gray-600 font-mono">#{tr.transfer_id || 'N/A'}</td>
                                         <td className="px-6 py-4 text-sm text-gray-600">
-                                            {getBranchName(tr.from_branch_id || tr.from_branch)} → {getBranchName(tr.to_branch_id || tr.to_branch)}
+                                            {getBranchName(tr.from_branch)} → {getBranchName(tr.to_branch)}
                                         </td>
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900">{tr.product_name}</td>
                                         <td className="px-6 py-4 text-center text-sm font-mono font-semibold text-gray-900">{tr.quantity}</td>
