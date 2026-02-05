@@ -41,16 +41,16 @@ export const posService = {
             supervisorPassword: data.supervisorPassword,
             status: 'OPEN' // Required for cash_shifts table - ENUM: OPEN, CLOSED
         };
-        
+
         // Only add denominations if provided
         if (data.denominations && data.denominations.length > 0) {
             payload.denominations = data.denominations;
         }
-        
+
         console.log("POS Service - Opening Shift:", payload);
         return api.post('/shift/open', payload);
     },
-    
+
     // Close shift with cash count
     closeShift: (shiftId, data) => api.put(`/shift/${shiftId}/close`, {
         closingCash: data.closingCash,
@@ -59,13 +59,17 @@ export const posService = {
         supervisorUsername: data.supervisorUsername,
         supervisorPassword: data.supervisorPassword
     }),
-    
+
     // Get shift totals for reconciliation
     getShiftTotals: (shiftId) => api.get(`/shift/${shiftId}/totals`),
-    
+
     // Get current active shift
-    getCurrentShift: (terminalId) => api.get(`/shift/active?terminalId=${terminalId}`),
-    
+    getCurrentShift: (terminalId, cashierId) => {
+        let url = `/shift/active?terminalId=${terminalId}`;
+        if (cashierId) url += `&cashierId=${cashierId}`;
+        return api.get(url);
+    },
+
     // Get all cashiers for the branch
     getCashiers: (branchId) => api.get(`/cashiers?branchId=${branchId}`),
 
@@ -79,17 +83,17 @@ export const posService = {
             { url: '/products/sku', params: { sku: code } },
             { url: `/products/search`, params: { q: code } }
         ];
-        
+
         for (const endpoint of endpoints) {
             try {
                 const res = await api.get(endpoint.url, { params: endpoint.params });
                 const data = res.data?.data || res.data;
-                
+
                 // If search returns array, find exact match
                 if (Array.isArray(data)) {
-                    const match = data.find(p => 
-                        p.barcode === code || 
-                        p.sku === code || 
+                    const match = data.find(p =>
+                        p.barcode === code ||
+                        p.sku === code ||
                         String(p.productId) === code ||
                         String(p.id) === code
                     );
@@ -97,7 +101,7 @@ export const posService = {
                     if (data.length > 0) return { data: data[0] };
                     continue;
                 }
-                
+
                 if (data && (data.productId || data.id || data.name)) {
                     return { data };
                 }
@@ -108,16 +112,16 @@ export const posService = {
         }
         throw new Error('Product not found');
     },
-    
+
     // Search products by name, sku, or barcode
     searchInventory: (query) => api.get(`/products/search`, { params: { q: query } }),
-    
+
     // Get quick pick items for POS grid
     getQuickItems: (branchId) => api.get(`/products/quick`, { params: { branchId } }),
-    
+
     // Get product stock level at branch
     getProductStock: (productId, branchId) => api.get(`/stock/${productId}`, { params: { branchId } }),
-    
+
     // Check price by product code - tries multiple endpoints
     checkPrice: async (code) => {
         const endpoints = [
@@ -126,17 +130,17 @@ export const posService = {
             { url: '/products/barcode', params: { barcode: code } },
             { url: `/products/search`, params: { q: code } }
         ];
-        
+
         for (const endpoint of endpoints) {
             try {
                 const res = await api.get(endpoint.url, { params: endpoint.params });
                 const data = res.data?.data || res.data;
-                
+
                 // If search returns array, find exact match
                 if (Array.isArray(data)) {
-                    const match = data.find(p => 
-                        p.barcode === code || 
-                        p.sku === code || 
+                    const match = data.find(p =>
+                        p.barcode === code ||
+                        p.sku === code ||
                         String(p.productId) === code ||
                         String(p.id) === code
                     );
@@ -144,7 +148,7 @@ export const posService = {
                     if (data.length > 0) return { data: data[0] };
                     continue;
                 }
-                
+
                 if (data && (data.productId || data.id || data.name)) {
                     return { data };
                 }
@@ -160,6 +164,7 @@ export const posService = {
     submitOrder: (orderData) => {
         // Ensure all numeric fields have proper values (not null/undefined)
         const payload = {
+            saleId: orderData.saleId || null, // Allow updating held/pending sales
             branchId: orderData.branchId || 1,
             cashierId: orderData.cashierId || 1,
             customerId: orderData.customerId || null,
@@ -175,12 +180,12 @@ export const posService = {
             items: (orderData.items || []).map(item => ({
                 productId: item.productId,
                 serialId: item.serialId || null,
-                qty: parseInt(item.qty) || 1,
+                quantity: parseInt(item.qty) || parseInt(item.quantity) || 1, // Map to 'quantity'
                 unitPrice: parseFloat(item.unitPrice) || 0,
                 discount: parseFloat(item.discount) || 0,
                 taxRate: parseFloat(item.taxRate) || 0,
                 // Additional fields the backend might expect
-                lineTotal: parseFloat((item.unitPrice * item.qty) - (item.discount || 0)) || 0
+                lineTotal: parseFloat((item.unitPrice * (parseInt(item.qty) || 1)) - (item.discount || 0)) || 0
             })),
             payments: (orderData.payments || []).map(p => ({
                 paymentType: p.paymentType || 'CASH',
@@ -190,29 +195,29 @@ export const posService = {
                 bankName: p.bankName || null
             }))
         };
-        
+
         console.log("Submitting sale:", JSON.stringify(payload, null, 2));
         return api.post('/orders', payload);
     },
-    
+
     // Get sale by ID
     getSaleById: (saleId) => api.get(`/sales/${saleId}`),
-    
+
     // Get last invoice number for generating next invoice
     getLastInvoiceNumber: (branchId) => api.get('/sales/last-invoice', { params: { branchId } }),
-    
+
     // Get sales list with filters
     getSales: (params) => api.get('/sales', { params }),
-    
+
     // Get held/parked bills
     getHeldBills: (branchId) => api.get(`/sales/held`, { params: { branchId } }),
-    
+
     // Hold/Park a bill
     holdBill: (data) => api.post('/sales/hold', data),
-    
+
     // Recall a held bill
     recallBill: (saleId) => api.post(`/sales/${saleId}/recall`),
-    
+
     // Void a sale (requires approval)
     voidSale: (saleId, reason, supervisorCreds) => api.post(`/sales/${saleId}/void`, {
         reason,
@@ -223,7 +228,7 @@ export const posService = {
     // ========== RETURNS ==========
     // Get sale for return
     getSaleForReturn: (invoiceNo) => api.get(`/sales/invoice/${invoiceNo}`),
-    
+
     // Process return - matches sales_returns, sales_return_items tables
     processReturn: (data) => api.post('/returns', {
         saleId: data.saleId,
@@ -236,12 +241,12 @@ export const posService = {
     }),
 
     // ========== CUSTOMER OPERATIONS ==========
-    // Find customer by phone - matches customers table
-    findCustomer: (phone) => api.get(`/customers/search`, { params: { phone } }),
-    
+    // Find customer by phone or name
+    findCustomer: (query) => api.get(`/customers/search`, { params: { query } }),
+
     // Find customer by code
     findCustomerByCode: (code) => api.get(`/customers/code/${code}`),
-    
+
     // Create new customer
     createCustomer: (data) => api.post('/customers', {
         name: data.name,
@@ -251,7 +256,7 @@ export const posService = {
         city: data.city || null,
         dateOfBirth: data.dateOfBirth || null
     }),
-    
+
     // Update customer loyalty points
     updateLoyaltyPoints: (customerId, points) => api.patch(`/customers/${customerId}/loyalty`, { points }),
 
@@ -264,14 +269,14 @@ export const posService = {
         reason: data.reason,
         referenceNo: data.referenceNo || null
     }),
-    
+
     // Get cash flows for shift
     getShiftCashFlows: (shiftId) => api.get(`/cash-flows/shift/${shiftId}`),
 
     // ========== TERMINAL OPERATIONS ==========
     // Get terminal info
     getTerminal: (terminalId) => api.get(`/terminals/${terminalId}`),
-    
+
     // Get terminals for branch
     getTerminals: (branchId) => api.get(`/terminals`, { params: { branchId } }),
 
@@ -284,14 +289,14 @@ export const posService = {
         discountPercent: data.discountPercent,
         reason: data.reason
     }),
-    
+
     // Verify supervisor credentials
     verifySupervisor: (credentials) => api.post('/auth/verify-supervisor', credentials),
 
     // ========== REPORTS ==========
     // Get shift report
     getShiftReport: (shiftId) => api.get(`/reports/shift/${shiftId}`),
-    
+
     // Get daily summary
     getDailySummary: (branchId, date) => api.get(`/reports/daily`, { params: { branchId, date } })
 };

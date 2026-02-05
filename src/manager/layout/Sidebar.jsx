@@ -114,6 +114,7 @@ export default function Sidebar() {
           </div>
           <div className="mt-2 space-y-1">
             <NavItemLink to="/manager/sales" icon={ShoppingCart} label="Sales" />
+            <NavItemLink to="/manager/loyalty" icon={Package} label="Loyalty & Customers" />
             <NavItemLink to="/manager/sales-reports" icon={BarChart3} label="Sales Reports" />
           </div>
         </div>
@@ -134,7 +135,6 @@ export default function Sidebar() {
             Staff
           </div>
           <div className="mt-2 space-y-1">
-            <NavItemLink to="/manager/staff" icon={Users} label="Staff" />
             <NavItemLink to="/manager/user-registrations" icon={UserCheck} label="User Registrations" badge={pendingCount} />
           </div>
         </div>

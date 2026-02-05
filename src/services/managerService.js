@@ -113,10 +113,10 @@ export const updateApprovalStatus = async (approvalId, status, notes = "", role 
 };
 
 // Branch Activity Log
-export const getBranchActivityLog = async (limit = 20) => {
+export const getBranchActivityLog = async (branchId = 1) => {
   try {
-    const response = await api.get(`${MANAGER_API_BASE}/activity-log?limit=${limit}`);
-    return response.data;
+    const response = await api.get(`${MANAGER_API_BASE}/activity/recent?branchId=${branchId}`);
+    return response.data.data; // ApiResponse wrapper
   } catch (error) {
     console.error("Error fetching activity log:", error);
     throw error;
@@ -204,19 +204,10 @@ export const updateRegistrationStatus = async (registrationId, status, role) => 
   }
 };
 
+// Registered Users
 export const getRegisteredUsers = async () => {
   try {
-    // Assuming this might be separate or handled elsewhere, but leaving as is relative to base or updating if I knew the endpoint.
-    // The ManagerController didn't show /users. I will guess it is /api/v1/manager/users if existing was /manager/users
-    // But since it wasn't in the provided snippet, I'll try to stick to the pattern or leave it if it's hitting a different controller.
-    // Just to be safe, I'll assume it's NOT in this controller if not shown.
-    // However, usually "User Management" is manager stuff.
-    // PROPOSAL: Use the same base if possible, or fallback to the old path if not sure. 
-    // I'll keep the old path for getRegisteredUsers unless I see it failed. 
-    // OLD: /manager/users (base /api/inventory) = /api/inventory/manager/users
-    // If I change it to `http://localhost:8080/api/v1/manager/users`, it might work.
-    // I will try to use the generic API for this one for now to avoid breaking if it's in UserController.
-    const response = await api.get("/manager/users");
+    const response = await api.get(`${MANAGER_API_BASE}/users`);
     return response.data;
   } catch (error) {
     console.error("Error fetching registered users:", error);
@@ -226,7 +217,7 @@ export const getRegisteredUsers = async () => {
 
 export const updateUserRole = async (userId, role) => {
   try {
-    const response = await api.patch(`/manager/users/${userId}/role`, { role });
+    const response = await api.patch(`${MANAGER_API_BASE}/users/${userId}/role`, { role });
     return response.data;
   } catch (error) {
     console.error("Error updating user role:", error);
@@ -236,10 +227,81 @@ export const updateUserRole = async (userId, role) => {
 
 export const updateUserActiveStatus = async (userId, isActive) => {
   try {
-    const response = await api.patch(`/manager/users/${userId}/status`, { isActive });
+    const response = await api.patch(`${MANAGER_API_BASE}/users/${userId}/status`, { isActive });
     return response.data;
   } catch (error) {
     console.error("Error updating user active status:", error);
+    throw error;
+  }
+};
+
+// Loyalty & Customers
+export const getLoyaltyStats = async () => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/customers/stats`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching loyalty stats:", error);
+    throw error;
+  }
+};
+
+export const getLoyaltyCustomers = async () => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/customers`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching loyalty customers:", error);
+    throw error;
+  }
+};
+
+export const updateCustomer = async (id, data) => {
+  try {
+    const response = await api.put(`${MANAGER_API_BASE}/customers/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating customer:", error);
+    throw error;
+  }
+};
+
+export const adjustCustomerPoints = async (id, points, reason) => {
+  try {
+    const response = await api.post(`${MANAGER_API_BASE}/customers/${id}/adjust-points`, { points, reason });
+    return response.data;
+  } catch (error) {
+    console.error("Error adjusting points:", error);
+    throw error;
+  }
+};
+
+export const getTierRules = async () => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/customers/active-tier-rules`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching tier rules:", error);
+    throw error;
+  }
+};
+
+export const updateTierRules = async (rules) => {
+  try {
+    const response = await api.post(`${MANAGER_API_BASE}/customers/active-tier-rules`, rules);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating tier rules:", error);
+    throw error;
+  }
+};
+
+export const getCustomerSales = async (id) => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/customers/${id}/sales`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching customer sales:", error);
     throw error;
   }
 };

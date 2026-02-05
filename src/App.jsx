@@ -23,12 +23,15 @@ import SalesReports from './manager/pages/SalesReports';
 import ChartOfAccounts from './manager/pages/ChartOfAccounts';
 import JournalEntry from './manager/pages/JournalEntry';
 import ProfitLoss from './manager/pages/ProfitLoss';
-import Staff from './manager/pages/Staff';
 import OtherReports from './manager/pages/Reports';
 import UserRegistrations from './manager/pages/UserRegistrations';
+import Loyalty from './manager/pages/Loyalty';
 
 // Admin Dashboard
 import AdminDashboard from './admin/AdminDashboard';
+
+// Context
+import { NotificationProvider } from './pos/context/NotificationContext';
 
 // =====================================================
 // PROTECTED ROUTE COMPONENT

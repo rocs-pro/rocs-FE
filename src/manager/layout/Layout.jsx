@@ -1,26 +1,21 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
-import { NotificationProvider } from "../../pos/context/NotificationContext";
-import NotificationPanel from "../../pos/components/NotificationPanel";
+// NotificationProvider is now global in App.jsx
 
 export default function Layout() {
   return (
-    <NotificationProvider>
-      <div className="h-screen flex bg-slate-50 overflow-hidden">
-        <Sidebar />
+    <div className="h-screen flex bg-slate-50 overflow-hidden">
+      <Sidebar />
 
-        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-          <Topbar />
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <Topbar />
 
-          {/* Only content scrolls */}
-          <main className="flex-1 overflow-y-auto p-6">
-            <Outlet />
-          </main>
-        </div>
+        {/* Only content scrolls */}
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
       </div>
-
-      <NotificationPanel />
-    </NotificationProvider>
+    </div>
   );
 }
