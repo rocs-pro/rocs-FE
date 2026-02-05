@@ -231,9 +231,6 @@ const ItemListScreen = ({
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
-                                        <button onClick={(e) => { e.stopPropagation(); setSelectedItemId(item.product_id); setActiveScreen('item-detail'); }} className="p-1.5 text-brand-primary hover:bg-blue-50 rounded transition-colors bg-blue-50/50" title="View Details">
-                                            <FileText size={16} />
-                                        </button>
                                         <button onClick={(e) => { e.stopPropagation(); handleEditItem(item.product_id); }} className="p-1.5 text-brand-primary hover:bg-blue-50 rounded transition-colors bg-blue-50/50" title="Edit Item">
                                             <Edit size={16} />
                                         </button>
