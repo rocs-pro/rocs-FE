@@ -12,9 +12,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Keyboard navigation
-    const handleSupplierInfoKeyDown = useEnterKeyNavigation();
-    const handleAddItemKeyDown = useEnterKeyNavigation(handleAddItem);
+
 
     // Create Form State
     const [formData, setFormData] = useState({
@@ -103,6 +101,10 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
             imei: ''
         });
     };
+
+    // Keyboard navigation
+    const handleSupplierInfoKeyDown = useEnterKeyNavigation();
+    const handleAddItemKeyDown = useEnterKeyNavigation(handleAddItem);
 
     const handleRemoveItem = async (index) => {
         const confirmed = await confirm(

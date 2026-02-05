@@ -830,7 +830,7 @@ const InventorySystemContent = () => {
                 />
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto bg-gray-50 p-8">
+                <div key={activeScreen} className="flex-1 overflow-y-auto bg-gray-50 p-8 animate-screen-transition">
                     {renderScreen()}
                 </div>
             </div>
