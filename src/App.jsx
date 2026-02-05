@@ -1,6 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
+// Global Notification System
+import { GlobalNotificationProvider } from './context/GlobalNotificationContext';
+import GlobalToastNotification from './components/GlobalToastNotification';
+
 // Auth Pages
 import Login from './auth/Login';
 import RegisterScreen from './auth/RegisterScreen';
@@ -32,18 +36,18 @@ import AdminDashboard from './admin/AdminDashboard';
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const token = localStorage.getItem('token');
   const userStr = localStorage.getItem('user');
-  
+
   // No token = redirect to login
   if (!token) {
     return <Navigate to="/login" replace />;
   }
-  
+
   // If roles are specified, check if user has permission
   if (allowedRoles.length > 0 && userStr) {
     try {
       const user = JSON.parse(userStr);
       const userRole = (user.role || user.userRole || '').toUpperCase();
-      
+
       if (!allowedRoles.includes(userRole)) {
         // Redirect to their appropriate dashboard
         return <Navigate to={getRoleDefaultRoute(userRole)} replace />;
@@ -52,7 +56,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       console.error('Error parsing user data:', e);
     }
   }
-  
+
   return children;
 };
 
@@ -61,11 +65,11 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 // =====================================================
 const RoleBasedRedirect = () => {
   const userStr = localStorage.getItem('user');
-  
+
   if (!userStr) {
     return <Navigate to="/login" replace />;
   }
-  
+
   try {
     const user = JSON.parse(userStr);
     const role = (user.role || user.userRole || '').toUpperCase();
@@ -99,86 +103,91 @@ function getRoleDefaultRoute(role) {
 // =====================================================
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* ========== PUBLIC ROUTES ========== */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<RegisterScreen />} />
-        
-        {/* ========== DEFAULT REDIRECT ========== */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* ========== POS SYSTEM (Cashier, Supervisor) ========== */}
-        <Route 
-          path="/pos" 
-          element={
-            <ProtectedRoute allowedRoles={['CASHIER', 'SUPERVISOR', 'ADMIN', 'BRANCH_MANAGER']}>
-              <POSScreen />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* ========== INVENTORY (Store Keeper, Admin, Manager) ========== */}
-        <Route 
-          path="/inventory/*" 
-          element={
-            <ProtectedRoute allowedRoles={['STORE_KEEPER', 'ADMIN', 'BRANCH_MANAGER']}>
-              <InventorySystem />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* ========== ADMIN DASHBOARD ========== */}
-        <Route 
-          path="/admin/*" 
-          element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        
-        {/* ========== MANAGER DASHBOARD ========== */}
-        <Route 
-          path="/manager" 
-          element={
-            <ProtectedRoute allowedRoles={['BRANCH_MANAGER']}>
-              <ManagerLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<ManagerDashboard />} />
-          <Route path="approvals" element={<Approvals />} />
-          <Route path="branch-activity" element={<BranchActivity />} />
-          <Route path="sales" element={<Sales />} />
-          <Route path="sales-reports" element={<SalesReports />} />
-          <Route path="chart-of-accounts" element={<ChartOfAccounts />} />
-          <Route path="journal-entry" element={<JournalEntry />} />
-          <Route path="profit-loss" element={<ProfitLoss />} />
-          <Route path="staff" element={<Staff />} />
-          <Route path="user-registrations" element={<UserRegistrations />} />
-          <Route path="reports" element={<OtherReports />} />
-        </Route>
-        
-        {/* ========== CATCH-ALL: 404 ========== */}
-        <Route 
-          path="*" 
-          element={
-            <div className="min-h-screen flex items-center justify-center bg-slate-100">
-              <div className="text-center">
-                <h1 className="text-6xl font-bold text-slate-300 mb-4">404</h1>
-                <p className="text-slate-600 mb-6">Page not found</p>
-                <a 
-                  href="/login" 
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  Go to Login
-                </a>
+    <GlobalNotificationProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* ========== PUBLIC ROUTES ========== */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<RegisterScreen />} />
+
+          {/* ========== DEFAULT REDIRECT ========== */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
+          {/* ========== POS SYSTEM (Cashier, Supervisor) ========== */}
+          <Route
+            path="/pos"
+            element={
+              <ProtectedRoute allowedRoles={['CASHIER', 'SUPERVISOR', 'ADMIN', 'BRANCH_MANAGER']}>
+                <POSScreen />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ========== INVENTORY (Store Keeper, Admin, Manager) ========== */}
+          <Route
+            path="/inventory/*"
+            element={
+              <ProtectedRoute allowedRoles={['STORE_KEEPER', 'ADMIN', 'BRANCH_MANAGER']}>
+                <InventorySystem />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ========== ADMIN DASHBOARD ========== */}
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ========== MANAGER DASHBOARD ========== */}
+          <Route
+            path="/manager"
+            element={
+              <ProtectedRoute allowedRoles={['BRANCH_MANAGER']}>
+                <ManagerLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<ManagerDashboard />} />
+            <Route path="approvals" element={<Approvals />} />
+            <Route path="branch-activity" element={<BranchActivity />} />
+            <Route path="sales" element={<Sales />} />
+            <Route path="sales-reports" element={<SalesReports />} />
+            <Route path="chart-of-accounts" element={<ChartOfAccounts />} />
+            <Route path="journal-entry" element={<JournalEntry />} />
+            <Route path="profit-loss" element={<ProfitLoss />} />
+            <Route path="staff" element={<Staff />} />
+            <Route path="user-registrations" element={<UserRegistrations />} />
+            <Route path="reports" element={<OtherReports />} />
+          </Route>
+
+          {/* ========== CATCH-ALL: 404 ========== */}
+          <Route
+            path="*"
+            element={
+              <div className="min-h-screen flex items-center justify-center bg-slate-100">
+                <div className="text-center">
+                  <h1 className="text-6xl font-bold text-slate-300 mb-4">404</h1>
+                  <p className="text-slate-600 mb-6">Page not found</p>
+                  <a
+                    href="/login"
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  >
+                    Go to Login
+                  </a>
+                </div>
               </div>
-            </div>
-          } 
-        />
-      </Routes>
-    </BrowserRouter>
+            }
+          />
+        </Routes>
+
+        {/* Global Toast Notification Component */}
+        <GlobalToastNotification />
+      </BrowserRouter>
+    </GlobalNotificationProvider>
   );
 }
