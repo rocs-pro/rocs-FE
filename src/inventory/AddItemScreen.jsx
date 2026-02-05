@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import inventoryService from '../services/inventoryService';
+import { useInventoryNotification } from './context/InventoryNotificationContext';
 
 const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [], brands, onSaved, itemToEdit }) => {
+    const { success, error, warning } = useInventoryNotification();
     const [formData, setFormData] = useState({
         sku: '',
         barcode: '',
@@ -52,23 +54,23 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
 
     const validateForm = () => {
         if (!formData.sku.trim()) {
-            alert('SKU is required');
+            warning('SKU is required');
             return false;
         }
         if (!formData.name.trim()) {
-            alert('Product Name is required');
+            warning('Product Name is required');
             return false;
         }
         if (!formData.category_id) {
-            alert('Category is required');
+            warning('Category is required');
             return false;
         }
         if (!formData.cost_price || parseFloat(formData.cost_price) <= 0) {
-            alert('Valid Cost Price is required');
+            warning('Valid Cost Price is required');
             return false;
         }
         if (!formData.selling_price || parseFloat(formData.selling_price) <= 0) {
-            alert('Valid Selling Price is required');
+            warning('Valid Selling Price is required');
             return false;
         }
         return true;
@@ -106,6 +108,8 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                 onSaved(savedProduct);
             }
 
+            success(itemToEdit ? 'Product updated successfully!' : 'Product created successfully!');
+
             // Close modal
             if (onClose) {
                 onClose();
@@ -114,7 +118,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
             }
         } catch (err) {
             console.error('Error saving product:', err);
-            alert('Failed to save product. Please try again.');
+            error('Failed to save product. Please try again.');
         } finally {
             setLoading(false);
         }

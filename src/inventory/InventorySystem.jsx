@@ -30,8 +30,8 @@ import StockAgingScreen from '../reports/StockAgingScreen';
 
 import inventoryService from '../services/inventoryService';
 
-import { useNotification, NotificationProvider } from '../pos/context/NotificationContext';
-import NotificationPanel from '../pos/components/NotificationPanel';
+import { InventoryNotificationProvider, useInventoryNotification } from './context/InventoryNotificationContext';
+import InventoryToastNotification from './components/InventoryToastNotification';
 import ActivityLogScreen from './ActivityLogScreen';
 
 
@@ -39,7 +39,7 @@ const InventorySystemContent = () => {
     const navigate = useNavigate();
     const [activeScreen, setActiveScreen] = useState('item-list');
     const [currentTime, setCurrentTime] = useState(new Date());
-    const { unreadCount, setIsOpen } = useNotification();
+    const { success, error, warning, info } = useInventoryNotification();
 
     // Get user info
     const userStr = localStorage.getItem('user');
@@ -153,7 +153,7 @@ const InventorySystemContent = () => {
                     status: err.response?.status,
                     data: err.response?.data
                 });
-                alert('Inventory API error');
+                error('Failed to load inventory data. Please refresh the page.');
             }
         };
 
@@ -210,7 +210,7 @@ const InventorySystemContent = () => {
                 setIsAddCategoryOpen(false);
             } catch (err) {
                 console.error('Error creating category:', err);
-                alert('Failed to create category');
+                error('Failed to create category. Please try again.');
             }
         }
     };
@@ -226,7 +226,7 @@ const InventorySystemContent = () => {
                 setSelectedParentCategory(null);
             } catch (err) {
                 console.error('Error creating subcategory:', err);
-                alert('Failed to create subcategory');
+                error('Failed to create subcategory. Please try again.');
             }
         }
     };
@@ -238,7 +238,7 @@ const InventorySystemContent = () => {
                 setSubCategories(subCategories.filter(s => s.subcategory_id !== subCategoryId));
             } catch (err) {
                 console.error('Error deleting subcategory:', err);
-                alert('Failed to delete subcategory');
+                error('Failed to delete subcategory. Please try again.');
             }
         }
     };
@@ -258,7 +258,7 @@ const InventorySystemContent = () => {
                 setCategories(categories.filter(c => c.category_id !== categoryId));
             } catch (err) {
                 console.error('Error deleting category:', err);
-                alert('Failed to delete category');
+                error('Failed to delete category. Please try again.');
             }
         }
     };
@@ -278,7 +278,7 @@ const InventorySystemContent = () => {
                 setBrands(brands.filter(b => b.brand_id !== brandId));
             } catch (err) {
                 console.error('Error deleting brand:', err);
-                alert('Failed to delete brand');
+                error('Failed to delete brand. Please try again.');
             }
         }
     };
@@ -290,7 +290,7 @@ const InventorySystemContent = () => {
                 setSuppliers(suppliers.filter(s => s.supplier_id !== supplierId));
             } catch (err) {
                 console.error('Error deleting supplier:', err);
-                alert('Failed to delete supplier');
+                error('Failed to delete supplier. Please try again.');
             }
         }
     };
@@ -302,7 +302,7 @@ const InventorySystemContent = () => {
                 setItems(items.filter(i => i.product_id !== productId));
             } catch (err) {
                 console.error('Error deleting product:', err);
-                alert('Failed to delete product');
+                error('Failed to delete product. Please try again.');
             }
         }
     };
@@ -426,7 +426,7 @@ const InventorySystemContent = () => {
             }
         } catch (err) {
             console.error('Error updating:', err);
-            alert('Failed to update');
+            error('Failed to update. Please try again.');
         }
     };
 
@@ -1121,7 +1121,7 @@ const InventorySystemContent = () => {
                                         <button onClick={() => { setIsAddBrandOpen(false); setBrandForm({ brand_id: '', name: '', description: '', is_active: true, icon: 'Archive', color: 'blue' }); }} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
                                         <button onClick={async () => {
                                             if (!brandForm.name) {
-                                                alert('Please fill required fields');
+                                                warning('Please fill in the brand name');
                                                 return;
                                             }
                                             if (isEditMode) {
@@ -1150,7 +1150,7 @@ const InventorySystemContent = () => {
                                                     setBrandForm({ brand_id: '', name: '', description: '', is_active: true, icon: 'Archive', color: 'blue' });
                                                 } catch (err) {
                                                     console.error('Error creating brand:', err);
-                                                    alert('Failed to create brand');
+                                                    error('Failed to create brand. Please try again.');
                                                 }
                                             }
                                         }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">{isEditMode ? 'Save Changes' : 'Save Brand'}</button>
@@ -1235,7 +1235,7 @@ const InventorySystemContent = () => {
                                         </button>
                                         <button onClick={async () => {
                                             if (!supplierForm.code || !supplierForm.name) {
-                                                alert('Please fill required fields');
+                                                warning('Please fill in the required fields (Code and Name)');
                                                 return;
                                             }
                                             if (isEditMode) {
@@ -1248,7 +1248,7 @@ const InventorySystemContent = () => {
                                                     setSupplierForm({ supplier_id: '', code: '', name: '', company_name: '', contact_person: '', phone: '', mobile: '', email: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'Sri Lanka', supplier_type: 'LOCAL', supplier_category: 'PRIMARY', is_active: true, is_verified: false });
                                                 } catch (err) {
                                                     console.error('Error creating supplier:', err);
-                                                    alert('Failed to create supplier');
+                                                    error('Failed to create supplier. Please try again.');
                                                 }
                                             }
                                         }} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors">
@@ -1268,10 +1268,10 @@ const InventorySystemContent = () => {
 
 const InventorySystem = () => {
     return (
-        <NotificationProvider>
+        <InventoryNotificationProvider>
             <InventorySystemContent />
-            <NotificationPanel />
-        </NotificationProvider>
+            <InventoryToastNotification />
+        </InventoryNotificationProvider>
     );
 };
 

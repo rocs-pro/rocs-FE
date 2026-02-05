@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, FileText, CheckCircle, Clock, Save, Trash2, ArrowLeft } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
+import { useInventoryNotification } from './context/InventoryNotificationContext';
 
 const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subCategories = [] }) => {
+    const { success, error, warning } = useInventoryNotification();
     const [view, setView] = useState('list'); // 'list', 'create', 'detail'
     const [grns, setGrns] = useState([]);
     const [selectedGRN, setSelectedGRN] = useState(null);
@@ -70,7 +72,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
 
     const handleAddItem = () => {
         if (!currentItem.product_id || !currentItem.quantity || !currentItem.unit_price) {
-            alert("Please fill in Product, Quantity and Unit Price");
+            warning('Please fill in Product, Quantity and Unit Price');
             return;
         }
 
@@ -111,11 +113,11 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
 
     const handleSubmit = async () => {
         if (!formData.supplier_id) {
-            alert("Please select a supplier");
+            warning('Please select a supplier');
             return;
         }
         if (formData.items.length === 0) {
-            alert("Please add at least one item");
+            warning('Please add at least one item');
             return;
         }
 
@@ -128,15 +130,15 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
             };
 
             const createdGRN = await inventoryService.createGRN(grnPayload);
-            alert(`GRN Created Successfully! GRN No: ${createdGRN.grn_no || 'N/A'}`);
+            success(`GRN Created Successfully! GRN No: ${createdGRN.grn_no || 'N/A'}`);
             setView('list');
-            
+
             // Refresh list
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const branchId = user.branchId || branches?.[0]?.branch_id || 1;
             const data = await inventoryService.getGRNs(branchId);
             setGrns(data || []);
-            
+
             // Reset form
             setFormData({
                 supplier_id: '',
@@ -149,7 +151,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
             });
         } catch (error) {
             console.error("Error creating GRN:", error);
-            alert("Failed to create GRN: " + (error.response?.data?.message || error.message));
+            error('Failed to create GRN: ' + (error.response?.data?.message || error.message));
         }
     };
 
@@ -157,48 +159,48 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
         if (!window.confirm('Are you sure you want to approve this GRN? This will update stock levels.')) {
             return;
         }
-        
+
         try {
             await inventoryService.approveGRN(grnId);
-            alert('GRN approved successfully!');
-            
+            success('GRN approved successfully!');
+
             // Refresh list
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const branchId = user.branchId || branches?.[0]?.branch_id || 1;
             const data = await inventoryService.getGRNs(branchId);
             setGrns(data || []);
-            
+
             if (selectedGRN && selectedGRN.grn_id === grnId) {
                 const updated = await inventoryService.getGRNById(grnId);
                 setSelectedGRN(updated);
             }
         } catch (error) {
             console.error('Error approving GRN:', error);
-            alert('Failed to approve GRN: ' + (error.response?.data?.message || error.message));
+            error('Failed to approve GRN: ' + (error.response?.data?.message || error.message));
         }
     };
 
     const handleRejectGRN = async (grnId) => {
         const reason = prompt('Please enter rejection reason:');
         if (!reason) return;
-        
+
         try {
             await inventoryService.rejectGRN(grnId, reason);
-            alert('GRN rejected successfully!');
-            
+            success('GRN rejected successfully!');
+
             // Refresh list
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const branchId = user.branchId || branches?.[0]?.branch_id || 1;
             const data = await inventoryService.getGRNs(branchId);
             setGrns(data || []);
-            
+
             if (selectedGRN && selectedGRN.grn_id === grnId) {
                 setView('list');
                 setSelectedGRN(null);
             }
         } catch (error) {
             console.error('Error rejecting GRN:', error);
-            alert('Failed to reject GRN: ' + (error.response?.data?.message || error.message));
+            error('Failed to reject GRN: ' + (error.response?.data?.message || error.message));
         }
     };
 
@@ -209,7 +211,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
             setView('detail');
         } catch (error) {
             console.error('Error fetching GRN details:', error);
-            alert('Failed to fetch GRN details');
+            error('Failed to fetch GRN details');
         }
     };
 
@@ -258,12 +260,11 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500">Status</label>
-                                    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
-                                        selectedGRN.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                                        selectedGRN.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                                        selectedGRN.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                                        'bg-gray-100 text-gray-700'
-                                    }`}>
+                                    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${selectedGRN.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                                            selectedGRN.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                                selectedGRN.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                                    'bg-gray-100 text-gray-700'
+                                        }`}>
                                         {selectedGRN.status}
                                     </span>
                                 </div>
@@ -285,11 +286,10 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500">Payment Status</label>
-                                    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
-                                        selectedGRN.payment_status === 'PAID' ? 'bg-green-100 text-green-700' :
-                                        selectedGRN.payment_status === 'PARTIALLY_PAID' ? 'bg-yellow-100 text-yellow-700' :
-                                        'bg-red-100 text-red-700'
-                                    }`}>
+                                    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${selectedGRN.payment_status === 'PAID' ? 'bg-green-100 text-green-700' :
+                                            selectedGRN.payment_status === 'PARTIALLY_PAID' ? 'bg-yellow-100 text-yellow-700' :
+                                                'bg-red-100 text-red-700'
+                                        }`}>
                                         {selectedGRN.payment_status || 'UNPAID'}
                                     </span>
                                 </div>
@@ -669,8 +669,8 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                     <tbody className="divide-y divide-gray-200">
                         {filteredGRNs.length > 0 ? (
                             filteredGRNs.map((grn) => (
-                                <tr 
-                                    key={grn.grn_id} 
+                                <tr
+                                    key={grn.grn_id}
                                     className="hover:bg-gray-50 transition-colors cursor-pointer"
                                     onClick={() => handleViewGRN(grn)}
                                 >
@@ -680,12 +680,11 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                     <td className="px-6 py-4 text-sm text-gray-600">{grn.grn_date}</td>
                                     <td className="px-6 py-4 text-sm font-mono text-right font-medium">LKR {(grn.total_amount || 0).toFixed(2)}</td>
                                     <td className="px-6 py-4 text-center">
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                            grn.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                                            grn.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                                            grn.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                                            'bg-gray-100 text-gray-700'
-                                        }`}>
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${grn.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                                                grn.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                                    grn.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                                        'bg-gray-100 text-gray-700'
+                                            }`}>
                                             {grn.status}
                                         </span>
                                     </td>
