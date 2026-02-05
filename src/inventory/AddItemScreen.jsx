@@ -124,6 +124,32 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
         }
     };
 
+    // Handle Enter key to move to next field (forward only)
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+            e.preventDefault();
+
+            // Get all input/select/textarea elements (exclude buttons)
+            const form = e.target.form;
+            if (!form) return;
+
+            const focusableElements = Array.from(
+                form.querySelectorAll('input:not([disabled]):not([type="button"]), select:not([disabled]), textarea:not([disabled])')
+            );
+
+            const currentIndex = focusableElements.indexOf(e.target);
+            const nextIndex = currentIndex + 1;
+
+            // Move to next element only if not at the end
+            if (nextIndex < focusableElements.length) {
+                focusableElements[nextIndex].focus();
+            } else {
+                // At the last field, trigger save
+                handleSave();
+            }
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -136,7 +162,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                 )}
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 overflow-y-auto max-h-[70vh]">
+            <form className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 overflow-y-auto max-h-[70vh]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">SKU *</label>
@@ -145,6 +171,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="sku"
                             value={formData.sku}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
                             placeholder="BEV-CC-001"
                         />
@@ -156,6 +183,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="barcode"
                             value={formData.barcode}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="1234567890123"
                         />
@@ -167,6 +195,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Enter product name"
                         />
@@ -177,6 +206,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Product description"
                             rows="2"
@@ -188,6 +218,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="category_id"
                             value={formData.category_id}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full text-base"
                         >
                             <option value="">Select category</option>
@@ -204,6 +235,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="subcategory_id"
                             value={formData.subcategory_id}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full text-base"
                             disabled={!formData.category_id}
                         >
@@ -223,6 +255,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="brand_id"
                             value={formData.brand_id}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full text-base"
                         >
                             <option value="">Select brand</option>
@@ -239,6 +272,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="unit"
                             value={formData.unit}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             className="w-full text-base"
                         >
                             <option value="">Select unit</option>
@@ -268,6 +302,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="cost_price"
                             value={formData.cost_price}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             step="0.01"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="0.00"
@@ -280,6 +315,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="selling_price"
                             value={formData.selling_price}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             step="0.01"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="0.00"
@@ -292,6 +328,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="mrp"
                             value={formData.mrp}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             step="0.01"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="0.00"
@@ -304,6 +341,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                             name="tax_rate"
                             value={formData.tax_rate}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             step="0.01"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="10"
@@ -313,6 +351,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
 
                 <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
                     <button
+                        type="button"
                         onClick={() => onClose ? onClose() : setActiveScreen('item-list')}
                         className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                         disabled={loading}
@@ -320,6 +359,7 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                         Cancel
                     </button>
                     <button
+                        type="button"
                         onClick={handleSave}
                         className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={loading}
@@ -327,8 +367,8 @@ const AddItemScreen = ({ onClose, setActiveScreen, categories, subCategories = [
                         {loading ? 'Saving...' : 'Save Item'}
                     </button>
                 </div>
-            </div>
-        </div>
+            </form>
+        </div >
     );
 };
 
