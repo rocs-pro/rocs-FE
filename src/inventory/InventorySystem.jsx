@@ -63,10 +63,18 @@ const InventorySystemContent = () => {
         } catch (e) { }
     }
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
+    const handleLogout = async () => {
+        const isConfirmed = await confirm(
+            'Sign Out',
+            'Are you sure you want to sign out?',
+            'danger'
+        );
+
+        if (isConfirmed) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/login');
+        }
     };
 
     const goToPOS = () => navigate('/pos');
