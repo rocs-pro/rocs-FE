@@ -135,11 +135,18 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
         }
 
         try {
+            // Prepare payload matching inventoryService expectations (snake_case keys)
             const grnPayload = {
                 ...formData,
-                total_amount: calculateTotal(),
-                net_amount: calculateTotal(),
-                status: 'PENDING'
+                branch_id: parseInt(formData.branch_id),
+                supplier_id: parseInt(formData.supplier_id),
+                // Ensure numeric values in items
+                items: formData.items.map(item => ({
+                    ...item, // Keeps product_id, batch_code, etc.
+                    product_id: parseInt(item.product_id),
+                    quantity: parseFloat(item.quantity),
+                    unit_price: parseFloat(item.unit_price)
+                }))
             };
 
             const createdGRN = await inventoryService.createGRN(grnPayload);
@@ -162,9 +169,9 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                 branch_id: branches?.[0]?.branch_id || 1,
                 items: []
             });
-        } catch (error) {
-            console.error("Error creating GRN:", error);
-            error('Failed to create GRN: ' + (error.response?.data?.message || error.message));
+        } catch (err) {
+            console.error("Error creating GRN:", err);
+            error('Failed to create GRN: ' + (err.response?.data?.message || err.message));
         }
     };
 

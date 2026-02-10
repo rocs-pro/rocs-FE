@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { CheckCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 const NotificationContext = createContext();
 
@@ -72,9 +73,37 @@ export function NotificationProvider({ children }) {
     localStorage.removeItem('pos_notifications');
   };
 
+  // Mark single notification as read
+  const markAsRead = (id) => {
+    setNotifications(prev => {
+      const updated = prev.map(n => n.id === id ? { ...n, read: true } : n);
+      const unread = updated.filter(n => !n.read).length;
+      setUnreadCount(unread);
+      return updated;
+    });
+  };
+
+  // Remove single notification
+  const removeNotification = (id) => {
+    setNotifications(prev => {
+      const updated = prev.filter(n => n.id !== id);
+      const unread = updated.filter(n => !n.read).length;
+      setUnreadCount(unread);
+      return updated;
+    });
+  };
+
   return (
     <NotificationContext.Provider value={{
-      notifications, unreadCount, isOpen, setIsOpen, addNotification, markAllRead, clearNotifications
+      notifications,
+      unreadCount,
+      isOpen,
+      setIsOpen,
+      addNotification,
+      markAllRead,
+      clearNotifications,
+      markAsRead,
+      removeNotification
     }}>
       {children}
 
@@ -100,3 +129,11 @@ export function NotificationProvider({ children }) {
     </NotificationContext.Provider>
   );
 }
+
+export const useNotification = () => {
+  const context = useContext(NotificationContext);
+  if (!context) {
+    throw new Error('useNotification must be used within a NotificationProvider');
+  }
+  return context;
+};

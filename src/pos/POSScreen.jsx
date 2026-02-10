@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { User, LogOut, Bell, Store } from 'lucide-react';
+import { User, LogOut, Bell, Store, Receipt } from 'lucide-react';
 import BillPanel from './components/BillPanel';
 import ControlPanel from './components/ControlPanel';
 import ProductGrid from './components/ProductGrid';
 import { posService } from '../services/posService';
 import { authService } from '../services/authService';
+import { grnPaymentService } from '../services/grnPaymentService';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import NotificationPanel from './components/NotificationPanel';
 
@@ -21,7 +22,9 @@ import PaymentModal from './modals/PaymentModal';
 import QuickAddModal from './modals/QuickAddModal';
 import CashierSummaryModal from './modals/CashierSummaryModal';
 import ReturnModal from './modals/ReturnModal';
+import SmartReturnModal from './modals/SmartReturnModal';
 import DiscountModal from './modals/DiscountModal';
+import GRNPaymentModal from './modals/GRNPaymentModal';
 
 // Get branch/terminal from localStorage or use defaults
 const getBranchId = () => {
@@ -66,6 +69,10 @@ function POSContent() {
     const [cashierSummary, setCashierSummary] = useState(null);
     const [cashierSummaryLoading, setCashierSummaryLoading] = useState(false);
     const [billDiscount, setBillDiscount] = useState(0); // Bill-level discount amount
+
+    // GRN Payment Request state
+    const [grnPaymentCount, setGrnPaymentCount] = useState(0);
+    const [showGRNPaymentModal, setShowGRNPaymentModal] = useState(false);
 
     // Calculate cart totals including discounts
     const cartTotals = useMemo(() => {
@@ -139,6 +146,24 @@ function POSContent() {
         const timer = setInterval(() => setTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
+
+    // Fetch GRN Payment Request count
+    useEffect(() => {
+        const fetchGRNPaymentCount = async () => {
+            try {
+                const res = await grnPaymentService.getPendingCount(branchId);
+                const count = res.data?.data?.count || 0;
+                setGrnPaymentCount(count);
+            } catch (err) {
+                console.error('Failed to fetch GRN payment count:', err);
+            }
+        };
+
+        fetchGRNPaymentCount();
+        // Poll every 30 seconds
+        const interval = setInterval(fetchGRNPaymentCount, 30000);
+        return () => clearInterval(interval);
+    }, [branchId]);
 
     useEffect(() => {
         if (selectedCartIndex === null || selectedCartIndex === undefined) return;
@@ -217,17 +242,30 @@ function POSContent() {
             if (session.isOpen) {
                 try {
                     const res = await posService.getLastInvoiceNumber(session.branchId || 1);
-                    const info = res.data?.data || res.data;
-                    if (info && info.nextSequence) {
-                        setNextInvoiceNo(info.nextSequence);
-                        // If backend gives pre-formatted ID, use it, else format it locally
-                        if (info.nextInvoiceNo) {
-                            // We don't setInvoiceId here immediately unless we want to show it even for empty cart
-                            // But the logic below sets it for valid cart
+                    const lastInvoice = res.data?.data || res.data;
+
+                    let lastNum = 0;
+                    if (lastInvoice) {
+                        if (typeof lastInvoice === 'number') {
+                            lastNum = lastInvoice;
+                        } else if (lastInvoice.nextSequence) {
+                            // If backend explicitly sends nextSequence, use it (subtract 1 because we add 1 below)
+                            lastNum = lastInvoice.nextSequence - 1;
+                        } else if (typeof lastInvoice === 'string') {
+                            const match = lastInvoice.match(/(\d+)$/);
+                            lastNum = match ? parseInt(match[1]) : 0;
+                        } else if (lastInvoice.invoiceNo) {
+                            const match = lastInvoice.invoiceNo.match(/(\d+)$/);
+                            lastNum = match ? parseInt(match[1]) : 0;
+                        } else if (lastInvoice.lastNumber !== undefined) {
+                            lastNum = lastInvoice.lastNumber;
                         }
                     }
+
+                    setNextInvoiceNo(lastNum + 1);
                 } catch (e) {
                     console.error("Failed to fetch next invoice no", e);
+                    // Keep default or previous value
                 }
             }
         };
@@ -399,12 +437,28 @@ function POSContent() {
     // --- HANDLER: CLOSE SHIFT ---
     const handleLogout = async (closingAmount, supervisorCreds, denominations = null) => {
         try {
+            // 1. First verify the supervisor credentials and check their role
+            const authRes = await authService.login({
+                username: supervisorCreds.username,
+                password: supervisorCreds.password
+            });
+            const approver = authRes.data || authRes;
+
+            // 2. Check permissions
+            const allowedRoles = ['ADMIN', 'BRANCH_MANAGER', 'SUPERVISOR'];
+            const approverRole = (approver.role || approver.userRole || "").toUpperCase();
+
+            if (!allowedRoles.includes(approverRole)) {
+                throw new Error(`Access Denied: ${approverRole} cannot approve shift end.`);
+            }
+
             await posService.closeShift(session.shiftId, {
                 closingCash: parseFloat(closingAmount),
                 denominations: denominations,
                 notes: "Shift Closed",
                 supervisorUsername: supervisorCreds.username,
-                supervisorPassword: supervisorCreds.password
+                supervisorPassword: supervisorCreds.password,
+                approvedBy: approver.userId || approver.id
             });
             setSession({
                 isOpen: false,
@@ -669,8 +723,9 @@ function POSContent() {
         setCashierSummaryLoading(true);
         try {
             const res = await posService.getShiftTotals(session.shiftId);
-            const data = res.data?.data || res.data || null;
+            const data = res.data?.data || res.data || {};
             setCashierSummary(data);
+
         } catch (e) {
             console.error('Failed to load cashier summary:', e);
             addNotification('error', 'Summary Error', e.response?.data?.message || 'Failed to load cashier summary.');
@@ -782,8 +837,8 @@ function POSContent() {
             setActiveModal('LIST');
         }
         else if (action === 'RETURN') {
-            setListConfig({ type: 'RETURN' });
-            setActiveModal('LIST');
+            // Open the new SmartReturnModal directly
+            setActiveModal('SMART_RETURN');
         }
         else if (action === 'EXIT') {
             if (cart.length > 0) {
@@ -955,6 +1010,20 @@ function POSContent() {
                     <button onClick={() => setIsOpen(true)} className="relative p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300 hover:text-white">
                         <Bell className="w-5 h-5" />
                         {unreadCount > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-900 animate-pulse"></span>}
+                    </button>
+
+                    {/* GRN Payment Request Notification */}
+                    <button
+                        onClick={() => setShowGRNPaymentModal(true)}
+                        className="relative p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300 hover:text-purple-400"
+                        title="GRN Payment Requests"
+                    >
+                        <Receipt className="w-5 h-5" />
+                        {grnPaymentCount > 0 && (
+                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-purple-500 text-white text-[10px] font-bold rounded-full border-2 border-slate-900 animate-pulse">
+                                {grnPaymentCount > 9 ? '9+' : grnPaymentCount}
+                            </span>
+                        )}
                     </button>
                     <button
                         onClick={handleOpenCashierSummary}
@@ -1158,6 +1227,13 @@ function POSContent() {
                     onNotify={addNotification}
                 />
             )}
+            {activeModal === 'SMART_RETURN' && (
+                <SmartReturnModal
+                    branchId={branchId}
+                    onClose={() => setActiveModal(null)}
+                    onNotify={addNotification}
+                />
+            )}
             {activeModal === 'DISCOUNT' && (
                 <DiscountModal
                     selectedItem={selectedCartIndex !== null ? cart[selectedCartIndex] : null}
@@ -1175,6 +1251,20 @@ function POSContent() {
                     }}
                 />
             )}
+
+            {/* GRN Payment Request Modal */}
+            <GRNPaymentModal
+                isOpen={showGRNPaymentModal}
+                onClose={() => {
+                    setShowGRNPaymentModal(false);
+                    // Refresh count after modal closes
+                    grnPaymentService.getPendingCount(branchId)
+                        .then(res => setGrnPaymentCount(res.data?.data?.count || 0))
+                        .catch(() => { });
+                }}
+                branchId={branchId}
+                onNotification={addNotification}
+            />
         </div>
     );
 }

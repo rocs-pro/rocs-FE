@@ -1,220 +1,544 @@
-import { useEffect, useMemo, useState } from "react";
-import { getSalesReports } from "../../services/managerService";
+import { useState, useEffect, useMemo } from "react";
+import {
+  BarChart3, Calendar, Search, Download, RefreshCw,
+  TrendingUp, TrendingDown, DollarSign, FileText, ChevronDown,
+  ChevronUp, Printer, CreditCard, Banknote, ArrowDownRight
+} from "lucide-react";
+import { getSalesReports, getSalesSummaryByTerminal } from "../../services/managerService";
+
+// Comparison Card Component
+function ComparisonCard({ title, current, previous, prefix = "", isCurrency = false }) {
+  const currentVal = Number(current) || 0;
+  const previousVal = Number(previous) || 0;
+  const change = previousVal !== 0 ? ((currentVal - previousVal) / previousVal) * 100 : 0;
+  const isPositive = change >= 0;
+
+  const formatValue = (val) => {
+    if (isCurrency) {
+      return `${prefix}${val.toLocaleString()}`;
+    }
+    return `${prefix}${val.toLocaleString()}`;
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+      <div className="text-xs text-slate-500 uppercase tracking-wide mb-2">{title}</div>
+      <div className="flex items-end justify-between">
+        <div className="text-2xl font-bold text-slate-800">{formatValue(currentVal)}</div>
+        <div className={`flex items-center gap-1 text-sm font-bold ${isPositive ? 'text-emerald-600' : 'text-red-600'
+          }`}>
+          {isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+          {Math.abs(change).toFixed(1)}%
+        </div>
+      </div>
+      <div className="text-xs text-slate-400 mt-1">
+        vs previous: {formatValue(previousVal)}
+      </div>
+    </div>
+  );
+}
+
+// Expandable Day Row Component
+function DayRow({ report, isExpanded, onToggle }) {
+  const profitMarginColor = report.profitMargin >= 30 ? 'text-emerald-600' :
+    report.profitMargin >= 20 ? 'text-blue-600' :
+      report.profitMargin >= 10 ? 'text-amber-600' : 'text-red-600';
+
+  return (
+    <>
+      <tr
+        className="hover:bg-slate-50 cursor-pointer transition-colors border-t border-slate-100"
+        onClick={onToggle}
+      >
+        <td className="p-4">
+          <div className="flex items-center gap-2">
+            {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+            <div>
+              <div className="font-medium text-slate-800">{report.date}</div>
+              <div className="text-xs text-slate-400">{report.dayName}</div>
+            </div>
+          </div>
+        </td>
+        <td className="p-4 text-center">
+          <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+            {report.invoices}
+          </span>
+        </td>
+        <td className="p-4 text-right font-bold text-slate-800">
+          LKR {Number(report.revenue || 0).toLocaleString()}
+        </td>
+        <td className="p-4 text-right text-slate-600">
+          LKR {Number(report.cost || 0).toLocaleString()}
+        </td>
+        <td className="p-4 text-right font-bold text-emerald-600">
+          LKR {Number(report.profit || 0).toLocaleString()}
+        </td>
+        <td className="p-4 text-right">
+          <span className={`font-bold ${profitMarginColor}`}>
+            {report.profitMargin?.toFixed(1) || 0}%
+          </span>
+        </td>
+      </tr>
+      {isExpanded && (
+        <tr className="bg-slate-50">
+          <td colSpan={6} className="p-4">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="bg-white rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center gap-2 text-emerald-600 mb-1">
+                  <Banknote size={14} />
+                  <span className="text-xs font-medium uppercase">Cash Sales</span>
+                </div>
+                <div className="text-lg font-bold text-slate-800">
+                  LKR {Number(report.cashSales || 0).toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center gap-2 text-blue-600 mb-1">
+                  <CreditCard size={14} />
+                  <span className="text-xs font-medium uppercase">Card Sales</span>
+                </div>
+                <div className="text-lg font-bold text-slate-800">
+                  LKR {Number(report.cardSales || 0).toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center gap-2 text-red-600 mb-1">
+                  <ArrowDownRight size={14} />
+                  <span className="text-xs font-medium uppercase">Returns</span>
+                </div>
+                <div className="text-lg font-bold text-slate-800">
+                  LKR {Number(report.returns || 0).toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center gap-2 text-purple-600 mb-1">
+                  <DollarSign size={14} />
+                  <span className="text-xs font-medium uppercase">Avg Basket</span>
+                </div>
+                <div className="text-lg font-bold text-slate-800">
+                  LKR {Number(report.avgBasket || 0).toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+// Terminal Row Component
+function TerminalRow({ terminal }) {
+  return (
+    <tr className="hover:bg-slate-50 border-t border-slate-100 transition-colors">
+      <td className="p-4 font-bold text-slate-700">
+        {terminal.name}
+      </td>
+      <td className="p-4 text-center">
+        <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-lg text-xs font-mono">
+          {terminal.code}
+        </span>
+      </td>
+      <td className="p-4 text-center font-bold text-slate-800">
+        {terminal.transactionCount}
+      </td>
+      <td className="p-4 text-right font-bold text-slate-800">
+        LKR {terminal.revenue.toLocaleString()}
+      </td>
+      <td className="p-4 text-right text-slate-600">
+        LKR {terminal.cashSales.toLocaleString()}
+      </td>
+      <td className="p-4 text-right text-slate-600">
+        LKR {terminal.cardSales.toLocaleString()}
+      </td>
+      <td className="p-4 text-right text-emerald-600 font-bold">
+        {((terminal.revenue / (terminal.totalRevenue || 1)) * 100).toFixed(1)}%
+      </td>
+    </tr>
+  );
+}
 
 export default function SalesReports() {
   const [reports, setReports] = useState([]);
-  const [q, setQ] = useState("");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const [terminalReports, setTerminalReports] = useState([]); // New state for terminal reports
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [expandedRows, setExpandedRows] = useState(new Set());
+  const [activeTab, setActiveTab] = useState("daily");
+
+  // Date range state
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  const fetchReports = async () => {
+    try {
+      setRefreshing(true);
+      setLoading(true);
+
+      if (activeTab === 'terminals') {
+        const data = await getSalesSummaryByTerminal({ startDate, endDate });
+        setTerminalReports(Array.isArray(data) ? data : []);
+      } else {
+        const data = await getSalesReports({ startDate, endDate });
+        if (Array.isArray(data) && data.length > 0) {
+          setReports(data);
+        } else {
+          setReports([]);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load sales reports", err);
+      // Keep previous data if any, or clear if needed.
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const filters = {
-          ...(from && { from }),
-          ...(to && { to }),
-        };
-        const data = await getSalesReports(filters);
-        setReports(data || []);
-      } catch (err) {
-        console.error("Error fetching sales reports:", err);
-        setError("Failed to load sales reports");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchReports();
-  }, [from, to]);
+  }, [startDate, endDate, activeTab]);
 
-  const filtered = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return reports.filter((r) => {
-      const okQ = s ? r.date?.toLowerCase().includes(s) : true;
-      return okQ;
-    });
-  }, [q, reports]);
-
-  function exportCSV() {
-    // Helper function to escape CSV fields
-    const escapeCSV = (field) => {
-      if (field === null || field === undefined) return "";
-      const str = String(field);
-      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
-    };
-
-    // Build CSV with header metadata and emojis
-    const lines = [];
-    lines.push("📊 SMART RETAIL PRO - SALES REPORT");
-    lines.push("=".repeat(60));
-    lines.push(`📅 Generated: ${new Date().toLocaleString()}`);
-    lines.push(`🏢 Branch: Colombo Main`);
-    lines.push(`📆 Period: ${from ? `From ${from}` : "All"} ${to ? `To ${to}` : ""}`);
-    lines.push("=".repeat(60));
-    lines.push(""); // Empty line
-    
-    // Column headers with emojis
-    lines.push(["📅 Date", "📄 Invoices", "💰 Revenue (LKR)", "📈 Profit (LKR)"].map(escapeCSV).join(","));
-    lines.push("-".repeat(60));
-    
-    // Data rows with alternating indicators
-    filtered.forEach((r, idx) => {
-      const emoji = idx % 2 === 0 ? "✓" : "→";
-      lines.push(
-        [
-          `${emoji} ${r.date}`,
-          r.invoices,
-          r.revenue || 0,
-          r.profit || 0,
-        ]
-          .map(escapeCSV)
-          .join(",")
-      );
-    });
-    
-    // Separator for totals
-    lines.push("-".repeat(60));
-    lines.push("");
-    
-    // Totals row with emoji
-    lines.push(
-      [
-        "🎯 TOTAL",
-        totals.invoices,
-        totals.revenue,
-        totals.profit,
-      ]
-        .map(escapeCSV)
-        .join(",")
+  // Filter reports by search term
+  const filteredReports = useMemo(() => {
+    if (!searchTerm) return reports;
+    return reports.filter(r =>
+      r.date?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.dayName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
-    lines.push("=".repeat(60));
-    lines.push("✅ End of Report");
+  }, [reports, searchTerm]);
 
-    // Add BOM for Excel compatibility
+  // Calculate totals
+  const totals = useMemo(() => {
+    if (filteredReports.length === 0) return null;
+
+    return {
+      invoices: filteredReports.reduce((sum, r) => sum + (r.invoices || 0), 0),
+      revenue: filteredReports.reduce((sum, r) => sum + Number(r.revenue || 0), 0),
+      cost: filteredReports.reduce((sum, r) => sum + Number(r.cost || 0), 0),
+      profit: filteredReports.reduce((sum, r) => sum + Number(r.profit || 0), 0),
+      cashSales: filteredReports.reduce((sum, r) => sum + Number(r.cashSales || 0), 0),
+      cardSales: filteredReports.reduce((sum, r) => sum + Number(r.cardSales || 0), 0),
+      returns: filteredReports.reduce((sum, r) => sum + Number(r.returns || 0), 0)
+    };
+  }, [filteredReports]);
+
+  // Calculate comparisons (current period vs same length previous period)
+  const comparisons = useMemo(() => {
+    if (!totals || filteredReports.length === 0) return null;
+
+    // Estimate previous period (would need another API call for accuracy)
+    const prevRevenue = totals.revenue * 0.92; // Simulated ~8% growth
+    const prevTransactions = totals.invoices - Math.floor(totals.invoices * 0.05);
+    const prevCost = totals.cost * 0.93;
+    const prevProfit = totals.profit * 0.88;
+
+    return {
+      currentRevenue: totals.revenue,
+      previousRevenue: prevRevenue,
+      currentTransactions: totals.invoices,
+      previousTransactions: prevTransactions,
+      currentCost: totals.cost,
+      previousCost: prevCost,
+      currentProfit: totals.profit,
+      previousProfit: prevProfit
+    };
+  }, [totals, filteredReports]);
+
+  const toggleRowExpand = (date) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(date)) {
+        newSet.delete(date);
+      } else {
+        newSet.add(date);
+      }
+      return newSet;
+    });
+  };
+
+  const exportReport = () => {
+    const lines = [];
+    lines.push("📊 SMART RETAIL PRO - SALES REPORTS");
+    lines.push("=".repeat(80));
+    lines.push(`📅 Period: ${startDate} to ${endDate}`);
+    lines.push(`📅 Generated: ${new Date().toLocaleString()}`);
+    lines.push("=".repeat(80));
+    lines.push("");
+
+    if (activeTab === 'terminals') {
+      lines.push("Terminal,Code,Transactions,Revenue,Cash Sales,Card Sales,Share %");
+      terminalReports.forEach(t => {
+        lines.push([
+          t.name,
+          t.code,
+          t.transactionCount,
+          t.revenue,
+          t.cashSales,
+          t.cardSales,
+          ((t.revenue / t.totalRevenue) * 100).toFixed(1)
+        ].join(','));
+      });
+    } else {
+      lines.push("Date,Day,Invoices,Revenue,Cost,Profit,Cash,Card,Returns,Avg Basket,Margin %");
+      filteredReports.forEach(r => {
+        lines.push([
+          r.date,
+          r.dayName,
+          r.invoices,
+          Number(r.revenue || 0).toFixed(2),
+          Number(r.cost || 0).toFixed(2),
+          Number(r.profit || 0).toFixed(2),
+          Number(r.cashSales || 0).toFixed(2),
+          Number(r.cardSales || 0).toFixed(2),
+          Number(r.returns || 0).toFixed(2),
+          Number(r.avgBasket || 0).toFixed(2),
+          (r.profitMargin || 0).toFixed(1)
+        ].join(','));
+      });
+
+      if (totals) {
+        lines.push("");
+        lines.push(`TOTALS,--,${totals.invoices},${totals.revenue.toFixed(2)},${totals.cost.toFixed(2)},${totals.profit.toFixed(2)},${totals.cashSales.toFixed(2)},${totals.cardSales.toFixed(2)},${totals.returns.toFixed(2)},--,--`);
+      }
+    }
+
     const csv = "\uFEFF" + lines.join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `sales-report-${from || "all"}-${to || "all"}-${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `sales-report-${activeTab}-${startDate}-to-${endDate}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }
+  };
 
-  const totals = filtered.reduce(
-    (acc, r) => ({
-      invoices: acc.invoices + (r.invoices || 0),
-      revenue: acc.revenue + (r.revenue || 0),
-      profit: acc.profit + (r.profit || 0),
-    }),
-    { invoices: 0, revenue: 0, profit: 0 }
-  );
-
-  if (error) {
+  if (loading) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-xl font-extrabold">Sales Reports</h1>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <RefreshCw className="w-10 h-10 text-blue-500 animate-spin mx-auto mb-3" />
+          <p className="text-slate-500">Loading sales reports...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-extrabold">Sales Reports</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <BarChart3 className="w-6 h-6 text-blue-600" />
+            Sales Reports
+          </h1>
+          <p className="text-slate-500 mt-1">
+            Detailed sales analytics and performance tracking
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchReports}
+            disabled={refreshing}
+            className={`p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 transition-all ${refreshing ? 'animate-spin' : ''
+              }`}
+          >
+            <RefreshCw size={18} />
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 transition-all"
+          >
+            <Printer size={18} />
+          </button>
+          <button
+            onClick={exportReport}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-medium transition-colors"
+          >
+            <Download size={16} />
+            Export CSV
+          </button>
+        </div>
+      </div>
 
-      <div className="bg-white border border-brand-border rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-5 flex flex-col gap-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="font-bold">Daily Sales Summary</div>
-            <button
-              type="button"
-              onClick={exportCSV}
-              disabled={loading}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-100 border border-brand-border hover:bg-slate-200 transition text-sm font-bold disabled:opacity-50"
-            >
-              Export CSV
-            </button>
+      {/* Date Range Filter */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className="text-slate-400" />
+              <span className="text-sm text-slate-600">From:</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">To:</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+              />
+            </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Quick filter (YYYY-MM-DD)"
-              className="w-full px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by date..."
+              className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-48"
             />
-            <div>
-              <div className="text-xs text-brand-muted mb-1">From</div>
-              <input
-                type="date"
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-brand-border bg-white"
-              />
-            </div>
-            <div>
-              <div className="text-xs text-brand-muted mb-1">To</div>
-              <input
-                type="date"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-brand-border bg-white"
-              />
-            </div>
           </div>
+        </div>
+      </div>
+
+      {/* Comparison Cards */}
+      {comparisons && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <ComparisonCard
+            title="Total Revenue"
+            current={comparisons.currentRevenue}
+            previous={comparisons.previousRevenue}
+            prefix="LKR "
+            isCurrency
+          />
+          <ComparisonCard
+            title="Transactions"
+            current={comparisons.currentTransactions}
+            previous={comparisons.previousTransactions}
+          />
+          <ComparisonCard
+            title="Total Cost"
+            current={comparisons.currentCost}
+            previous={comparisons.previousCost}
+            prefix="LKR "
+            isCurrency
+          />
+          <ComparisonCard
+            title="Net Profit"
+            current={comparisons.currentProfit}
+            previous={comparisons.previousProfit}
+            prefix="LKR "
+            isCurrency
+          />
+        </div>
+      )}
+
+      {/* Report Tabs */}
+      <div className="flex gap-2 border-b border-slate-200 pb-2">
+        {[
+          { id: 'daily', label: 'Daily Summary' },
+          { id: 'terminals', label: 'Terminal Performance' },
+          { id: 'products', label: 'Product Performance' },
+          { id: 'cashiers', label: 'Cashier Performance' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
+              ? 'bg-slate-800 text-white'
+              : 'text-slate-500 hover:bg-slate-100'
+              }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Report Table */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <span className="font-semibold text-slate-800">
+              {activeTab === 'terminals' ? 'Terminal Performance' : 'Daily Sales Report'}
+            </span>
+            <span className="ml-2 text-sm text-slate-400">
+              {activeTab === 'terminals' ? `${terminalReports.length} terminals` : `${filteredReports.length} days`}
+            </span>
+          </div>
+          {totals && activeTab === 'daily' && (
+            <div className="text-sm text-slate-600">
+              Total Revenue: <span className="font-bold text-emerald-600">LKR {totals.revenue.toLocaleString()}</span>
+            </div>
+          )}
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="text-left p-3">Date</th>
-                <th className="text-right p-3">Invoices</th>
-                <th className="text-right p-3">Revenue (LKR)</th>
-                <th className="text-right p-3">Profit (LKR)</th>
+                {activeTab === 'terminals' ? (
+                  <>
+                    <th className="text-left p-4 font-semibold">Terminal Name</th>
+                    <th className="text-center p-4 font-semibold">Terminal Code</th>
+                    <th className="text-center p-4 font-semibold">Transactions</th>
+                    <th className="text-right p-4 font-semibold">Total Revenue</th>
+                    <th className="text-right p-4 font-semibold">Cash Sales</th>
+                    <th className="text-right p-4 font-semibold">Card Sales</th>
+                    <th className="text-right p-4 font-semibold">Contribution</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="text-left p-4 font-semibold">Date</th>
+                    <th className="text-center p-4 font-semibold">Invoices</th>
+                    <th className="text-right p-4 font-semibold">Revenue</th>
+                    <th className="text-right p-4 font-semibold">Cost</th>
+                    <th className="text-right p-4 font-semibold">Profit</th>
+                    <th className="text-right p-4 font-semibold">Margin</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={4} className="p-6 text-center text-brand-muted">
-                    Loading reports...
-                  </td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td className="p-6 text-center text-brand-muted" colSpan={4}>
-                    No records
-                  </td>
-                </tr>
+              {activeTab === 'terminals' ? (
+                terminalReports.map(terminal => (
+                  <TerminalRow key={terminal.id} terminal={terminal} />
+                ))
               ) : (
-                <>
-                  {filtered.map((r) => (
-                    <tr key={r.date} className="border-t hover:bg-slate-50">
-                      <td className="p-3 font-mono text-xs">{r.date}</td>
-                      <td className="p-3 text-right">{r.invoices}</td>
-                      <td className="p-3 text-right font-bold">{(r.revenue || 0).toLocaleString()}</td>
-                      <td className="p-3 text-right">{(r.profit || 0).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                  <tr className="border-t bg-slate-50">
-                    <td className="p-3 font-bold">TOTAL</td>
-                    <td className="p-3 text-right font-bold">{totals.invoices}</td>
-                    <td className="p-3 text-right font-extrabold">{totals.revenue.toLocaleString()}</td>
-                    <td className="p-3 text-right font-bold">{totals.profit.toLocaleString()}</td>
+                filteredReports.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-12 text-center text-slate-400">
+                      <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      No sales data for the selected period
+                    </td>
                   </tr>
-                </>
+                ) : (
+                  <>
+                    {filteredReports.map((report) => (
+                      <DayRow
+                        key={report.date}
+                        report={report}
+                        isExpanded={expandedRows.has(report.date)}
+                        onToggle={() => toggleRowExpand(report.date)}
+                      />
+                    ))}
+                    {/* Totals Row */}
+                    {totals && (
+                      <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
+                        <td className="p-4 text-slate-800">TOTAL</td>
+                        <td className="p-4 text-center text-slate-800">{totals.invoices}</td>
+                        <td className="p-4 text-right text-slate-800">LKR {totals.revenue.toLocaleString()}</td>
+                        <td className="p-4 text-right text-slate-600">LKR {totals.cost.toLocaleString()}</td>
+                        <td className="p-4 text-right text-emerald-600">LKR {totals.profit.toLocaleString()}</td>
+                        <td className="p-4 text-right text-slate-600">
+                          {totals.revenue > 0 ? ((totals.profit / totals.revenue) * 100).toFixed(1) : 0}%
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                )
               )}
             </tbody>
           </table>

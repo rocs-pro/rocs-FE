@@ -12,7 +12,8 @@ import {
   Users,
   UserCheck,
   FileText,
-  Package
+  Package,
+  Wallet
 } from "lucide-react";
 import { getUserRegistrations } from "../../services/managerService";
 
@@ -127,6 +128,7 @@ export default function Sidebar() {
             <NavItemLink to="/manager/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
             <NavItemLink to="/manager/journal-entry" icon={PenTool} label="Journal Entry" />
             <NavItemLink to="/manager/profit-loss" icon={TrendingUp} label="Profit & Loss" />
+            <NavItemLink to="/manager/manager-payments" icon={Wallet} label="GRN Payments" />
           </div>
         </div>
 

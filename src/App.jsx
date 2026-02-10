@@ -26,6 +26,8 @@ import ProfitLoss from './manager/pages/ProfitLoss';
 import OtherReports from './manager/pages/Reports';
 import UserRegistrations from './manager/pages/UserRegistrations';
 import Loyalty from './manager/pages/Loyalty';
+import ManagerPayments from './manager/pages/ManagerPayments';
+
 
 // Admin Dashboard
 import AdminDashboard from './admin/AdminDashboard';
@@ -151,7 +153,9 @@ export default function App() {
             path="/manager"
             element={
               <ProtectedRoute allowedRoles={['BRANCH_MANAGER']}>
-                <ManagerLayout />
+                <NotificationProvider>
+                  <ManagerLayout />
+                </NotificationProvider>
               </ProtectedRoute>
             }
           >
@@ -163,7 +167,8 @@ export default function App() {
             <Route path="chart-of-accounts" element={<ChartOfAccounts />} />
             <Route path="journal-entry" element={<JournalEntry />} />
             <Route path="profit-loss" element={<ProfitLoss />} />
-            <Route path="staff" element={<Staff />} />
+            <Route path="manager-payments" element={<ManagerPayments />} />
+            <Route path="loyalty" element={<Loyalty />} />
             <Route path="user-registrations" element={<UserRegistrations />} />
             <Route path="reports" element={<OtherReports />} />
           </Route>

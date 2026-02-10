@@ -106,15 +106,36 @@ export default function CashierSummaryModal({ cashierName, shiftId, summary, loa
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 flex items-center gap-1"><ArrowUpRight className="w-3 h-3 text-blue-500" /> Paid In</span>
-                  <span className="font-mono font-bold text-blue-700">+{formatMoney(paidIn)}</span>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-blue-700">+{formatMoney(paidIn)}</span>
+                    {summary.pendingPaidIn > 0 && (
+                      <div className="text-[10px] text-amber-600 font-medium">
+                        +{formatMoney(summary.pendingPaidIn)} (Pending)
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 flex items-center gap-1"><ArrowDownLeft className="w-3 h-3 text-red-500" /> Paid Out</span>
-                  <span className="font-mono font-bold text-red-700">-{formatMoney(paidOut)}</span>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-red-700">-{formatMoney(paidOut)}</span>
+                    {summary.pendingPaidOut > 0 && (
+                      <div className="text-[10px] text-amber-600 font-medium">
+                        -{formatMoney(summary.pendingPaidOut)} (Pending)
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between border-t border-slate-200 pt-2">
                   <span className="text-slate-700 font-semibold">Expected Cash</span>
-                  <span className="font-mono font-bold text-slate-900">LKR {formatMoney(expectedCash)}</span>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-slate-900 block">LKR {formatMoney(expectedCash)}</span>
+                    {(summary.pendingPaidIn > 0 || summary.pendingPaidOut > 0) && (
+                      <span className="text-[10px] text-slate-400">
+                        (Excl. Pending)
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

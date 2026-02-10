@@ -32,7 +32,8 @@ export default function ListModal({ type, onClose, onSelect, branchId }) {
                 const startDate = new Date();
                 startDate.setDate(startDate.getDate() - 7);
 
-                res = await posService.getSales(branchId, {
+                res = await posService.getSales({
+                    branchId: branchId,
                     status: 'COMPLETED',
                     limit: 100,
                     startDate: startDate.toISOString(),

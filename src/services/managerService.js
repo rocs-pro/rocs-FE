@@ -1,6 +1,12 @@
 import api from "./api";
 
 const MANAGER_API_BASE = "http://localhost:8080/api/v1/manager";
+const ACCOUNTING_API_BASE = "http://localhost:8080/api/v1/accounting";
+const REPORTS_API_BASE = "http://localhost:8080/api/v1/reports";
+
+// ============================================
+// DASHBOARD & STATISTICS
+// ============================================
 
 // Dashboard Stats
 export const getDashboardStats = async () => {
@@ -13,13 +19,62 @@ export const getDashboardStats = async () => {
   }
 };
 
-// Sales Data
+// ============================================
+// SALES & TRANSACTIONS
+// ============================================
+
+// Sales Data with Period
 export const getSalesData = async (period = "weekly") => {
   try {
     const response = await api.get(`${MANAGER_API_BASE}/sales?period=${period}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching sales data:", error);
+    throw error;
+  }
+};
+
+// Detailed Sales Analytics
+export const getSalesAnalytics = async (period = "daily") => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/sales/analytics?period=${period}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching sales analytics:", error);
+    throw error;
+  }
+};
+
+// Recent Transactions
+export const getRecentTransactions = async (limit = 20) => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/sales/recent?limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching recent transactions:", error);
+    throw error;
+  }
+};
+
+// Payment Method Breakdown
+export const getPaymentBreakdown = async (period = "daily") => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/sales/payment-breakdown?period=${period}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching payment breakdown:", error);
+    throw error;
+  }
+};
+
+// Hourly Sales Data
+export const getHourlySales = async (date = null) => {
+  try {
+    const params = date ? `?date=${date}` : '';
+    const response = await api.get(`${MANAGER_API_BASE}/sales/hourly${params}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching hourly sales:", error);
     throw error;
   }
 };
@@ -35,6 +90,65 @@ export const getTopSellingProducts = async (limit = 5) => {
   }
 };
 
+// ============================================
+// SALES REPORTS
+// ============================================
+
+// Sales Reports with Date Range
+export const getSalesReports = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    const response = await api.get(`${MANAGER_API_BASE}/reports/sales?${params}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching sales reports:", error);
+    throw error;
+  }
+};
+
+// Sales Reports by Terminal
+export const getSalesSummaryByTerminal = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    const response = await api.get(`${MANAGER_API_BASE}/reports/sales/summary-by-terminal?${params}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching sales summary by terminal:", error);
+    throw error;
+  }
+};
+
+
+// Product Performance Report
+export const getProductPerformanceReport = async (filters = {}) => {
+  try {
+    const response = await api.get(`${REPORTS_API_BASE}/products/performance`, { params: filters });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching product performance:", error);
+    throw error;
+  }
+};
+
+// Cashier Performance Report
+export const getCashierPerformanceReport = async (filters = {}) => {
+  try {
+    const response = await api.get(`${REPORTS_API_BASE}/cashiers/performance`, { params: filters });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching cashier performance:", error);
+    throw error;
+  }
+};
+
+// ============================================
+// INVENTORY & GRN
+// ============================================
+
 // Pending GRNs
 export const getPendingGrns = async () => {
   try {
@@ -42,17 +156,6 @@ export const getPendingGrns = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching pending GRNs:", error);
-    throw error;
-  }
-};
-
-// Staff Summary
-export const getStaffSummary = async () => {
-  try {
-    const response = await api.get(`${MANAGER_API_BASE}/staff/summary`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching staff summary:", error);
     throw error;
   }
 };
@@ -79,127 +182,17 @@ export const getExpiryAlerts = async () => {
   }
 };
 
-// Branch Alerts
-export const getBranchAlerts = async () => {
+// ============================================
+// STAFF & USERS
+// ============================================
+
+// Staff Summary
+export const getStaffSummary = async () => {
   try {
-    const response = await api.get(`${MANAGER_API_BASE}/alerts`);
+    const response = await api.get(`${MANAGER_API_BASE}/staff/summary`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching branch alerts:", error);
-    throw error;
-  }
-};
-
-// Approvals (Generic)
-export const getApprovals = async (status = null) => {
-  try {
-    const query = status ? `?status=${status}` : "";
-    const response = await api.get(`${MANAGER_API_BASE}/approvals${query}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching approvals:", error);
-    throw error;
-  }
-};
-
-export const updateApprovalStatus = async (approvalId, status, notes = "", role = null) => {
-  try {
-    const response = await api.patch(`${MANAGER_API_BASE}/approvals/${approvalId}`, { status, notes, role });
-    return response.data;
-  } catch (error) {
-    console.error("Error updating approval status:", error);
-    throw error;
-  }
-};
-
-// Branch Activity Log
-export const getBranchActivityLog = async (branchId = 1) => {
-  try {
-    const response = await api.get(`${MANAGER_API_BASE}/activity/recent?branchId=${branchId}`);
-    return response.data.data; // ApiResponse wrapper
-  } catch (error) {
-    console.error("Error fetching activity log:", error);
-    throw error;
-  }
-};
-
-// Chart of Accounts
-export const getChartOfAccounts = async () => {
-  try {
-    // Keeping original path if not specified in ManagerController, or assuming it's under accounting
-    const response = await api.get("/accounting/chart-of-accounts");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching chart of accounts:", error);
-    throw error;
-  }
-};
-
-// Journal Entries
-export const getJournalEntries = async (limit = 10) => {
-  try {
-    const response = await api.get(`/accounting/journal-entries?limit=${limit}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching journal entries:", error);
-    throw error;
-  }
-};
-
-export const createJournalEntry = async (entryData) => {
-  try {
-    const response = await api.post("/accounting/journal-entries", entryData);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating journal entry:", error);
-    throw error;
-  }
-};
-
-// Profit & Loss Report
-export const getProfitAndLoss = async (period = "monthly") => {
-  try {
-    const response = await api.get(`/accounting/profit-loss?period=${period}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching P&L report:", error);
-    throw error;
-  }
-};
-
-// Sales Reports
-export const getSalesReports = async (filters = {}) => {
-  try {
-    const response = await api.get("/reports/sales", { params: filters });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching sales reports:", error);
-    throw error;
-  }
-};
-
-// User Registration Approvals - MAPPED TO /approvals
-export const getUserRegistrations = async (status = "PENDING") => {
-  try {
-    // Using the generic approvals endpoint which handles registration requests
-    const response = await api.get(`${MANAGER_API_BASE}/approvals?status=${status}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching user registrations:", error);
-    throw error;
-  }
-};
-
-export const updateRegistrationStatus = async (registrationId, status, role) => {
-  try {
-    // Maps to the generic approval update
-    const response = await api.patch(`${MANAGER_API_BASE}/approvals/${registrationId}`, {
-      status,
-      role,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error updating registration status:", error);
+    console.error("Error fetching staff summary:", error);
     throw error;
   }
 };
@@ -235,7 +228,278 @@ export const updateUserActiveStatus = async (userId, isActive) => {
   }
 };
 
-// Loyalty & Customers
+// ============================================
+// APPROVALS
+// ============================================
+
+// Branch Alerts
+export const getBranchAlerts = async () => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/alerts`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching branch alerts:", error);
+    throw error;
+  }
+};
+
+// Approvals (Generic)
+export const getApprovals = async (status = null) => {
+  try {
+    const query = status ? `?status=${status}` : "";
+    const response = await api.get(`${MANAGER_API_BASE}/approvals${query}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching approvals:", error);
+    throw error;
+  }
+};
+
+export const updateApprovalStatus = async (approvalId, status, notes = "", role = null) => {
+  try {
+    const response = await api.patch(`${MANAGER_API_BASE}/approvals/${approvalId}`, { status, notes, role });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating approval status:", error);
+    throw error;
+  }
+};
+
+// User Registration Approvals
+export const getUserRegistrations = async (status = "PENDING") => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/approvals?status=${status}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user registrations:", error);
+    throw error;
+  }
+};
+
+export const updateRegistrationStatus = async (registrationId, status, role) => {
+  try {
+    const response = await api.patch(`${MANAGER_API_BASE}/approvals/${registrationId}`, {
+      status,
+      role,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating registration status:", error);
+    throw error;
+  }
+};
+
+// Export Approval History PDF
+export const getApprovalHistoryPdf = async () => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/reports/approvals/pdf`, {
+      responseType: 'blob', // Important for binary data
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error downloading PDF:", error);
+    throw error;
+  }
+};
+
+// ============================================
+// BRANCH ACTIVITY LOG
+// ============================================
+
+// Branch Activity Log with filters
+export const getBranchActivityLog = async (branchId = 1, filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    params.append('branchId', branchId);
+    if (filters.limit) params.append('limit', filters.limit);
+    if (filters.type) params.append('type', filters.type);
+    if (filters.date) params.append('date', filters.date);
+    if (filters.userId) params.append('userId', filters.userId);
+
+    const response = await api.get(`${MANAGER_API_BASE}/activity/recent?${params}`);
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error("Error fetching activity log:", error);
+    throw error;
+  }
+};
+
+// Activity Statistics
+export const getActivityStats = async (branchId = 1) => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/activity/stats?branchId=${branchId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching activity stats:", error);
+    throw error;
+  }
+};
+
+// ============================================
+// ACCOUNTING - CHART OF ACCOUNTS
+// ============================================
+
+// Get Chart of Accounts
+export const getChartOfAccounts = async () => {
+  try {
+    const response = await api.get(`${ACCOUNTING_API_BASE}/chart-of-accounts`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching chart of accounts:", error);
+    throw error;
+  }
+};
+
+// Create Account
+export const createAccount = async (accountData) => {
+  try {
+    const response = await api.post(`${ACCOUNTING_API_BASE}/accounts`, accountData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating account:", error);
+    throw error;
+  }
+};
+
+// Update Account
+export const updateAccount = async (accountId, accountData) => {
+  try {
+    const response = await api.put(`${ACCOUNTING_API_BASE}/accounts/${accountId}`, accountData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating account:", error);
+    throw error;
+  }
+};
+
+// Delete Account
+export const deleteAccount = async (accountId) => {
+  try {
+    const response = await api.delete(`${ACCOUNTING_API_BASE}/accounts/${accountId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    throw error;
+  }
+};
+
+// ============================================
+// ACCOUNTING - JOURNAL ENTRIES
+// ============================================
+
+// Get Journal Entries with filters
+export const getJournalEntries = async (filters = {}) => {
+  try {
+    const response = await api.get(`${ACCOUNTING_API_BASE}/journal-entries`, { params: filters });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching journal entries:", error);
+    throw error;
+  }
+};
+
+// Get Single Journal Entry
+export const getJournalEntry = async (entryId) => {
+  try {
+    const response = await api.get(`${ACCOUNTING_API_BASE}/journal-entries/${entryId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching journal entry:", error);
+    throw error;
+  }
+};
+
+// Create Journal Entry
+export const createJournalEntry = async (entryData) => {
+  try {
+    const response = await api.post(`${ACCOUNTING_API_BASE}/journal-entries`, entryData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating journal entry:", error);
+    throw error;
+  }
+};
+
+// Update Journal Entry (Draft only)
+export const updateJournalEntry = async (entryId, entryData) => {
+  try {
+    const response = await api.put(`${ACCOUNTING_API_BASE}/journal-entries/${entryId}`, entryData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating journal entry:", error);
+    throw error;
+  }
+};
+
+// Post Journal Entry
+export const postJournalEntry = async (entryId) => {
+  try {
+    const response = await api.post(`${ACCOUNTING_API_BASE}/journal-entries/${entryId}/post`);
+    return response.data;
+  } catch (error) {
+    console.error("Error posting journal entry:", error);
+    throw error;
+  }
+};
+
+// Void Journal Entry
+export const voidJournalEntry = async (entryId, reason) => {
+  try {
+    const response = await api.post(`${ACCOUNTING_API_BASE}/journal-entries/${entryId}/void`, { reason });
+    return response.data;
+  } catch (error) {
+    console.error("Error voiding journal entry:", error);
+    throw error;
+  }
+};
+
+// ============================================
+// ACCOUNTING - PROFIT & LOSS
+// ============================================
+
+// Get Profit & Loss Report
+export const getProfitAndLoss = async (period = "monthly", dateRange = {}) => {
+  try {
+    const params = new URLSearchParams();
+    params.append('period', period);
+    if (dateRange.from) params.append('from', dateRange.from);
+    if (dateRange.to) params.append('to', dateRange.to);
+
+    const response = await api.get(`${ACCOUNTING_API_BASE}/profit-loss?${params}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching P&L report:", error);
+    throw error;
+  }
+};
+
+// Get P&L Comparison (vs previous period)
+export const getPLComparison = async (period = "monthly") => {
+  try {
+    const response = await api.get(`${ACCOUNTING_API_BASE}/profit-loss/comparison?period=${period}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching P&L comparison:", error);
+    throw error;
+  }
+};
+
+// Get Balance Sheet
+export const getBalanceSheet = async (asOfDate = null) => {
+  try {
+    const params = asOfDate ? `?asOfDate=${asOfDate}` : '';
+    const response = await api.get(`${ACCOUNTING_API_BASE}/balance-sheet${params}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching balance sheet:", error);
+    throw error;
+  }
+};
+
+// ============================================
+// LOYALTY & CUSTOMERS
+// ============================================
+
 export const getLoyaltyStats = async () => {
   try {
     const response = await api.get(`${MANAGER_API_BASE}/customers/stats`);

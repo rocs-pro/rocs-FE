@@ -3,7 +3,7 @@ import { Bell, X, Check, AlertCircle, Info } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 
 const NotificationPanel = () => {
-    const { notifications, unreadCount, isOpen, setIsOpen, markAsRead, markAllAsRead, clearNotification, clearAll } = useNotification();
+    const { notifications, unreadCount, isOpen, setIsOpen, markAsRead, markAllRead, removeNotification, clearNotifications } = useNotification();
 
     if (!isOpen) return null;
 
@@ -53,14 +53,14 @@ const NotificationPanel = () => {
                             <>
                                 {unreadCount > 0 && (
                                     <button
-                                        onClick={markAllAsRead}
+                                        onClick={markAllRead}
                                         className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                                     >
                                         Mark all read
                                     </button>
                                 )}
                                 <button
-                                    onClick={clearAll}
+                                    onClick={clearNotifications}
                                     className="text-xs text-gray-600 hover:text-gray-700 font-medium"
                                 >
                                     Clear all
@@ -106,13 +106,13 @@ const NotificationPanel = () => {
                                                 </p>
                                             )}
                                             <p className="text-xs text-gray-500 mt-1">
-                                                {formatTime(notification.timestamp)}
+                                                {formatTime(notification.time)}
                                             </p>
                                         </div>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                clearNotification(notification.id);
+                                                removeNotification(notification.id);
                                             }}
                                             className="flex-shrink-0 text-gray-400 hover:text-gray-600"
                                         >

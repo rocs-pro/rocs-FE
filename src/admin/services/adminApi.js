@@ -6,7 +6,7 @@ import api from "../../services/api";
  * Get today's total sales across all branches
  */
 export const getTodaysSales = async () => {
-  const response = await api.get("/admin/dashboard/today-sales");
+  const response = await api.get("/v1/admin/dashboard/today-sales");
   return response.data;
 };
 
@@ -14,7 +14,7 @@ export const getTodaysSales = async () => {
  * Get user statistics by role
  */
 export const getUserStatsByRole = async () => {
-  const response = await api.get("/admin/dashboard/user-stats");
+  const response = await api.get("/v1/admin/dashboard/user-stats");
   return response.data;
 };
 
@@ -22,7 +22,7 @@ export const getUserStatsByRole = async () => {
  * Get all branches with detailed info
  */
 export const getAllBranches = async () => {
-  const response = await api.get("/admin/branches");
+  const response = await api.get("/v1/admin/branches");
   return response.data;
 };
 
@@ -30,7 +30,7 @@ export const getAllBranches = async () => {
  * Get branch summary by ID (for modal)
  */
 export const getBranchSummary = async (branchId) => {
-  const response = await api.get(`/admin/branches/${branchId}/summary`);
+  const response = await api.get(`/v1/admin/branches/${branchId}/summary`);
   return response.data;
 };
 
@@ -38,7 +38,7 @@ export const getBranchSummary = async (branchId) => {
  * Search branches by query
  */
 export const searchBranches = async (query) => {
-  const response = await api.get("/admin/branches/search", {
+  const response = await api.get("/v1/admin/branches/search", {
     params: { q: query },
   });
   return response.data;
@@ -48,7 +48,7 @@ export const searchBranches = async (query) => {
  * Get top performing branches by sales
  */
 export const getTopBranchesBySales = async () => {
-  const response = await api.get("/admin/dashboard/top-branches");
+  const response = await api.get("/v1/admin/dashboard/top-branches");
   return response.data;
 };
 
@@ -56,7 +56,7 @@ export const getTopBranchesBySales = async () => {
  * Get customer recurrence rate by branch
  */
 export const getCustomerRecurrenceByBranch = async () => {
-  const response = await api.get("/admin/dashboard/customer-recurrence");
+  const response = await api.get("/v1/admin/dashboard/customer-recurrence");
   return response.data;
 };
 
@@ -64,7 +64,7 @@ export const getCustomerRecurrenceByBranch = async () => {
  * Get top performing managers
  */
 export const getTopManagers = async () => {
-  const response = await api.get("/admin/dashboard/top-managers");
+  const response = await api.get("/v1/admin/dashboard/top-managers");
   return response.data;
 };
 
@@ -72,7 +72,7 @@ export const getTopManagers = async () => {
  * Get weekly sales trend
  */
 export const getWeeklySalesTrend = async () => {
-  const response = await api.get("/admin/dashboard/weekly-trend");
+  const response = await api.get("/v1/admin/dashboard/weekly-trend");
   return response.data;
 };
 
@@ -80,7 +80,7 @@ export const getWeeklySalesTrend = async () => {
  * Get real-time branch sales (for live updates)
  */
 export const getBranchRealTimeSales = async (branchId) => {
-  const response = await api.get(`/admin/branches/${branchId}/realtime-sales`);
+  const response = await api.get(`/v1/admin/branches/${branchId}/realtime-sales`);
   return response.data;
 };
 
@@ -88,7 +88,7 @@ export const getBranchRealTimeSales = async (branchId) => {
  * Get dashboard overview stats
  */
 export const getDashboardOverview = async () => {
-  const response = await api.get("/admin/dashboard/overview");
+  const response = await api.get("/v1/admin/dashboard/overview");
   return response.data;
 };
 
@@ -98,7 +98,7 @@ export const getDashboardOverview = async () => {
  * Get all users
  */
 export const getAllUsers = async () => {
-  const response = await api.get("/admin/users");
+  const response = await api.get("/v1/admin/users");
   return response.data;
 };
 
@@ -106,7 +106,7 @@ export const getAllUsers = async () => {
  * Search users by employee ID or name
  */
 export const searchUsers = async (query) => {
-  const response = await api.get("/admin/users/search", {
+  const response = await api.get("/v1/admin/users/search", {
     params: { q: query },
   });
   return response.data;
@@ -116,7 +116,7 @@ export const searchUsers = async (query) => {
  * Register a new manager (Admin can only register managers)
  */
 export const registerManager = async (userData) => {
-  const response = await api.post("/admin/users/register-manager", userData);
+  const response = await api.post("/v1/admin/users/register-manager", userData);
   return response.data;
 };
 
@@ -124,7 +124,7 @@ export const registerManager = async (userData) => {
  * Update user details
  */
 export const updateUser = async (userId, userData) => {
-  const response = await api.put(`/admin/users/${userId}`, userData);
+  const response = await api.put(`/v1/admin/users/${userId}`, userData);
   return response.data;
 };
 
@@ -132,7 +132,7 @@ export const updateUser = async (userId, userData) => {
  * Delete a user
  */
 export const deleteUser = async (userId) => {
-  const response = await api.delete(`/admin/users/${userId}`);
+  const response = await api.delete(`/v1/admin/users/${userId}`);
   return response.data;
 };
 
@@ -140,7 +140,7 @@ export const deleteUser = async (userId) => {
  * Toggle user status (Active/Inactive)
  */
 export const toggleUserStatus = async (userId) => {
-  const response = await api.patch(`/admin/users/${userId}/toggle-status`);
+  const response = await api.patch(`/v1/admin/users/${userId}/toggle-status`);
   return response.data;
 };
 
@@ -150,7 +150,7 @@ export const toggleUserStatus = async (userId) => {
  * Create a new branch
  */
 export const createBranch = async (branchData) => {
-  const response = await api.post("/admin/branches", branchData);
+  const response = await api.post("/v1/admin/branches", branchData);
   return response.data;
 };
 
@@ -158,7 +158,7 @@ export const createBranch = async (branchData) => {
  * Update branch details
  */
 export const updateBranch = async (branchId, branchData) => {
-  const response = await api.put(`/admin/branches/${branchId}`, branchData);
+  const response = await api.put(`/v1/admin/branches/${branchId}`, branchData);
   return response.data;
 };
 
@@ -166,7 +166,7 @@ export const updateBranch = async (branchId, branchData) => {
  * Delete a branch
  */
 export const deleteBranch = async (branchId) => {
-  const response = await api.delete(`/admin/branches/${branchId}`);
+  const response = await api.delete(`/v1/admin/branches/${branchId}`);
   return response.data;
 };
 
@@ -174,7 +174,7 @@ export const deleteBranch = async (branchId) => {
  * Toggle branch status (Active/Inactive)
  */
 export const toggleBranchStatus = async (branchId) => {
-  const response = await api.patch(`/admin/branches/${branchId}/toggle-status`);
+  const response = await api.patch(`/v1/admin/branches/${branchId}/toggle-status`);
   return response.data;
 };
 
@@ -182,7 +182,7 @@ export const toggleBranchStatus = async (branchId) => {
  * Get managers list (for branch assignment)
  */
 export const getManagers = async () => {
-  const response = await api.get("/admin/users/managers");
+  const response = await api.get("/v1/admin/users/managers");
   return response.data;
 };
 
@@ -190,7 +190,7 @@ export const getManagers = async () => {
  * Get users by branch
  */
 export const getUsersByBranch = async (branchId) => {
-  const response = await api.get(`/admin/branches/${branchId}/users`);
+  const response = await api.get(`/v1/admin/branches/${branchId}/users`);
   return response.data;
 };
 
@@ -200,7 +200,7 @@ export const getUsersByBranch = async (branchId) => {
  * Get all terminals
  */
 export const getAllTerminals = async () => {
-  const response = await api.get("/admin/terminals");
+  const response = await api.get("/v1/admin/terminals");
   return response.data;
 };
 
@@ -208,7 +208,7 @@ export const getAllTerminals = async () => {
  * Search terminals
  */
 export const searchTerminals = async (query) => {
-  const response = await api.get("/admin/terminals/search", {
+  const response = await api.get("/v1/admin/terminals/search", {
     params: { q: query },
   });
   return response.data;
@@ -218,7 +218,7 @@ export const searchTerminals = async (query) => {
  * Create a new terminal
  */
 export const createTerminal = async (terminalData) => {
-  const response = await api.post("/admin/terminals", terminalData);
+  const response = await api.post("/v1/admin/terminals", terminalData);
   return response.data;
 };
 
@@ -226,7 +226,7 @@ export const createTerminal = async (terminalData) => {
  * Update terminal details
  */
 export const updateTerminal = async (terminalId, terminalData) => {
-  const response = await api.put(`/admin/terminals/${terminalId}`, terminalData);
+  const response = await api.put(`/v1/admin/terminals/${terminalId}`, terminalData);
   return response.data;
 };
 
@@ -234,7 +234,7 @@ export const updateTerminal = async (terminalId, terminalData) => {
  * Delete a terminal
  */
 export const deleteTerminal = async (terminalId) => {
-  const response = await api.delete(`/admin/terminals/${terminalId}`);
+  const response = await api.delete(`/v1/admin/terminals/${terminalId}`);
   return response.data;
 };
 
@@ -242,7 +242,7 @@ export const deleteTerminal = async (terminalId) => {
  * Toggle terminal status (Active/Inactive)
  */
 export const toggleTerminalStatus = async (terminalId) => {
-  const response = await api.patch(`/admin/terminals/${terminalId}/toggle-status`);
+  const response = await api.patch(`/v1/admin/terminals/${terminalId}/toggle-status`);
   return response.data;
 };
 
@@ -250,7 +250,7 @@ export const toggleTerminalStatus = async (terminalId) => {
  * Get terminal by ID
  */
 export const getTerminalById = async (terminalId) => {
-  const response = await api.get(`/admin/terminals/${terminalId}`);
+  const response = await api.get(`/v1/admin/terminals/${terminalId}`);
   return response.data;
 };
 
@@ -260,7 +260,7 @@ export const getTerminalById = async (terminalId) => {
  * Get all activity logs
  */
 export const getActivityLogs = async (filters = {}) => {
-  const response = await api.get("/admin/activity-logs", { params: filters });
+  const response = await api.get("/v1/admin/activity-logs", { params: filters });
   return response.data;
 };
 
@@ -268,7 +268,7 @@ export const getActivityLogs = async (filters = {}) => {
  * Search activity logs
  */
 export const searchActivityLogs = async (query, filters = {}) => {
-  const response = await api.get("/admin/activity-logs/search", {
+  const response = await api.get("/v1/admin/activity-logs/search", {
     params: { q: query, ...filters },
   });
   return response.data;
@@ -280,7 +280,7 @@ export const searchActivityLogs = async (query, filters = {}) => {
  * Get user for password reset
  */
 export const getUserForPasswordReset = async (userId) => {
-  const response = await api.get(`/admin/users/${userId}/password-info`);
+  const response = await api.get(`/v1/admin/users/${userId}/password-info`);
   return response.data;
 };
 
@@ -288,7 +288,7 @@ export const getUserForPasswordReset = async (userId) => {
  * Issue password reset for a user
  */
 export const issuePasswordReset = async (userId, tempPassword) => {
-  const response = await api.post(`/admin/users/${userId}/password-reset`, {
+  const response = await api.post(`/v1/admin/users/${userId}/password-reset`, {
     tempPassword,
   });
   return response.data;
@@ -298,6 +298,6 @@ export const issuePasswordReset = async (userId, tempPassword) => {
  * Generate temporary password (server-side)
  */
 export const generateTempPassword = async () => {
-  const response = await api.get("/admin/users/generate-temp-password");
+  const response = await api.get("/v1/admin/users/generate-temp-password");
   return response.data;
 };

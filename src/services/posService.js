@@ -226,7 +226,10 @@ export const posService = {
     }),
 
     // ========== RETURNS ==========
-    // Get sale for return
+    // Get returnable sales (last N days PAID sales with full item details)
+    getReturnableSales: (days = 7) => api.get('/sales/returnable', { params: { days } }),
+
+    // Get sale for return by invoice number
     getSaleForReturn: (invoiceNo) => api.get(`/sales/invoice/${invoiceNo}`),
 
     // Process return - matches sales_returns, sales_return_items tables
