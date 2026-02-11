@@ -5,11 +5,12 @@ import {
   getAllBranches,
   createBranch,
   updateBranch,
-  deleteBranch,
+  deleteBranchWithPassword,
   toggleBranchStatus,
   getManagers,
   getUsersByBranch,
 } from "../services/adminApi";
+import AdminPasswordModal from "../components/AdminPasswordModal";
 
 export default function Branches() {
   const [q, setQ] = useState("");
@@ -25,6 +26,10 @@ export default function Branches() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const dropdownButtonRefs = useRef({});
+
+  // Delete confirmation with password
+  const [deleteModal, setDeleteModal] = useState({ open: false, branchId: null, branchName: '' });
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const toggleDropdown = (id) => {
     if (activeDropdown === id) {
@@ -166,17 +171,24 @@ export default function Branches() {
     }
   }
 
-  async function handleDeleteBranch(branchId) {
-    if (window.confirm("Are you sure you want to delete this branch?")) {
-      try {
-        await deleteBranch(branchId);
-        const data = await getAllBranches();
-        setBranches(data || []);
-        setActiveDropdown(null);
-      } catch (err) {
-        console.error("Error deleting branch:", err);
-        alert("Failed to delete branch. Please try again.");
-      }
+  function handleDeleteBranch(branchId) {
+    const branch = branches.find(b => (b.branchId || b.id) === branchId);
+    setDeleteModal({ open: true, branchId, branchName: branch?.branchName || branch?.name || 'this branch' });
+    setActiveDropdown(null);
+  }
+
+  async function confirmDeleteBranch(password) {
+    try {
+      setDeleteLoading(true);
+      await deleteBranchWithPassword(deleteModal.branchId, password);
+      const data = await getAllBranches();
+      setBranches(data || []);
+      setDeleteModal({ open: false, branchId: null, branchName: '' });
+    } catch (err) {
+      console.error("Error deleting branch:", err);
+      alert(err?.response?.data?.message || err.message || "Incorrect password or failed to delete branch.");
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
@@ -507,6 +519,14 @@ export default function Branches() {
         </div>,
         document.body
       )}
+      {/* Admin Password Confirmation Modal for Deleting Branches */}
+      <AdminPasswordModal
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, branchId: null, branchName: '' })}
+        onConfirm={confirmDeleteBranch}
+        actionLabel={`Delete branch "${deleteModal.branchName}"`}
+        loading={deleteLoading}
+      />
     </div>
   );
 }

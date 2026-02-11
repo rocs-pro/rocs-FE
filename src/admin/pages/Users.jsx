@@ -6,10 +6,11 @@ import {
     searchUsers,
     registerManager,
     updateUser,
-    deleteUser,
+    deleteUserWithPassword,
     toggleUserStatus,
     getAllBranches,
 } from "../services/adminApi";
+import AdminPasswordModal from "../components/AdminPasswordModal";
 
 export default function Users() {
     const [users, setUsersState] = useState([]);
@@ -34,6 +35,10 @@ export default function Users() {
     const [submitting, setSubmitting] = useState(false);
     const dropdownButtonRefs = useRef({});
     const searchTimeoutRef = useRef(null);
+
+    // Delete confirmation with password
+    const [deleteModal, setDeleteModal] = useState({ open: false, userId: null, userName: '' });
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const toggleDropdown = (id) => {
         if (activeDropdown === id) {
@@ -163,18 +168,24 @@ export default function Users() {
         }
     }
 
-    async function handleDeleteUser(userId) {
-        if (window.confirm("Are you sure you want to delete this user?")) {
-            try {
-                await deleteUser(userId);
-                // Refresh users list
-                const data = await getAllUsers();
-                setUsersState(data || []);
-                setActiveDropdown(null);
-            } catch (err) {
-                console.error("Error deleting user:", err);
-                alert("Failed to delete user. Please try again.");
-            }
+    function handleDeleteUser(userId) {
+        const user = users.find(u => (u.userId || u.id) === userId);
+        setDeleteModal({ open: true, userId, userName: user?.fullName || user?.username || 'this user' });
+        setActiveDropdown(null);
+    }
+
+    async function confirmDeleteUser(password) {
+        try {
+            setDeleteLoading(true);
+            await deleteUserWithPassword(deleteModal.userId, password);
+            const data = await getAllUsers();
+            setUsersState(data || []);
+            setDeleteModal({ open: false, userId: null, userName: '' });
+        } catch (err) {
+            console.error("Error deleting user:", err);
+            alert(err?.response?.data?.message || err.message || "Incorrect password or failed to delete user.");
+        } finally {
+            setDeleteLoading(false);
         }
     }
 
@@ -557,6 +568,14 @@ export default function Users() {
                     </div>,
                     document.body
                 )}
+            {/* Admin Password Confirmation Modal for Deleting Users */}
+            <AdminPasswordModal
+                isOpen={deleteModal.open}
+                onClose={() => setDeleteModal({ open: false, userId: null, userName: '' })}
+                onConfirm={confirmDeleteUser}
+                actionLabel={`Delete user "${deleteModal.userName}"`}
+                loading={deleteLoading}
+            />
         </div>
     );
 }

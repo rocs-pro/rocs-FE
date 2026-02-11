@@ -1,5 +1,4 @@
-import TodaysSalesCard from "../components/TodaysSalesCard";
-import BranchOverview from "../components/BranchOverview";
+import BranchCards from "../components/BranchCards";
 import UserStatsByRole from "../components/UserStatsByRole";
 import TopBranchesChart from "../components/TopBranchesChart";
 import CustomerRecurrenceChart from "../components/CustomerRecurrenceChart";
@@ -16,23 +15,22 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Row 1: Today's Sales, Branch Overview, Users by Role */}
+      {/* Row 1: Branch Cards (full width) + Users by Role */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <TodaysSalesCard />
-        <BranchOverview />
-        <UserStatsByRole />
+        <BranchCards />
       </div>
 
-      {/* Row 2: Performance Charts */}
+      {/* Row 2: Users by Role */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <UserStatsByRole />
+        <TopManagersCard />
+        <AdminQuickActions />
+      </div>
+
+      {/* Row 3: Performance Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <TopBranchesChart />
         <CustomerRecurrenceChart />
-      </div>
-
-      {/* Row 3: Top Managers + Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <TopManagersCard />
-        <AdminQuickActions />
       </div>
     </div>
   );

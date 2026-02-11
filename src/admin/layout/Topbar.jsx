@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Clock from "../../shared/Clock";
 import { useState, useEffect } from "react";
-import { LogOut, LayoutDashboard, Bell } from "lucide-react";
+import { LogOut, LayoutDashboard, Bell, Users } from "lucide-react";
 import { useNotification } from "../../pos/context/NotificationContext";
 
 export default function Topbar() {
@@ -38,6 +38,14 @@ export default function Topbar() {
       </div>
 
       <div className="flex items-center gap-3">
+        <button
+          onClick={() => navigate('/manager')}
+          className="group flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-emerald-50 rounded-lg text-sm font-medium transition-all duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:border hover:border-emerald-200"
+        >
+          <Users size={16} className="text-slate-600 group-hover:text-emerald-600 transition-colors" />
+          <span className="hidden sm:inline text-slate-700 group-hover:text-emerald-700 transition-colors">Manager</span>
+        </button>
+
         <button
           onClick={() => navigate('/inventory')}
           className="group flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-blue-50 rounded-lg text-sm font-medium transition-all duration-300 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:border hover:border-blue-200"
