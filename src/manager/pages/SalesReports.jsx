@@ -4,7 +4,7 @@ import {
   TrendingUp, TrendingDown, DollarSign, FileText, ChevronDown,
   ChevronUp, Printer, CreditCard, Banknote, ArrowDownRight
 } from "lucide-react";
-import { getSalesReports, getSalesSummaryByTerminal } from "../../services/managerService";
+import { getSalesReports, getSalesSummaryByTerminal, getSalesReportsPdf } from "../../services/managerService";
 
 // Comparison Card Component
 function ComparisonCard({ title, current, previous, prefix = "", isCurrency = false }) {
@@ -160,7 +160,8 @@ function TerminalRow({ terminal }) {
 
 export default function SalesReports() {
   const [reports, setReports] = useState([]);
-  const [terminalReports, setTerminalReports] = useState([]); // New state for terminal reports
+  const [prevReports, setPrevReports] = useState([]); // Store previous period data
+  const [terminalReports, setTerminalReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -184,16 +185,43 @@ export default function SalesReports() {
         const data = await getSalesSummaryByTerminal({ startDate, endDate });
         setTerminalReports(Array.isArray(data) ? data : []);
       } else {
-        const data = await getSalesReports({ startDate, endDate });
-        if (Array.isArray(data) && data.length > 0) {
-          setReports(data);
+        // Calculate previous period dates
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Difference in days
+
+        const prevEnd = new Date(start);
+        prevEnd.setDate(prevEnd.getDate() - 1);
+
+        const prevStart = new Date(prevEnd);
+        prevStart.setDate(prevStart.getDate() - diffDays);
+
+        const prevStartDate = prevStart.toISOString().split('T')[0];
+        const prevEndDate = prevEnd.toISOString().split('T')[0];
+
+        // Fetch both current and previous period data
+        const [currentData, previousData] = await Promise.all([
+          getSalesReports({ startDate, endDate }),
+          getSalesReports({ startDate: prevStartDate, endDate: prevEndDate })
+        ]);
+
+        if (Array.isArray(currentData)) {
+          setReports(currentData);
         } else {
           setReports([]);
+        }
+
+        if (Array.isArray(previousData)) {
+          setPrevReports(previousData);
+        } else {
+          setPrevReports([]);
         }
       }
     } catch (err) {
       console.error("Failed to load sales reports", err);
-      // Keep previous data if any, or clear if needed.
+      setReports([]);
+      setPrevReports([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -213,7 +241,7 @@ export default function SalesReports() {
     );
   }, [reports, searchTerm]);
 
-  // Calculate totals
+  // Calculate totals for CURRENT period
   const totals = useMemo(() => {
     if (filteredReports.length === 0) return null;
 
@@ -228,27 +256,33 @@ export default function SalesReports() {
     };
   }, [filteredReports]);
 
-  // Calculate comparisons (current period vs same length previous period)
-  const comparisons = useMemo(() => {
-    if (!totals || filteredReports.length === 0) return null;
+  // Calculate totals for PREVIOUS period
+  const prevTotals = useMemo(() => {
+    if (prevReports.length === 0) return null;
 
-    // Estimate previous period (would need another API call for accuracy)
-    const prevRevenue = totals.revenue * 0.92; // Simulated ~8% growth
-    const prevTransactions = totals.invoices - Math.floor(totals.invoices * 0.05);
-    const prevCost = totals.cost * 0.93;
-    const prevProfit = totals.profit * 0.88;
+    return {
+      invoices: prevReports.reduce((sum, r) => sum + (r.invoices || 0), 0),
+      revenue: prevReports.reduce((sum, r) => sum + Number(r.revenue || 0), 0),
+      cost: prevReports.reduce((sum, r) => sum + Number(r.cost || 0), 0),
+      profit: prevReports.reduce((sum, r) => sum + Number(r.profit || 0), 0),
+    };
+  }, [prevReports]);
+
+  // Calculate comparisons (current period vs REAL previous period)
+  const comparisons = useMemo(() => {
+    if (!totals) return null;
 
     return {
       currentRevenue: totals.revenue,
-      previousRevenue: prevRevenue,
+      previousRevenue: prevTotals ? prevTotals.revenue : 0,
       currentTransactions: totals.invoices,
-      previousTransactions: prevTransactions,
+      previousTransactions: prevTotals ? prevTotals.invoices : 0,
       currentCost: totals.cost,
-      previousCost: prevCost,
+      previousCost: prevTotals ? prevTotals.cost : 0,
       currentProfit: totals.profit,
-      previousProfit: prevProfit
+      previousProfit: prevTotals ? prevTotals.profit : 0
     };
-  }, [totals, filteredReports]);
+  }, [totals, prevTotals]);
 
   const toggleRowExpand = (date) => {
     setExpandedRows(prev => {
@@ -262,60 +296,21 @@ export default function SalesReports() {
     });
   };
 
-  const exportReport = () => {
-    const lines = [];
-    lines.push("📊 SMART RETAIL PRO - SALES REPORTS");
-    lines.push("=".repeat(80));
-    lines.push(`📅 Period: ${startDate} to ${endDate}`);
-    lines.push(`📅 Generated: ${new Date().toLocaleString()}`);
-    lines.push("=".repeat(80));
-    lines.push("");
-
-    if (activeTab === 'terminals') {
-      lines.push("Terminal,Code,Transactions,Revenue,Cash Sales,Card Sales,Share %");
-      terminalReports.forEach(t => {
-        lines.push([
-          t.name,
-          t.code,
-          t.transactionCount,
-          t.revenue,
-          t.cashSales,
-          t.cardSales,
-          ((t.revenue / t.totalRevenue) * 100).toFixed(1)
-        ].join(','));
-      });
-    } else {
-      lines.push("Date,Day,Invoices,Revenue,Cost,Profit,Cash,Card,Returns,Avg Basket,Margin %");
-      filteredReports.forEach(r => {
-        lines.push([
-          r.date,
-          r.dayName,
-          r.invoices,
-          Number(r.revenue || 0).toFixed(2),
-          Number(r.cost || 0).toFixed(2),
-          Number(r.profit || 0).toFixed(2),
-          Number(r.cashSales || 0).toFixed(2),
-          Number(r.cardSales || 0).toFixed(2),
-          Number(r.returns || 0).toFixed(2),
-          Number(r.avgBasket || 0).toFixed(2),
-          (r.profitMargin || 0).toFixed(1)
-        ].join(','));
-      });
-
-      if (totals) {
-        lines.push("");
-        lines.push(`TOTALS,--,${totals.invoices},${totals.revenue.toFixed(2)},${totals.cost.toFixed(2)},${totals.profit.toFixed(2)},${totals.cashSales.toFixed(2)},${totals.cardSales.toFixed(2)},${totals.returns.toFixed(2)},--,--`);
-      }
+  const exportReport = async () => {
+    try {
+      const blob = await getSalesReportsPdf(startDate, endDate);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sales_report_${startDate}_${endDate}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export PDF", err);
+      alert("Failed to export report. Please try again.");
     }
-
-    const csv = "\uFEFF" + lines.join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `sales-report-${activeTab}-${startDate}-to-${endDate}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -362,7 +357,7 @@ export default function SalesReports() {
             className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-medium transition-colors"
           >
             <Download size={16} />
-            Export CSV
+            Export PDF
           </button>
         </div>
       </div>

@@ -451,7 +451,7 @@ export const inventoryService = {
             // If no branchId provided, get from localStorage or use default
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const effectiveBranchId = branchId || user.branchId || 1;
-            
+
             const response = await api.get(`/inventory/grn/branch/${effectiveBranchId}`);
             const grns = response.data.data || response.data;
             const mapped = mapGRNsFromBackend(grns);
@@ -525,7 +525,7 @@ export const inventoryService = {
     createGRN: async (grnData) => {
         try {
             console.log('[InventoryService] Create GRN:', grnData);
-            
+
             // Transform GRN data to backend format
             const backendData = {
                 branchId: grnData.branch_id,
@@ -542,19 +542,19 @@ export const inventoryService = {
                     unitPrice: item.unit_price
                 }))
             };
-            
+
             console.log('[InventoryService] Create GRN backend data:', backendData);
-            
+
             // Get current user ID
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const userId = user.userId || user.id || 1;
-            
+
             const response = await api.post('/inventory/grn', backendData, {
                 headers: {
                     'User-ID': userId
                 }
             });
-            
+
             const grn = response.data.data || response.data;
             console.log('[InventoryService] Create GRN response:', grn);
             return mapGRNFromBackend(grn);
@@ -574,7 +574,7 @@ export const inventoryService = {
     updateGRN: async (grnId, grnData) => {
         try {
             console.log('[InventoryService] Update GRN:', grnId, grnData);
-            
+
             const backendData = {
                 grnDate: grnData.grn_date,
                 invoiceNo: grnData.invoice_no,
@@ -587,7 +587,7 @@ export const inventoryService = {
                     unitPrice: item.unit_price
                 }))
             };
-            
+
             const response = await api.put(`/inventory/grn/${grnId}`, backendData);
             const grn = response.data.data || response.data;
             return mapGRNFromBackend(grn);
@@ -607,7 +607,7 @@ export const inventoryService = {
             console.log('[InventoryService] Approve GRN:', grnId);
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const userId = user.userId || user.id || 1;
-            
+
             const response = await api.put(`/inventory/grn/${grnId}/approve`, {}, {
                 headers: {
                     'User-ID': userId
@@ -632,7 +632,7 @@ export const inventoryService = {
             console.log('[InventoryService] Reject GRN:', grnId, reason);
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const userId = user.userId || user.id || 1;
-            
+
             const response = await api.put(`/inventory/grn/${grnId}/reject`, {}, {
                 headers: {
                     'User-ID': userId
@@ -756,6 +756,23 @@ export const inventoryService = {
         }
     },
 
+    /**
+     * Download GRN List as PDF
+     * @returns {Promise<Blob>} PDF Blob
+     */
+    getGrnListPdf: async () => {
+        try {
+            const response = await api.get('/inventory/grn/reports/pdf', {
+                responseType: 'blob'
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error downloading GRN List PDF:', error);
+            throw error;
+        }
+    },
+
+
     // ============= SUPPLIERS =============
 
     /**
@@ -800,29 +817,14 @@ export const inventoryService = {
      */
     createSupplier: async (supplierData) => {
         try {
-            // Remove supplier_id if it's empty to avoid sending empty string as ID
             // eslint-disable-next-line no-unused-vars
             const { supplier_id, ...rest } = supplierData;
-
-            // Add required fields for backend
-            const dataWithDefaults = {
-                ...rest,
-                contacts: rest.contacts || [],
-                branches: rest.branches || [],
-                createdBy: rest.createdBy || 1
-            };
-
-            const backendData = mapSupplierToBackend(dataWithDefaults);
-            console.log('[InventoryService] Creating supplier with data:', backendData);
-
+            const backendData = mapSupplierToBackend(rest);
             const response = await api.post('/inventory/suppliers', backendData);
             const supplier = response.data.data || response.data;
             return mapSupplierFromBackend(supplier);
         } catch (error) {
             console.error('Error creating supplier:', error);
-            if (error.response) {
-                console.error('Backend validation errors:', error.response.data);
-            }
             throw error;
         }
     },
@@ -836,7 +838,7 @@ export const inventoryService = {
     updateSupplier: async (supplierId, supplierData) => {
         try {
             const backendData = mapSupplierToBackend(supplierData);
-            const response = await api.put(`/suppliers/${supplierId}`, backendData);
+            const response = await api.put(`/inventory/suppliers/${supplierId}`, backendData);
             const supplier = response.data.data || response.data;
             return mapSupplierFromBackend(supplier);
         } catch (error) {

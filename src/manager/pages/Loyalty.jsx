@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Users, Star, Activity, Percent, Filter, Search, Download, Award, Shield, UserCheck, AlertTriangle } from "lucide-react";
-import { getLoyaltyCustomers, getLoyaltyStats, getTierRules } from "../../services/managerService";
+import { getLoyaltyCustomers, getLoyaltyStats, getTierRules, getLoyaltyCustomersPdf } from "../../services/managerService";
 import CustomerDetailsModal from "../modals/CustomerDetailsModal";
 import TierEditModal from "../modals/TierEditModal";
 import CampaignConfigModal from "../modals/CampaignConfigModal";
@@ -66,11 +66,34 @@ export default function Loyalty() {
             ]);
 
             setStats(statsData || []);
+
+            const currentRules = rulesData || { Silver: 10000, Gold: 50000, Platinum: 100000 };
+            if (rulesData) setTierRules(rulesData);
+
+            // Process customers - calculate correct tier based on POINTS
+            const processedCustomers = (custData || []).map(customer => {
+                let calculatedTier = 'Bronze';
+                // Check points instead of spend
+                const points = parseFloat(customer.availablePoints || customer.points || 0);
+
+                if (points >= (currentRules.Platinum || 100000)) {
+                    calculatedTier = 'Platinum';
+                } else if (points >= (currentRules.Gold || 50000)) {
+                    calculatedTier = 'Gold';
+                } else if (points >= (currentRules.Silver || 10000)) {
+                    calculatedTier = 'Silver';
+                }
+
+                return {
+                    ...customer,
+                    tier: calculatedTier // Override with calculated tier based on points
+                };
+            });
+
             // Sort by Points (Descending)
-            const sorted = (custData || []).sort((a, b) => b.availablePoints - a.availablePoints);
+            const sorted = processedCustomers.sort((a, b) => b.availablePoints - a.availablePoints);
             setCustomers(sorted);
 
-            if (rulesData) setTierRules(rulesData);
         } catch (err) {
             console.error("Failed to load loyalty data", err);
         } finally {
@@ -88,6 +111,23 @@ export default function Loyalty() {
         return matchesSearch && matchesTier;
     });
 
+    const handleExport = async () => {
+        try {
+            const blob = await getLoyaltyCustomersPdf();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "loyalty_customers.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Failed to export PDF", err);
+            alert("Failed to export report. Please try again.");
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* HEADER */}
@@ -97,8 +137,11 @@ export default function Loyalty() {
                     <p className="text-slate-500 text-sm">Manage customer relationships, tiers, and rewards.</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50">
-                        <Download size={16} /> Export CSV
+                    <button
+                        onClick={handleExport}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50"
+                    >
+                        <Download size={16} /> Export PDF
                     </button>
                     <button
                         onClick={() => setShowCampaignConfig(true)}
@@ -230,8 +273,8 @@ export default function Loyalty() {
                                             key={c.id}
                                             onClick={() => setSelectedCustomer(c)}
                                             className={`group transition-colors cursor-pointer border-l-4 ${c.status === 'Inactive' || c.status === 'Blocked'
-                                                    ? 'bg-red-50 hover:bg-red-100 border-l-red-500'
-                                                    : 'hover:bg-slate-50 border-l-transparent'
+                                                ? 'bg-red-50 hover:bg-red-100 border-l-red-500'
+                                                : 'hover:bg-slate-50 border-l-transparent'
                                                 }`}
                                         >
                                             <td className="p-4" onClick={(e) => e.stopPropagation()}>

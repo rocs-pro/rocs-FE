@@ -114,7 +114,7 @@ const InventoryToastNotification = () => {
                 placeholder={promptDialog.placeholder}
             />
 
-            <style jsx>{`
+            <style>{`
                 @keyframes shrinkWidth {
                     from {
                         width: 100%;

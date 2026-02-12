@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, FileText, CheckCircle, Clock, Save, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Search, FileText, CheckCircle, Clock, Save, Trash2, ArrowLeft, Download } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 import { useInventoryNotification } from './context/InventoryNotificationContext';
 import { useEnterKeyNavigation } from '../hooks/useEnterKeyNavigation';
@@ -244,6 +244,24 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
         }
     };
 
+    const handleExportPdf = async () => {
+        try {
+            const blob = await inventoryService.getGrnListPdf();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `grn_list_${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            success('GRN List exported successfully');
+        } catch (err) {
+            console.error('Failed to export GRN PDF:', err);
+            error('Failed to export GRN List');
+        }
+    };
+
     if (view === 'detail' && selectedGRN) {
         return (
             <div className="space-y-6">
@@ -317,7 +335,8 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                     <label className="block text-sm font-medium text-gray-500">Payment Status</label>
                                     <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${selectedGRN.payment_status === 'PAID' ? 'bg-green-100 text-green-700' :
                                         selectedGRN.payment_status === 'PARTIALLY_PAID' ? 'bg-yellow-100 text-yellow-700' :
-                                            'bg-red-100 text-red-700'
+                                            selectedGRN.payment_status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                                'bg-gray-100 text-gray-700'
                                         }`}>
                                         {selectedGRN.payment_status || 'UNPAID'}
                                     </span>
@@ -676,6 +695,12 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                         />
                     </div>
                     <button
+                        onClick={handleExportPdf}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                        <Download size={20} /> Export PDF
+                    </button>
+                    <button
                         onClick={() => setView('create')}
                         className="flex items-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors"
                     >
@@ -695,6 +720,7 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Date</th>
                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Amount</th>
                             <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Status</th>
+                            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Payment</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -719,11 +745,20 @@ const GRNManagementScreen = ({ items, suppliers, branches, categories = [], subC
                                             {grn.status}
                                         </span>
                                     </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${grn.payment_status === 'PAID' ? 'bg-green-100 text-green-700' :
+                                            grn.payment_status === 'PARTIALLY_PAID' ? 'bg-yellow-100 text-yellow-700' :
+                                                grn.payment_status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                                    'bg-gray-100 text-gray-700'
+                                            }`}>
+                                            {grn.payment_status || 'UNPAID'}
+                                        </span>
+                                    </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
                                     <div className="flex flex-col items-center justify-center">
                                         <FileText size={48} className="text-gray-300 mb-4" />
                                         <p className="text-lg font-medium text-gray-900">No GRNs Found</p>

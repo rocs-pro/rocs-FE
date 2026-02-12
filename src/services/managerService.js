@@ -302,6 +302,58 @@ export const getApprovalHistoryPdf = async () => {
   }
 };
 
+export const getSalesReportsPdf = async (startDate, endDate) => {
+  try {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    const response = await api.get(`${MANAGER_API_BASE}/reports/sales/pdf?${params}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error downloading sales report PDF:", error);
+    throw error;
+  }
+};
+
+export const getBranchActivityLogPdf = async (limit = 100) => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/reports/activity-log/pdf?limit=${limit}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error downloading activity log PDF:", error);
+    throw error;
+  }
+};
+
+export const getLoyaltyCustomersPdf = async () => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/reports/loyalty/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error downloading loyalty customers PDF:", error);
+    throw error;
+  }
+};
+
+export const getGrnListPdf = async () => {
+  try {
+    const response = await api.get(`${MANAGER_API_BASE}/reports/grns/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error downloading GRN list PDF:", error);
+    throw error;
+  }
+};
+
 // ============================================
 // BRANCH ACTIVITY LOG
 // ============================================

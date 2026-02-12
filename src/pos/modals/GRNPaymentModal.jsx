@@ -174,7 +174,12 @@ export default function GRNPaymentModal({ isOpen, onClose, branchId, onNotificat
 
     const openPayModal = (request) => {
         setSelectedRequest(request);
-        setPaymentForm(prev => ({ ...prev, amountPaid: request.amount }));
+        setPaymentForm({
+            paymentMethod: 'CASH',
+            paymentReference: '',
+            amountPaid: request.amount,
+            notes: ''
+        });
         setShowPayModal(true);
     };
 
@@ -430,7 +435,10 @@ export default function GRNPaymentModal({ isOpen, onClose, branchId, onNotificat
                                 <input
                                     type="text"
                                     value={paymentForm.paymentReference}
-                                    onChange={(e) => setPaymentForm(prev => ({ ...prev, paymentReference: e.target.value }))}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setPaymentForm(prev => ({ ...prev, paymentReference: val }));
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     placeholder="Cheque no, transfer ref, etc."
                                 />
@@ -451,7 +459,10 @@ export default function GRNPaymentModal({ isOpen, onClose, branchId, onNotificat
                                 <input
                                     type="text"
                                     value={supervisorCreds.username}
-                                    onChange={(e) => setSupervisorCreds(prev => ({ ...prev, username: e.target.value }))}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSupervisorCreds(prev => ({ ...prev, username: val }));
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     placeholder="Enter supervisor username"
                                 />
@@ -464,7 +475,10 @@ export default function GRNPaymentModal({ isOpen, onClose, branchId, onNotificat
                                 <input
                                     type="password"
                                     value={supervisorCreds.password}
-                                    onChange={(e) => setSupervisorCreds(prev => ({ ...prev, password: e.target.value }))}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSupervisorCreds(prev => ({ ...prev, password: val }));
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     placeholder="Enter supervisor password"
                                 />
@@ -476,7 +490,10 @@ export default function GRNPaymentModal({ isOpen, onClose, branchId, onNotificat
                                 </label>
                                 <textarea
                                     value={paymentForm.notes}
-                                    onChange={(e) => setPaymentForm(prev => ({ ...prev, notes: e.target.value }))}
+                                    onChange={(e) => {
+                                        const newValue = e.target.value;
+                                        setPaymentForm(prev => ({ ...prev, notes: newValue }));
+                                    }}
                                     rows={2}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     placeholder="Payment notes..."
@@ -551,7 +568,10 @@ export default function GRNPaymentModal({ isOpen, onClose, branchId, onNotificat
                                 <input
                                     type="text"
                                     value={supervisorCreds.username}
-                                    onChange={(e) => setSupervisorCreds(prev => ({ ...prev, username: e.target.value }))}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSupervisorCreds(prev => ({ ...prev, username: val }));
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Enter supervisor username"
                                 />
@@ -564,7 +584,10 @@ export default function GRNPaymentModal({ isOpen, onClose, branchId, onNotificat
                                 <input
                                     type="password"
                                     value={supervisorCreds.password}
-                                    onChange={(e) => setSupervisorCreds(prev => ({ ...prev, password: e.target.value }))}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSupervisorCreds(prev => ({ ...prev, password: val }));
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Enter supervisor password"
                                 />

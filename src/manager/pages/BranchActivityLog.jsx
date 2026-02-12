@@ -6,7 +6,7 @@ import {
     LogOut, AlertTriangle, CheckCircle, XCircle, Eye,
     BarChart2, ArrowUpRight, ArrowDownRight, Zap
 } from "lucide-react";
-import { getBranchActivityLog } from "../../services/managerService";
+import { getBranchActivityLog, getBranchActivityLogPdf } from "../../services/managerService";
 
 // Activity type configuration
 const activityConfig = {
@@ -18,7 +18,7 @@ const activityConfig = {
 
     // Cash Management
     SHIFT_OPEN: { icon: LogIn, color: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Shift Open' },
-    SHIFT_CLOSE: { icon: LogOut, color: 'bg-indigo-100 text-indigo-700 border-indigo-200', label: 'Shift Close' },
+    SHIFT_CLOSE: { icon: LogOut, color: 'bg-rose-100 text-rose-700 border-rose-200', label: 'Shift Close' },
     CASH_IN: { icon: ArrowUpRight, color: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Cash In' },
     CASH_OUT: { icon: ArrowDownRight, color: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Cash Out' },
     CASH_FLOW_REQUEST: { icon: DollarSign, color: 'bg-purple-100 text-purple-700 border-purple-200', label: 'Cash Flow' },
@@ -78,7 +78,7 @@ function StatCard({ title, value, icon: Icon, color, trend, trendValue }) {
 }
 
 // Activity Row Component
-function ActivityRow({ activity, onExpand }) {
+function ActivityRow({ activity }) {
     const config = activityConfig[activity.actionType] || activityConfig.DEFAULT;
     const Icon = config.icon;
 
@@ -234,77 +234,21 @@ export default function BranchActivityLog() {
             setRefreshing(true);
             const data = await getBranchActivityLog(1);
 
-            if (Array.isArray(data) && data.length > 0) {
+            if (Array.isArray(data)) {
                 setActivities(data);
             } else {
-                setActivities(getMockActivities());
+                setActivities([]);
             }
         } catch (err) {
             console.error("Failed to load activities", err);
-            setActivities(getMockActivities());
+            setActivities([]);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
     };
 
-    const getMockActivities = () => {
-        const types = ['SALE', 'RETURN', 'SHIFT_OPEN', 'SHIFT_CLOSE', 'CASH_IN', 'CASH_OUT',
-            'GRN', 'LOGIN', 'APPROVAL_REQUEST', 'STOCK_ADJUSTMENT'];
-        const users = [
-            { name: 'John Perera', role: 'CASHIER' },
-            { name: 'Sarah Silva', role: 'CASHIER' },
-            { name: 'Mike Fernando', role: 'SUPERVISOR' },
-            { name: 'Admin User', role: 'MANAGER' }
-        ];
-        const terminals = [1, 2, 3, null];
-        const severities = ['INFO', 'INFO', 'INFO', 'SUCCESS', 'WARNING'];
 
-        return Array.from({ length: 50 }, (_, i) => {
-            const type = types[Math.floor(Math.random() * types.length)];
-            const user = users[Math.floor(Math.random() * users.length)];
-            const date = new Date();
-            date.setMinutes(date.getMinutes() - i * Math.floor(Math.random() * 30));
-
-            return {
-                id: i + 1,
-                activityId: i + 1,
-                actionType: type,
-                username: user.name,
-                userRole: user.role,
-                userId: i + 1,
-                description: getActivityDescription(type),
-                entityType: type === 'SALE' ? 'SALE' : type === 'GRN' ? 'GRN' : null,
-                entityId: type === 'SALE' ? Math.floor(Math.random() * 1000) + 1000 : null,
-                terminalId: terminals[Math.floor(Math.random() * terminals.length)],
-                timestamp: date.toISOString(),
-                createdAt: date.toISOString(),
-                severity: severities[Math.floor(Math.random() * severities.length)],
-                status: 'SUCCESS',
-                metadata: JSON.stringify({
-                    user: user.name,
-                    role: user.role,
-                    amount: type === 'SALE' ? Math.floor(Math.random() * 50000) + 1000 : null
-                })
-            };
-        });
-    };
-
-    const getActivityDescription = (type) => {
-        const descriptions = {
-            SALE: 'Completed sale transaction',
-            RETURN: 'Processed customer return',
-            SHIFT_OPEN: 'Opened cash register shift',
-            SHIFT_CLOSE: 'Closed cash register shift',
-            CASH_IN: 'Received cash payment',
-            CASH_OUT: 'Issued cash payout',
-            GRN: 'Created goods received note',
-            LOGIN: 'User logged into system',
-            APPROVAL_REQUEST: 'Submitted approval request',
-            STOCK_ADJUSTMENT: 'Adjusted stock quantities'
-        };
-        return descriptions[type] || 'System activity';
-    };
 
     useEffect(() => {
         fetchActivities();
@@ -368,35 +312,21 @@ export default function BranchActivityLog() {
         ];
     }, [activities]);
 
-    const exportLog = () => {
-        const lines = [];
-        lines.push("📋 SMART RETAIL PRO - BRANCH ACTIVITY LOG");
-        lines.push("=".repeat(80));
-        lines.push(`📅 Generated: ${new Date().toLocaleString()}`);
-        lines.push(`📊 Total Activities: ${filteredActivities.length}`);
-        lines.push("=".repeat(80));
-        lines.push("");
-        lines.push("Timestamp,User,Action,Description,Terminal,Status");
-
-        filteredActivities.forEach(a => {
-            lines.push([
-                new Date(a.timestamp || a.createdAt).toLocaleString(),
-                a.username || 'System',
-                a.actionType,
-                `"${a.description || a.details || ''}"`,
-                a.terminalId ? `T-${a.terminalId}` : '-',
-                a.status || 'OK'
-            ].join(','));
-        });
-
-        const csv = "\uFEFF" + lines.join("\n");
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `activity-log-${new Date().toISOString().split("T")[0]}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+    const exportLog = async () => {
+        try {
+            const blob = await getBranchActivityLogPdf(100);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `activity-log-${new Date().toISOString().split("T")[0]}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Failed to export PDF", err);
+            alert("Failed to export report. Please try again.");
+        }
     };
 
     if (loading) {
@@ -446,7 +376,7 @@ export default function BranchActivityLog() {
                         className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-medium transition-colors"
                     >
                         <Download size={16} />
-                        Export
+                        Export PDF
                     </button>
                 </div>
             </div>
@@ -540,7 +470,6 @@ export default function BranchActivityLog() {
                                     <ActivityRow
                                         key={activity.id || activity.activityId}
                                         activity={activity}
-                                        onExpand={() => { }}
                                     />
                                 ))
                             )}

@@ -277,8 +277,8 @@ export default function ManagerPayments() {
                             key={f.key}
                             onClick={() => setFilter(f.key)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === f.key
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             {f.label}
@@ -320,13 +320,16 @@ export default function ManagerPayments() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-gray-5 border-b border-gray-200">
                                 <tr>
                                     <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">GRN / Invoice</th>
                                     <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Supplier</th>
+                                    <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Request Date</th>
                                     <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
                                     <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Priority</th>
                                     <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Due Date</th>
+                                    <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Paid Date</th>
+                                    <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Paid By</th>
                                     <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                                     <th className="text-right px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
@@ -350,6 +353,9 @@ export default function ManagerPayments() {
                                                     <span className="text-gray-700">{request.supplierName}</span>
                                                 </div>
                                             </td>
+                                            <td className="px-6 py-4 text-gray-600 text-sm">
+                                                {formatDate(request.createdAt)}
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <span className="font-bold text-gray-800">
                                                     {formatCurrency(request.amount)}
@@ -362,6 +368,12 @@ export default function ManagerPayments() {
                                             </td>
                                             <td className="px-6 py-4 text-gray-600 text-sm">
                                                 {formatDate(request.dueDate)?.split(',')[0] || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-600 text-sm">
+                                                {request.status === 'PAID' ? formatDate(request.processedAt) : '-'}
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-600 text-sm">
+                                                {request.status === 'PAID' ? (request.processedByName || 'Manager') : '-'}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-3 py-1 text-xs font-medium rounded-full border ${statusConfig.color}`}>
@@ -395,6 +407,11 @@ export default function ManagerPayments() {
                                                 {request.status === 'PAID' && (
                                                     <span className="text-sm text-emerald-600 font-medium">
                                                         ✓ Completed
+                                                    </span>
+                                                )}
+                                                {request.status === 'REJECTED' && (
+                                                    <span className="text-sm text-red-600 font-medium">
+                                                        ✗ Rejected
                                                     </span>
                                                 )}
                                             </td>
@@ -446,8 +463,8 @@ export default function ManagerPayments() {
                                                     key={method.value}
                                                     onClick={() => setPaymentForm(prev => ({ ...prev, paymentMethod: method.value }))}
                                                     className={`p-3 rounded-lg border-2 text-center transition-all ${paymentForm.paymentMethod === method.value
-                                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                                        : 'border-gray-200 hover:border-gray-300 text-gray-600'
                                                         }`}
                                                 >
                                                     <MethodIcon className="w-5 h-5 mx-auto mb-1" />
