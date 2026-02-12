@@ -7,6 +7,7 @@ export const STORAGE_KEYS = {
   users: "srp_users",
   activity: "srp_activity",
   branches: "srp_branches",
+  quickItems: "pos_quick_pick_items",
 };
 
 function safeParse(json, fallback) {
@@ -26,6 +27,20 @@ export function loadJSON(key, fallback) {
 export function saveJSON(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
+
+export function getQuickItems(terminalId) {
+  const key = terminalId ? `${STORAGE_KEYS.quickItems}_${terminalId}` : STORAGE_KEYS.quickItems;
+  // Fallback to legacy key (no terminal ID) if specific one is empty? 
+  // Maybe not, to ensure strict separation. But user might want to migrate.
+  // For now, let's keep it clean.
+  return loadJSON(key, []);
+}
+
+export function saveQuickItemsHelper(terminalId, items) {
+  const key = terminalId ? `${STORAGE_KEYS.quickItems}_${terminalId}` : STORAGE_KEYS.quickItems;
+  saveJSON(key, items);
+}
+
 
 export function ensureAdminSeed({ seedUsers, seedActivity, seedBranches }) {
   if (!localStorage.getItem(STORAGE_KEYS.users)) {

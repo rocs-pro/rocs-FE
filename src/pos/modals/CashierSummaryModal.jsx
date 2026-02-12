@@ -70,33 +70,6 @@ export default function CashierSummaryModal({ cashierName, shiftId, summary, loa
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-3">
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" /> Gross
-                </div>
-                <div className="text-sm font-mono font-bold text-slate-800">LKR {formatMoney(grossTotal)}</div>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
-                  <Receipt className="w-3 h-3" /> Net
-                </div>
-                <div className="text-sm font-mono font-bold text-slate-800">LKR {formatMoney(netTotal)}</div>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
-                  <Percent className="w-3 h-3" /> Discount
-                </div>
-                <div className="text-sm font-mono font-bold text-slate-800">LKR {formatMoney(discountTotal)}</div>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                <div className="text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1">
-                  <Calculator className="w-3 h-3" /> Tax
-                </div>
-                <div className="text-sm font-mono font-bold text-slate-800">LKR {formatMoney(taxTotal)}</div>
-              </div>
-            </div>
-
             <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
               <div className="px-4 py-2 text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-white border-b border-slate-200">Cash Flow</div>
               <div className="p-3 space-y-2 text-sm">

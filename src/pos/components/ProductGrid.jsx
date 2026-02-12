@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Plus, Loader2, AlertCircle, RefreshCw, Tag, X, Trash2 } from 'lucide-react';
+import { getQuickItems, saveQuickItemsHelper } from '../../shared/storage';
 
-// Local storage key for quick pick items
-const QUICK_ITEMS_KEY = 'pos_quick_pick_items';
-
-export default function ProductGrid({ onAddToCart, onAddQuickItemClick, refreshTrigger, branchId }) {
+export default function ProductGrid({ onAddToCart, onAddQuickItemClick, refreshTrigger, branchId, terminalId }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -12,18 +10,13 @@ export default function ProductGrid({ onAddToCart, onAddQuickItemClick, refreshT
   // Load quick items from localStorage on mount
   useEffect(() => {
     loadQuickItems();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, terminalId]);
 
   const loadQuickItems = () => {
     setLoading(true);
     try {
-        const stored = localStorage.getItem(QUICK_ITEMS_KEY);
-        if (stored) {
-            const items = JSON.parse(stored);
-            setProducts(Array.isArray(items) ? items : []);
-        } else {
-            setProducts([]);
-        }
+        const items = getQuickItems(terminalId);
+        setProducts(items);
     } catch (err) {
         console.error("Failed to load quick items from storage", err);
         setProducts([]);
@@ -35,7 +28,7 @@ export default function ProductGrid({ onAddToCart, onAddQuickItemClick, refreshT
   // Save quick items to localStorage
   const saveQuickItems = (items) => {
     try {
-        localStorage.setItem(QUICK_ITEMS_KEY, JSON.stringify(items));
+        saveQuickItemsHelper(terminalId, items);
         setProducts(items);
     } catch (err) {
         console.error("Failed to save quick items", err);

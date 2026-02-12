@@ -64,10 +64,18 @@ export const posService = {
     getShiftTotals: (shiftId) => api.get(`/shift/${shiftId}/totals`),
 
     // Get current active shift
-    getCurrentShift: (terminalId, cashierId) => {
+    getCurrentShift: async (terminalId, cashierId) => {
         let url = `/shift/active?terminalId=${terminalId}`;
         if (cashierId) url += `&cashierId=${cashierId}`;
-        return api.get(url);
+        try {
+            return await api.get(url);
+        } catch (error) {
+            // Return null if no active shift found (404)
+            if (error.response && error.response.status === 404) {
+                return { data: null };
+            }
+            throw error;
+        }
     },
 
     // Get all cashiers for the branch

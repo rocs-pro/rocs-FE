@@ -253,7 +253,7 @@ const GlobalToastNotification = () => {
                 cancelText={promptDialog.cancelText}
             />
 
-            <style jsx>{`
+            <style>{`
                 @keyframes shrinkWidth {
                     from {
                         width: 100%;

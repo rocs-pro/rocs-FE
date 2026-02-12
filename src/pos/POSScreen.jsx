@@ -8,6 +8,7 @@ import { authService } from '../services/authService';
 import { grnPaymentService } from '../services/grnPaymentService';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import NotificationPanel from './components/NotificationPanel';
+import { getQuickItems, saveQuickItemsHelper } from '../shared/storage';
 
 // Modals
 import PriceCheckModal from './modals/PriceCheckModal';
@@ -292,7 +293,7 @@ function POSContent() {
                 setInvoiceId(formattedId);
             }
         }
-    }, [session.isOpen, nextInvoiceNo, currentSaleId]);
+    }, [session.isOpen, nextInvoiceNo, currentSaleId, invoiceId]);
 
     // Block refresh while shift is open
     useEffect(() => {
@@ -670,6 +671,18 @@ function POSContent() {
             }
 
             addNotification('success', 'Sale Complete', `Invoice: ${finalInvoiceId} | Change: LKR ${paymentDetails.changeAmount?.toFixed(2) || '0.00'}${loyaltyMsg}`);
+
+            // Update next invoice number locally so the UI updates instantly
+            if (finalInvoiceId) {
+                const match = finalInvoiceId.match(/(\d+)$/);
+                if (match) {
+                    setNextInvoiceNo(parseInt(match[1]) + 1);
+                } else {
+                    setNextInvoiceNo(prev => prev + 1);
+                }
+            } else {
+                setNextInvoiceNo(prev => prev + 1);
+            }
 
             // Reset cart and close modal
             setCart([]);
@@ -1081,6 +1094,7 @@ function POSContent() {
                     onAddQuickItemClick={() => setActiveModal('QUICK_ADD')}
                     refreshTrigger={quickGridRefresh}
                     branchId={branchId}
+                    terminalId={TERMINAL_ID}
                 />
             </div>
 
@@ -1129,9 +1143,7 @@ function POSContent() {
                     onAddToQuickPick={(item) => {
                         // Add to quick pick items in localStorage
                         try {
-                            const QUICK_ITEMS_KEY = 'pos_quick_pick_items';
-                            const stored = localStorage.getItem(QUICK_ITEMS_KEY);
-                            const items = stored ? JSON.parse(stored) : [];
+                            const items = getQuickItems(TERMINAL_ID);
 
                             const newItem = {
                                 id: item.productId || item.id,
@@ -1146,7 +1158,7 @@ function POSContent() {
                             const exists = items.some(p => p.id === newItem.id);
                             if (!exists) {
                                 items.push(newItem);
-                                localStorage.setItem(QUICK_ITEMS_KEY, JSON.stringify(items));
+                                saveQuickItemsHelper(TERMINAL_ID, items);
                                 setQuickGridRefresh(prev => prev + 1); // Trigger refresh
                                 addNotification('success', 'Added to Quick Pick', `${newItem.name} added to quick pick panel.`);
                                 return true;
