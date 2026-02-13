@@ -8,6 +8,7 @@ import GlobalToastNotification from './components/GlobalToastNotification';
 // Auth Pages
 import Login from './auth/Login';
 import RegisterScreen from './auth/RegisterScreen';
+import ForgotPassword from './auth/ForgotPassword';
 
 // Main Modules
 import POSScreen from './pos/POSScreen';
@@ -114,6 +115,7 @@ export default function App() {
           {/* ========== PUBLIC ROUTES ========== */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<RegisterScreen />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* ========== DEFAULT REDIRECT ========== */}
           <Route path="/" element={<Navigate to="/login" replace />} />

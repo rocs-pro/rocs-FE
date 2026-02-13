@@ -50,6 +50,44 @@ export default function PaymentModal({ total, cart = [], invoiceId, cashierName,
         inputRef.current?.focus();
     }, [payments.length, total]);
 
+    const handleFinalize = (paymentsOverride = null) => {
+        const finalPayments = paymentsOverride || payments;
+        const finalTotalPaid = finalPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+        const finalRemaining = Math.max(0, total - finalTotalPaid);
+        const finalChange = finalTotalPaid > total ? finalTotalPaid - total : 0;
+
+        if (finalRemaining > 0.01) {
+            alert(`Cannot finalize. LKR ${finalRemaining.toFixed(2)} still pending.`);
+            return;
+        }
+        setProcessing(true);
+
+        // Send payment data to parent - matching payments table structure
+        onProcess({
+            payments: finalPayments,
+            totalPaid: finalTotalPaid,
+            change: finalChange,
+            paidAmount: finalTotalPaid,
+            changeAmount: finalChange
+        });
+    };
+
+    // ... handleKeyDown and getPaymentIcon ...
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+
+            // Case 1: Amount is entered -> Add Payment
+            if (currentAmount && parseFloat(currentAmount) > 0) {
+                addPayment();
+            }
+            // Case 2: Amount is empty/zero AND balance is fully paid -> Complete Sale
+            else if (remaining <= 0.01) {
+                handleFinalize();
+            }
+        }
+    };
+
     const addPayment = () => {
         const amt = parseFloat(currentAmount);
         if (!amt || amt <= 0) return;
@@ -63,7 +101,8 @@ export default function PaymentModal({ total, cart = [], invoiceId, cashierName,
             bankName: ['CARD', 'TRANSFER'].includes(method) ? bankName : null
         };
 
-        setPayments([...payments, newPayment]);
+        const updatedPayments = [...payments, newPayment];
+        setPayments(updatedPayments);
 
         // Reset input fields
         setCurrentAmount("");
@@ -71,6 +110,8 @@ export default function PaymentModal({ total, cart = [], invoiceId, cashierName,
         setCardLast4("");
         setBankName("");
         setMethod("CASH"); // Reset to CASH for next payment if mixed
+
+        // Focus input again for next action (either more payment or Enter to complete)
         inputRef.current?.focus();
     };
 
@@ -80,37 +121,23 @@ export default function PaymentModal({ total, cart = [], invoiceId, cashierName,
         setPayments(newPayments);
     };
 
-    const handleFinalize = () => {
-        if (remaining > 0.01) {
-            alert(`Cannot finalize. LKR ${remaining.toFixed(2)} still pending.`);
-            return;
-        }
-        setProcessing(true);
-
-        // Send payment data to parent - matching payments table structure
-        onProcess({
-            payments: payments,
-            totalPaid: totalPaid,
-            change: change,
-            paidAmount: totalPaid,
-            changeAmount: change
-        });
-    };
-
-    // ... handleKeyDown and getPaymentIcon ...
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && currentAmount) {
-            e.preventDefault();
-            addPayment();
-        }
-    };
-
     const getPaymentIcon = (type) => {
         const pm = PAYMENT_METHODS.find(m => m.key === type);
         if (!pm) return <Banknote className="w-4 h-4 text-slate-600" />;
         const Icon = pm.icon;
         return <Icon className={`w-4 h-4 text-${pm.color}-600`} />;
     };
+
+    // Focus "Complete Sale" button when fully paid
+    const finalizeRef = useRef(null);
+    useEffect(() => {
+        if (remaining <= 0.01 && payments.length > 0) {
+            // Small timeout to allow render to complete and button to be enabled
+            setTimeout(() => {
+                finalizeRef.current?.focus();
+            }, 50);
+        }
+    }, [remaining, payments.length]);
 
     return (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
@@ -259,6 +286,7 @@ export default function PaymentModal({ total, cart = [], invoiceId, cashierName,
                                     type="text"
                                     value={referenceNo}
                                     onChange={e => setReferenceNo(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                                     placeholder="Reference No."
                                 />
@@ -268,6 +296,7 @@ export default function PaymentModal({ total, cart = [], invoiceId, cashierName,
                                         maxLength={4}
                                         value={cardLast4}
                                         onChange={e => setCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                        onKeyDown={handleKeyDown}
                                         className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                                         placeholder="Last 4 Digits"
                                     />
@@ -277,6 +306,7 @@ export default function PaymentModal({ total, cart = [], invoiceId, cashierName,
                                         type="text"
                                         value={bankName}
                                         onChange={e => setBankName(e.target.value)}
+                                        onKeyDown={handleKeyDown}
                                         className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                                         placeholder="Bank Name"
                                     />
@@ -333,9 +363,10 @@ export default function PaymentModal({ total, cart = [], invoiceId, cashierName,
                     {/* Bottom Action Bar */}
                     <div className="absolute bottom-6 left-6 right-6">
                         <button
-                            onClick={handleFinalize}
+                            ref={finalizeRef}
+                            onClick={() => handleFinalize(null)}
                             disabled={remaining > 0.01 || processing || payments.length === 0}
-                            className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-bold shadow-xl flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-bold shadow-xl flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:ring-4 focus:ring-blue-500 focus:outline-none"
                         >
                             {processing ? (
                                 <>

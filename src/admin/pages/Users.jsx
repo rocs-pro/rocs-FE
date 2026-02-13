@@ -68,8 +68,8 @@ export default function Users() {
                 setUsersState(usersData || []);
                 setBranches(branchesData || []);
                 if (branchesData?.length > 0) {
-                    // BranchDTO uses 'id', check variations
-                    setBranch(branchesData[0].id || branchesData[0].branchId || branchesData[0].branch_id || "");
+                    // Do not auto-select branch
+                    setBranch("");
                 }
             } catch (err) {
                 console.error("Error fetching data:", err);
@@ -126,7 +126,7 @@ export default function Users() {
         setEmail("");
         setEmployeeId("");
         // BranchDTO uses 'id'
-        setBranch(branches[0]?.id || branches[0]?.branchId || branches[0]?.branch_id || "");
+        setBranch("");
         setEditUser(null);
     }
 
@@ -209,7 +209,7 @@ export default function Users() {
                 username: un,
                 email: em,
                 employeeId: empId,
-                branchId: branch,
+                branchId: branch || null, // Use selected branch ID (or null)
                 role: "BRANCH_MANAGER", // Admin can only register managers
                 status: "ACTIVE", // default
             });
@@ -220,12 +220,16 @@ export default function Users() {
             resetForm();
         } catch (err) {
             console.error("Error registering manager:", err);
-            if (err.response?.data?.message?.includes("username")) {
+            const msg = err.response?.data?.message || err.message || "Unknown error";
+
+            if (msg.toLowerCase().includes("username")) {
                 alert("Username already exists. Please choose another.");
-            } else if (err.response?.data?.message?.includes("employee")) {
+            } else if (msg.toLowerCase().includes("employee")) {
                 alert("Employee ID already exists. Please use a different ID.");
+            } else if (msg.toLowerCase().includes("email")) {
+                alert("Email already exists. Please use a different email address.");
             } else {
-                alert("Failed to register manager. Please try again.");
+                alert(`Failed to register manager: ${msg}`);
             }
         } finally {
             setSubmitting(false);
@@ -339,6 +343,22 @@ export default function Users() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="e.g., nimal@smartretailpro.lk"
                             />
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-bold">Branch</label>
+                            <select
+                                className="mt-1 w-full px-3 py-2 rounded-xl border border-brand-border outline-none focus:ring-2 focus:ring-brand-secondary"
+                                value={branch}
+                                onChange={(e) => setBranch(e.target.value)}
+                            >
+                                <option value="">Select Branch (Optional)</option>
+                                {branches.map((b) => (
+                                    <option key={b.id || b.branchId || b.branch_id} value={b.id || b.branchId || b.branch_id}>
+                                        {b.name || b.branchName || b.branch_name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
 

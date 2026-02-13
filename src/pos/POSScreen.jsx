@@ -579,9 +579,12 @@ function POSContent() {
         }
     };
 
-    const handleScan = () => {
-        if (!inputBuffer.trim()) return;
-        handleAddToCart(inputBuffer.trim());
+    const handleScan = (overrideValue) => {
+        // Use override value if provided (for scanner auto-submit), otherwise use state
+        const text = (typeof overrideValue === 'string' ? overrideValue : inputBuffer).trim();
+
+        if (!text) return;
+        handleAddToCart(text);
         setInputBuffer("");
         inputRef.current?.focus();
     };
@@ -947,6 +950,11 @@ function POSContent() {
             }
             if (e.key === 'F10') { e.preventDefault(); handleComplexAction('PAY_CARD'); }
             if (e.key === 'F11') { e.preventDefault(); handleComplexAction('PAY_QR'); }
+            if (e.key === 'F11') { e.preventDefault(); handleComplexAction('PAY_QR'); }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                handleComplexAction('PAY_CASH');
+            }
             if (e.key === 'Delete') { e.preventDefault(); handleVoidItem(); }
             if (e.key === 'q' || e.key === 'Q') {
                 if (selectedCartIndex !== null && selectedCartIndex !== undefined) {

@@ -6,6 +6,7 @@ import Reports from "./pages/Reports";
 import SystemActivityLog from "./pages/SystemActivityLog";
 import Branches from "./pages/Branches";
 import Terminals from "./pages/Terminals";
+import PasswordRequests from "./pages/PasswordRequests";
 
 export default function AdminDashboard() {
   return (
@@ -18,6 +19,7 @@ export default function AdminDashboard() {
         <Route path="system-activity" element={<SystemActivityLog />} />
         <Route path="branches" element={<Branches />} />
         <Route path="reports" element={<Reports />} />
+        <Route path="password-requests" element={<PasswordRequests />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </Layout>

@@ -4,6 +4,16 @@ const MANAGER_API_BASE = "http://localhost:8080/api/v1/manager";
 const ACCOUNTING_API_BASE = "http://localhost:8080/api/v1/accounting";
 const REPORTS_API_BASE = "http://localhost:8080/api/v1/reports";
 
+// Helper: get current logged-in user's branchId
+function getMyBranchId() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.branchId || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 // ============================================
 // DASHBOARD & STATISTICS
 // ============================================
@@ -359,10 +369,11 @@ export const getGrnListPdf = async () => {
 // ============================================
 
 // Branch Activity Log with filters
-export const getBranchActivityLog = async (branchId = 1, filters = {}) => {
+export const getBranchActivityLog = async (branchId = null, filters = {}) => {
   try {
     const params = new URLSearchParams();
-    params.append('branchId', branchId);
+    const bid = branchId || getMyBranchId() || 1;
+    params.append('branchId', bid);
     if (filters.limit) params.append('limit', filters.limit);
     if (filters.type) params.append('type', filters.type);
     if (filters.date) params.append('date', filters.date);
@@ -377,9 +388,10 @@ export const getBranchActivityLog = async (branchId = 1, filters = {}) => {
 };
 
 // Activity Statistics
-export const getActivityStats = async (branchId = 1) => {
+export const getActivityStats = async (branchId = null) => {
   try {
-    const response = await api.get(`${MANAGER_API_BASE}/activity/stats?branchId=${branchId}`);
+    const bid = branchId || getMyBranchId() || 1;
+    const response = await api.get(`${MANAGER_API_BASE}/activity/stats?branchId=${bid}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching activity stats:", error);

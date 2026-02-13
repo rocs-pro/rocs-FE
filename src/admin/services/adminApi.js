@@ -392,3 +392,42 @@ export const deleteBranchWithPassword = async (branchId, password) => {
   const response = await api.delete(`/v1/admin/branches/${branchId}`);
   return response.data;
 };
+
+// ===== Password Reset Request Management API =====
+
+/**
+ * Get all password reset requests
+ */
+export const getPasswordResetRequests = async (status = null) => {
+  const params = status ? `?status=${status}` : "";
+  const response = await api.get(`/v1/admin/password-requests${params}`);
+  return response.data;
+};
+
+/**
+ * Get count of pending password reset requests
+ */
+export const getPasswordResetPendingCount = async () => {
+  const response = await api.get("/v1/admin/password-requests/count");
+  return response.data;
+};
+
+/**
+ * Approve a password reset request
+ */
+export const approvePasswordReset = async (requestId, adminNotes = "") => {
+  const response = await api.patch(`/v1/admin/password-requests/${requestId}/approve`, {
+    adminNotes,
+  });
+  return response.data;
+};
+
+/**
+ * Reject a password reset request
+ */
+export const rejectPasswordReset = async (requestId, adminNotes = "") => {
+  const response = await api.patch(`/v1/admin/password-requests/${requestId}/reject`, {
+    adminNotes,
+  });
+  return response.data;
+};

@@ -33,6 +33,22 @@ export default function ControlPanel({
       try {
         const res = await posService.searchInventory(inputBuffer.trim());
         const data = res.data?.data || res.data || [];
+
+        // Check for exact barcode/sku match for auto-add
+        // This acts as a fallback or for manual entry (e.g. typing a full code)
+        // We require length >= 3 to prevent prefix collisions (e.g. "1" matching "1" vs "10")
+        const currentInput = inputBuffer.trim();
+        const exactMatch = data.find(item =>
+          (item.barcode === currentInput) ||
+          (item.sku === currentInput) ||
+          (String(item.id) === currentInput)
+        );
+
+        if (exactMatch && currentInput.length >= 3) {
+          handleSelectSuggestion(exactMatch);
+          return;
+        }
+
         const items = Array.isArray(data) ? data.slice(0, 8) : [];
         setSuggestions(items);
         setShowSuggestions(items.length > 0);
@@ -42,7 +58,7 @@ export default function ControlPanel({
         setSuggestions([]);
         setShowSuggestions(false);
       }
-    }, 300);
+    }, 200); // Faster debounce (200ms) for snappier response
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -60,7 +76,44 @@ export default function ControlPanel({
     }
   }, [selectedIndex]);
 
+  // Scanner detection refs
+  const lastInputTime = useRef(Date.now());
+  const scanTimeout = useRef(null);
+
+  const handleInputChange = (e) => {
+    const newVal = e.target.value;
+    const now = Date.now();
+    const timeDiff = now - lastInputTime.current;
+
+    // Pass to parent first
+    setInputBuffer(newVal);
+
+    // Scanner Logic: Detect rapid input (>2 chars, <100ms interval)
+    // Relaxed to 100ms to support a wider range of scanners
+    if (newVal.length > inputBuffer.length && newVal.length > 2) {
+      if (timeDiff < 100) {
+        // Likely a scanner - reset the "End of Scan" timer
+        if (scanTimeout.current) clearTimeout(scanTimeout.current);
+
+        // Auto-submit if no new input for 200ms
+        scanTimeout.current = setTimeout(() => {
+          if (newVal.trim().length >= 3) {
+            onScan(newVal.trim());
+          }
+        }, 200);
+      }
+    }
+
+    lastInputTime.current = now;
+  };
+
   const handleKeyDown = (e) => {
+    // If scanner sends ENTER, cancel the auto-submit to verify double entry
+    if (e.key === 'Enter') {
+      if (e.ctrlKey || e.metaKey) return; // Let parent handle shortcut
+      if (scanTimeout.current) clearTimeout(scanTimeout.current);
+    }
+
     if (!showSuggestions || suggestions.length === 0) {
       if (e.key === 'Enter') onScan();
       return;
@@ -114,7 +167,7 @@ export default function ControlPanel({
             ref={inputRef}
             type="text"
             value={inputBuffer}
-            onChange={(e) => setInputBuffer(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}

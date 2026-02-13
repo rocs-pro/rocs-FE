@@ -2,18 +2,18 @@
 const API_BASE_URL = "http://localhost:8080/api/v1"; //example
 
 export const authService = {
-    
+
     // Fetch Branch List from Backend
     getBranches: async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/auth/branches`);
-            
+
             if (!response.ok) {
                 throw new Error("Failed to fetch branch list");
             }
 
             // Returns the array of branches: [{ id: 1, name: "Colombo" }, ...]
-            return await response.json(); 
+            return await response.json();
         } catch (error) {
             console.error("API Error:", error);
             throw error; // Re-throw so the UI can show an alert if needed
@@ -64,6 +64,30 @@ export const authService = {
             }
 
             return data; // Should contain token and user info
+        } catch (error) {
+            console.error("API Error:", error);
+            throw error;
+        }
+    },
+
+    // Forgot Password - submit reset request to admin for approval
+    forgotPassword: async (requestData) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to submit password reset request");
+            }
+
+            return data;
         } catch (error) {
             console.error("API Error:", error);
             throw error;

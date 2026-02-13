@@ -224,9 +224,9 @@ export default function Login() {
             </button>
 
             <div className="mt-4 text-center">
-              <a href="#" className="text-xs font-bold text-slate-400 hover:text-brand transition-colors">
+              <Link to="/forgot-password" className="text-xs font-bold text-slate-400 hover:text-brand transition-colors">
                 Forgot Password?
-              </a>
+              </Link>
             </div>
 
             <div className="h-px bg-slate-200 my-6"></div>
