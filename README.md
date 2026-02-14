@@ -1,101 +1,229 @@
-# Getting Started with Create React App
+# ROCS — Retail Operations Control System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+ROCS is a full-stack retail management system designed to control point-of-sale (POS), inventory, HR, accounting, auditing, and branch operations. It features secure, role-based dashboards for Administrators, Managers, and Terminal operators.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Backend (Spring Boot)
 
-### `npm test`
+- **Language:** Java 25
+- **Framework:** Spring Boot 4.0.1
+- **Database:** MySQL (Connector/J)
+- **Security:** Spring Security & JJWT 0.11.5
+- **Build Tool:** Maven (Wrapper included)
+- **Tools:** Lombok, Spring Boot Validation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Frontend (React)
 
-### `npm run build`
+- **Framework:** React 19.2.0
+- **Build Tool:** Vite 7.2.4
+- **Styling:** Tailwind CSS 3.4.17 (PostCSS + Autoprefixer)
+- **Routing:** React Router DOM 7.12.0
+- **Icons:** Lucide React 0.562
+- **Linting:** ESLint 9.39
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Prerequisites
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Ensure the following are installed globally on your machine:
 
-### `npm run eject`
+- **Java JDK 25** (Required for the backend)
+- **Node.js** (Version 18+ required for Vite)
+- **MySQL Server** (Running on port 3306)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Configuration
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Backend Configuration
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+The backend configuration is located in `rocs-backend/Rocs-BE/src/main/resources/application.properties`. Ensure the following variables are set correctly for your local environment:
 
-## Learn More
+```properties
+spring.application.name=rocs
+spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+> **Note:** JWT secret configuration may be required in `JwtService.java` if not present in the properties file.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Frontend Configuration
 
-### Code Splitting
+The frontend currently uses a hardcoded API base URL.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **Location:** `src/services/authService.js`
+- **Current Value:** `http://localhost:8080/api/v1`
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Installation & Setup
 
-### Making a Progressive Web App
+### 1. Database Setup
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Create a new MySQL database for the application:
 
-### Advanced Configuration
+```sql
+CREATE DATABASE rocs_db;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### 2. Backend Setup
 
-### Deployment
+Navigate to the backend directory:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+cd rocs-backend/Rocs-BE
+```
 
-### `npm run build` fails to minify
+Install dependencies and build the project:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# POS Inventory Management System
+```bash
+# Linux/Mac
+./mvnw clean install
 
-A complete inventory management system built with React and Tailwind CSS.
+# Windows
+mvnw.cmd clean install
+```
 
-## Quick Start
+Run the server:
 
-1. Install dependencies:
+```bash
+# Linux/Mac
+./mvnw spring-boot:run
+
+# Windows
+mvnw.cmd spring-boot:run
+```
+
+The backend server will start on **port 8080**.
+
+### 3. Frontend Setup
+
+Open a new terminal and navigate to the frontend directory:
+
+```bash
+cd rocs-FE
+```
+
+Install dependencies:
+
 ```bash
 npm install
 ```
 
-2. Start the development server:
+Start the development server:
+
 ```bash
-npm start
+npm run dev
 ```
 
-3. Open http://localhost:3000
+The frontend application will start on **port 5173**.
 
-## Features
+---
 
-- Item Management
-- Category & Brand Management  
-- Stock Operations
-- Transfer Management
-- Real-time Stock Overview
+## Key Modules
 
-## Tech Stack
+### Backend Modules
 
-- React 18
-- Tailwind CSS
-- Lucide React Icons
+- **Auth:** Handles user registration, authentication, and JWT token generation
+- **Dashboard:** Separate logic for Admin, Manager, and Terminal dashboards
+- **Inventory:** Management of stock levels and product details
+- **POS:** Point-of-Sale transaction processing
+- **Common:** Shared utilities and branch listing services
+
+### Frontend Modules
+
+- **Auth & Screens:** Registration and Login interfaces
+- **Dashboards:** Scaffolded views for Control and Manager dashboards
+- **Operational Modules:** Placeholders for POS, Inventory, HR, Accounting, and Reports
+
+---
+
+## Project Structure
+
+```
+rocs/
+├── rocs-backend/
+│   └── Rocs-BE/
+│       ├── .mvn/                      # Maven wrapper files
+│       ├── src/
+│       │   ├── main/
+│       │   │   ├── java/com/nsbm/rocs/
+│       │   │   │   ├── auth/          # Authentication (controller, DTO, repo, service)
+│       │   │   │   ├── common/        # Shared resources & utilities
+│       │   │   │   ├── config/        # Security config & JWT filter
+│       │   │   │   ├── dashboard/     # Role-based dashboard logic
+│       │   │   │   │   ├── admin/     # Admin dashboard operations
+│       │   │   │   │   ├── manager/   # Manager dashboard operations
+│       │   │   │   │   └── terminal/  # Terminal/Cashier operations
+│       │   │   │   ├── entity/        # JPA entities & enums
+│       │   │   │   │   ├── enums/     # Role, AccountStatus
+│       │   │   │   │   └── main/      # UserProfile entity
+│       │   │   │   ├── inventory/     # Inventory management
+│       │   │   │   └── pos/           # Point of Sale logic
+│       │   │   └── resources/
+│       │   │       └── application.properties
+│       │   └── test/                  # Test files
+│       ├── pom.xml                    # Maven configuration
+│       ├── mvnw                       # Maven wrapper (Unix)
+│       └── mvnw.cmd                   # Maven wrapper (Windows)
+│
+└── rocs-FE/
+    ├── public/                        # Static assets
+    ├── src/
+    │   ├── accounting/                # Accounting module (scaffolded)
+    │   ├── admin/                     # Admin interface (scaffolded)
+    │   ├── assets/                    # Images, fonts, etc.
+    │   ├── audit/                     # Auditing module (scaffolded)
+    │   ├── auth/                      # Auth components (implemented)
+    │   ├── components/                # Reusable UI components
+    │   │   ├── auth/                  # Authentication components
+    │   │   ├── common/                # Common components
+    │   │   ├── feedback/              # Feedback/notification components
+    │   │   └── icons/                 # Icon components
+    │   ├── dashboard/                 # Dashboard views
+    │   │   ├── control-dashboard/     # Admin dashboard (scaffolded)
+    │   │   └── manager-dashboard/     # Manager dashboard (scaffolded)
+    │   ├── hooks/                     # Custom React hooks
+    │   ├── hr/                        # HR module (scaffolded)
+    │   ├── inventory/                 # Inventory interface (scaffolded)
+    │   ├── layout/                    # Layout components
+    │   ├── pos/                       # POS interface (scaffolded)
+    │   ├── reports/                   # Reporting module (scaffolded)
+    │   ├── screens/                   # Screen components (Login, etc.)
+    │   ├── services/                  # API integration
+    │   │   └── authService.js         # Authentication API calls
+    │   ├── store/                     # State management
+    │   ├── styles/                    # Global styles
+    │   ├── utils/                     # Utility functions
+    │   ├── App.jsx                    # Main application component
+    │   └── main.jsx                   # Application entry point
+    ├── package.json                   # Node.js dependencies
+    ├── vite.config.js                 # Vite configuration
+    ├── tailwind.config.js             # Tailwind CSS configuration
+    ├── postcss.config.js              # PostCSS configuration
+    └── eslint.config.js               # ESLint configuration
+```
+
+---
+
+## License
+
+This project is proprietary software developed for retail operations management.
+
+---
+
+## Contributing
+
+For contribution guidelines and development standards, please contact the project maintainers.
+
+---
+
+**Built for efficient retail management**
