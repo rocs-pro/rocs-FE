@@ -1,0 +1,156 @@
+import { useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import {
+  LayoutGrid,
+  CheckCircle,
+  Activity,
+  ShoppingCart,
+  BarChart3,
+  BookOpen,
+  PenTool,
+  TrendingUp,
+  Users,
+  UserCheck,
+  FileText,
+  Package,
+  Wallet
+} from "lucide-react";
+import { getUserRegistrations } from "../../services/managerService";
+
+const base =
+  "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:translate-x-1 hover:text-white relative";
+const activeClass = "bg-brand-primary text-white shadow-lg translate-x-1";
+
+const NavItemLink = ({ to, icon: Icon, label, end = false, badge }) => (
+  <NavLink
+    to={to}
+    end={end}
+    className={({ isActive }) => `${base} ${isActive ? activeClass : ""}`}
+  >
+    <Icon size={18} className="shrink-0 transition-transform duration-200" />
+    <span className="text-sm truncate flex-1">{label}</span>
+    {badge > 0 && (
+      <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse">
+        {badge}
+      </span>
+    )}
+  </NavLink>
+);
+
+export default function Sidebar() {
+  const navigate = useNavigate();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // Get user info from localStorage
+  const userStr = localStorage.getItem('user');
+  let userName = 'User';
+  let userRole = 'Staff';
+  let branchName = 'Branch';
+
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      userName = user.username || user.name || 'User';
+      userRole = user.role || user.userRole || 'Staff';
+      branchName = user.branchName || 'Main Branch';
+    } catch (e) {
+      console.error('Error parsing user:', e);
+    }
+  }
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const data = await getUserRegistrations("PENDING");
+        if (Array.isArray(data)) {
+          setPendingCount(data.length);
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending count sidebar", err);
+      }
+    };
+
+    fetchPendingCount();
+    // Poll every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const goToInventory = () => navigate('/inventory');
+
+  return (
+    <aside className="w-72 shrink-0 bg-gray-900 text-white h-screen flex flex-col min-h-0">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-800">
+        <h1 className="text-xl font-bold">SmartRetail <span className="text-emerald-400">Pro</span></h1>
+        <p className="text-sm text-gray-400 mt-1">
+          {userRole === 'ADMIN' ? 'Admin Dashboard' : 'Manager Dashboard'}
+        </p>
+      </div>
+
+      {/* Scroll Area */}
+      <nav className="sidebar-scroll p-4 flex-1 min-h-0 overflow-y-auto">
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Overview
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager" end icon={LayoutGrid} label="Dashboard" />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Operations
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/approvals" icon={CheckCircle} label="Approvals" />
+            <NavItemLink to="/manager/branch-activity" icon={Activity} label="Branch Activity" />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Sales
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/sales" icon={ShoppingCart} label="Sales" />
+            <NavItemLink to="/manager/loyalty" icon={Package} label="Loyalty & Customers" />
+            <NavItemLink to="/manager/sales-reports" icon={BarChart3} label="Sales Reports" />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Accounting
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/chart-of-accounts" icon={BookOpen} label="Chart of Accounts" />
+            <NavItemLink to="/manager/journal-entry" icon={PenTool} label="Journal Entry" />
+            <NavItemLink to="/manager/profit-loss" icon={TrendingUp} label="Profit & Loss" />
+            <NavItemLink to="/manager/manager-payments" icon={Wallet} label="GRN Payments" />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Staff
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/user-registrations" icon={UserCheck} label="User Registrations" badge={pendingCount} />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex items-center px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Reports
+          </div>
+          <div className="mt-2 space-y-1">
+            <NavItemLink to="/manager/reports" icon={FileText} label="Other Reports" />
+          </div>
+        </div>
+      </nav>
+
+    </aside>
+  );
+}
