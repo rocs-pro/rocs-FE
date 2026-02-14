@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, Eye, MoreVertical, Edit, Trash2, Power, MapPin, Loader2 } from "lucide-react";
+import { X, Edit, Trash2, Power, MapPin, Loader2 } from "lucide-react";
 import {
   getAllBranches,
   createBranch,
@@ -19,33 +19,14 @@ export default function Branches() {
   const [managers, setManagers] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [branchUsers, setBranchUsers] = useState([]);
-  const [activeDropdown, setActiveDropdown] = useState(null);
   const [editBranch, setEditBranch] = useState(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const dropdownButtonRefs = useRef({});
 
   // Delete confirmation with password
   const [deleteModal, setDeleteModal] = useState({ open: false, branchId: null, branchName: '' });
   const [deleteLoading, setDeleteLoading] = useState(false);
-
-  const toggleDropdown = (id) => {
-    if (activeDropdown === id) {
-      setActiveDropdown(null);
-    } else {
-      const button = dropdownButtonRefs.current[id];
-      if (button) {
-        const rect = button.getBoundingClientRect();
-        setDropdownPosition({
-          top: rect.bottom + window.scrollY + 4,
-          left: rect.left + window.scrollX - 160
-        });
-      }
-      setActiveDropdown(id);
-    }
-  };
 
   // Fetch branches and managers on mount
   useEffect(() => {
@@ -126,7 +107,6 @@ export default function Branches() {
       await toggleBranchStatus(branchId);
       const data = await getAllBranches();
       setBranches(data || []);
-      setActiveDropdown(null);
     } catch (err) {
       console.error("Error toggling status:", err);
       alert("Failed to update branch status. Please try again.");
@@ -142,7 +122,6 @@ export default function Branches() {
       managerId: branch.managerId || branch.manager_id || "",
       status: isActive(branch) ? "ACTIVE" : "INACTIVE"
     });
-    setActiveDropdown(null);
   }
 
   async function handleSaveEdit(e) {
@@ -174,7 +153,6 @@ export default function Branches() {
   function handleDeleteBranch(branchId) {
     const branch = branches.find(b => (b.branchId || b.id) === branchId);
     setDeleteModal({ open: true, branchId, branchName: branch?.branchName || branch?.name || 'this branch' });
-    setActiveDropdown(null);
   }
 
   async function confirmDeleteBranch(password) {
@@ -194,7 +172,6 @@ export default function Branches() {
 
   async function handleViewBranch(branch) {
     setSelectedBranch(branch);
-    setActiveDropdown(null);
     try {
       const branchId = getBranchId(branch);
       const users = await getUsersByBranch(branchId);
@@ -232,7 +209,7 @@ export default function Branches() {
   }
 
   return (
-    <div className="space-y-4" onClick={() => setActiveDropdown(null)}>
+    <div className="space-y-4">
       <h1 className="text-xl font-extrabold">Create & Manage Branches</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -349,7 +326,6 @@ export default function Branches() {
                   <th className="text-left p-3">Address</th>
                   <th className="text-left p-3">Manager</th>
                   <th className="text-center p-3">Status</th>
-                  <th className="text-right p-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -358,7 +334,11 @@ export default function Branches() {
                   const branchName = getBranchName(b);
                   const managerName = b.managerName || b.manager_name || b.manager || "-";
                   return (
-                    <tr key={branchId} className="border-t hover:bg-slate-50">
+                    <tr
+                      key={branchId}
+                      className="border-t hover:bg-slate-50 cursor-pointer"
+                      onClick={() => handleViewBranch(b)}
+                    >
                       <td className="p-3 font-mono text-xs">{branchId}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-3">
@@ -381,18 +361,6 @@ export default function Branches() {
                           {getBranchStatus(b)}
                         </span>
                       </td>
-                      <td className="p-3 text-right">
-                        <button
-                          ref={(el) => (dropdownButtonRefs.current[branchId] = el)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleDropdown(branchId);
-                          }}
-                          className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
-                        >
-                          <MoreVertical size={16} />
-                        </button>
-                      </td>
                     </tr>
                   );
                 })}
@@ -409,48 +377,14 @@ export default function Branches() {
         </div>
       </div>
 
-      {/* Dropdown Portal */}
-      {activeDropdown && createPortal(
-        <div
-          className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-[200] py-1"
-          style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => handleViewBranch(branches.find(br => getBranchId(br) === activeDropdown))}
-            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <Eye size={14} /> View Details
-          </button>
-          <button
-            onClick={() => handleEditBranch(branches.find(br => getBranchId(br) === activeDropdown))}
-            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <Edit size={14} /> Edit Branch
-          </button>
-          <button
-            onClick={() => handleToggleStatus(activeDropdown)}
-            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <Power size={14} /> {isActive(branches.find(br => getBranchId(br) === activeDropdown)) ? "Deactivate" : "Activate"}
-          </button>
-          <div className="h-px bg-gray-100 my-1"></div>
-          <button
-            onClick={() => handleDeleteBranch(activeDropdown)}
-            className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-          >
-            <Trash2 size={14} /> Delete
-          </button>
-        </div>,
-        document.body
-      )}
+
 
       {/* Branch Detail Modal */}
       {selectedBranch && createPortal(
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-brand-border sticky top-0 bg-white">
-              <h2 className="text-2xl font-extrabold">{getBranchName(selectedBranch)}</h2>
+              <h2 className="text-2xl font-extrabold">Manage Branch</h2>
               <button
                 onClick={() => {
                   setSelectedBranch(null);
@@ -513,6 +447,47 @@ export default function Branches() {
                 <span className={`px-3 py-1 rounded-full text-sm font-bold text-white ${isActive(selectedBranch) ? "bg-brand-success" : "bg-slate-500"}`}>
                   {getBranchStatus(selectedBranch)}
                 </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-3 gap-3 pt-6 border-t border-gray-100">
+                <button
+                  onClick={() => {
+                    handleEditBranch(selectedBranch);
+                    setSelectedBranch(null);
+                  }}
+                  className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                >
+                  <Edit size={20} />
+                  <span className="text-xs font-bold">Edit</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleToggleStatus(getBranchId(selectedBranch));
+                    setSelectedBranch(null);
+                  }}
+                  className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl transition ${isActive(selectedBranch)
+                    ? "bg-orange-50 text-orange-700 hover:bg-orange-100"
+                    : "bg-green-50 text-green-700 hover:bg-green-100"
+                    }`}
+                >
+                  <Power size={20} />
+                  <span className="text-xs font-bold">
+                    {isActive(selectedBranch) ? "Deactivate" : "Activate"}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleDeleteBranch(getBranchId(selectedBranch));
+                    setSelectedBranch(null);
+                  }}
+                  className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 transition"
+                >
+                  <Trash2 size={20} />
+                  <span className="text-xs font-bold">Delete</span>
+                </button>
               </div>
             </div>
           </div>

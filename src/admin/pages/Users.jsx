@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, Eye, MoreVertical, Edit, Trash2, Power, User, Search, Loader2, UserPlus } from "lucide-react";
+import { X, Edit, Trash2, Power, User, Search, Loader2, UserPlus } from "lucide-react";
 import {
     getAllUsers,
     searchUsers,
@@ -28,33 +28,14 @@ export default function Users() {
 
     // Search and UI state
     const [q, setQ] = useState("");
-    const [activeDropdown, setActiveDropdown] = useState(null);
     const [editUser, setEditUser] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
     const [submitting, setSubmitting] = useState(false);
-    const dropdownButtonRefs = useRef({});
     const searchTimeoutRef = useRef(null);
 
     // Delete confirmation with password
     const [deleteModal, setDeleteModal] = useState({ open: false, userId: null, userName: '' });
     const [deleteLoading, setDeleteLoading] = useState(false);
-
-    const toggleDropdown = (id) => {
-        if (activeDropdown === id) {
-            setActiveDropdown(null);
-        } else {
-            const button = dropdownButtonRefs.current[id];
-            if (button) {
-                const rect = button.getBoundingClientRect();
-                setDropdownPosition({
-                    top: rect.bottom + window.scrollY + 4,
-                    left: rect.left + window.scrollX - 120
-                });
-            }
-            setActiveDropdown(id);
-        }
-    };
 
     // Fetch users and branches on mount
     useEffect(() => {
@@ -139,7 +120,6 @@ export default function Users() {
         // UserProfile has 'branch' object with 'branchId'. Logic: user.branch.branchId OR user.branchId (if flat)
         const bId = user.branch?.branchId || user.branch?.id || user.branchId || user.branch_id || "";
         setBranch(bId);
-        setActiveDropdown(null);
     }
 
     async function handleSaveEdit(e) {
@@ -171,7 +151,6 @@ export default function Users() {
     function handleDeleteUser(userId) {
         const user = users.find(u => (u.userId || u.id) === userId);
         setDeleteModal({ open: true, userId, userName: user?.fullName || user?.username || 'this user' });
-        setActiveDropdown(null);
     }
 
     async function confirmDeleteUser(password) {
@@ -242,7 +221,6 @@ export default function Users() {
             // Refresh users list
             const data = await getAllUsers();
             setUsersState(data || []);
-            setActiveDropdown(null);
         } catch (err) {
             console.error("Error toggling status:", err);
             alert("Failed to update user status. Please try again.");
@@ -270,7 +248,7 @@ export default function Users() {
     const isActive = (status) => status === "ACTIVE" || status === "Active";
 
     return (
-        <div className="space-y-4" onClick={() => setActiveDropdown(null)}>
+        <div className="space-y-4">
             <div>
                 <h1 className="text-xl font-extrabold">User Management</h1>
                 <p className="text-sm text-brand-muted">
@@ -409,7 +387,6 @@ export default function Users() {
                                     <th className="text-left p-3">Role</th>
                                     <th className="text-left p-3">Branch</th>
                                     <th className="text-center p-3">Status</th>
-                                    <th className="text-right p-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -417,7 +394,11 @@ export default function Users() {
                                     const userId = getUserId(u);
                                     const status = getUserStatus(u);
                                     return (
-                                        <tr key={userId} className="border-t hover:bg-slate-50">
+                                        <tr
+                                            key={userId}
+                                            className="border-t hover:bg-slate-50 cursor-pointer"
+                                            onClick={() => setSelectedUser(u)}
+                                        >
                                             <td className="p-3">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 rounded-lg bg-indigo-100 text-indigo-600">
@@ -448,18 +429,6 @@ export default function Users() {
                                                     {status}
                                                 </span>
                                             </td>
-                                            <td className="p-3 text-right relative">
-                                                <button
-                                                    ref={(el) => (dropdownButtonRefs.current[userId] = el)}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleDropdown(userId);
-                                                    }}
-                                                    className="p-2 hover:bg-gray-100 rounded-lg transition"
-                                                >
-                                                    <MoreVertical size={18} />
-                                                </button>
-                                            </td>
                                         </tr>
                                     );
                                 })}
@@ -477,56 +446,7 @@ export default function Users() {
                 </div>
             </div>
 
-            {/* Dropdown Portal */}
-            {activeDropdown &&
-                createPortal(
-                    <div
-                        className="fixed bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-[160px] z-[200]"
-                        style={{
-                            top: dropdownPosition.top,
-                            left: dropdownPosition.left,
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => {
-                                const user = users.find((u) => getUserId(u) === activeDropdown);
-                                setSelectedUser(user);
-                                setActiveDropdown(null);
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                            <Eye size={16} className="text-gray-500" />
-                            View Details
-                        </button>
-                        <button
-                            onClick={() => handleEditUser(users.find((u) => getUserId(u) === activeDropdown))}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                            <Edit size={16} className="text-blue-500" />
-                            Edit User
-                        </button>
-                        <button
-                            onClick={() => {
-                                handleToggleStatus(activeDropdown);
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                            <Power size={16} className="text-orange-500" />
-                            {isActive(getUserStatus(users.find((u) => getUserId(u) === activeDropdown)))
-                                ? "Deactivate"
-                                : "Activate"}
-                        </button>
-                        <button
-                            onClick={() => handleDeleteUser(activeDropdown)}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
-                        >
-                            <Trash2 size={16} />
-                            Delete User
-                        </button>
-                    </div>,
-                    document.body
-                )}
+
 
             {/* View Details Modal */}
             {selectedUser &&
@@ -534,7 +454,7 @@ export default function Users() {
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[300]">
                         <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-bold">User Details</h3>
+                                <h3 className="text-lg font-bold">Manage User</h3>
                                 <button
                                     onClick={() => setSelectedUser(null)}
                                     className="p-2 hover:bg-gray-100 rounded-lg"
@@ -576,6 +496,47 @@ export default function Users() {
                                             {getUserStatus(selectedUser)}
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
+                                    <button
+                                        onClick={() => {
+                                            handleEditUser(selectedUser);
+                                            setSelectedUser(null);
+                                        }}
+                                        className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                                    >
+                                        <Edit size={20} />
+                                        <span className="text-xs font-bold">Edit</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            handleToggleStatus(getUserId(selectedUser));
+                                            setSelectedUser(null);
+                                        }}
+                                        className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl transition ${isActive(getUserStatus(selectedUser))
+                                            ? "bg-orange-50 text-orange-700 hover:bg-orange-100"
+                                            : "bg-green-50 text-green-700 hover:bg-green-100"
+                                            }`}
+                                    >
+                                        <Power size={20} />
+                                        <span className="text-xs font-bold">
+                                            {isActive(getUserStatus(selectedUser)) ? "Deactivate" : "Activate"}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            handleDeleteUser(getUserId(selectedUser));
+                                            setSelectedUser(null);
+                                        }}
+                                        className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 transition"
+                                    >
+                                        <Trash2 size={20} />
+                                        <span className="text-xs font-bold">Delete</span>
+                                    </button>
                                 </div>
                             </div>
                             <button

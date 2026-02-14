@@ -138,7 +138,8 @@ export default function QuickAddModal({ onClose, onProductSelected, onAddToQuick
     };
 
     // Add to quick pick panel
-    const handleAddToQuickPickPanel = (item) => {
+    const handleAddToQuickPickPanel = (e, item) => {
+        e.stopPropagation();
         if (onAddToQuickPick) {
             const added = onAddToQuickPick(item);
             if (added) {
@@ -227,7 +228,7 @@ export default function QuickAddModal({ onClose, onProductSelected, onAddToQuick
                                     {/* Add to Quick Pick Button */}
                                     {onAddToQuickPick && (
                                         <button
-                                            onClick={() => handleAddToQuickPickPanel(item)}
+                                            onClick={(e) => handleAddToQuickPickPanel(e, item)}
                                             disabled={addedToQuickPick.has(item.id)}
                                             className={`px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors ${addedToQuickPick.has(item.id)
                                                 ? 'bg-green-100 text-green-600 cursor-default'
@@ -245,7 +246,10 @@ export default function QuickAddModal({ onClose, onProductSelected, onAddToQuick
 
                                     {/* Add to Cart Button */}
                                     <button
-                                        onClick={() => handleAddToCart(item)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddToCart(item);
+                                        }}
                                         className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors"
                                         title="Add to cart"
                                     >
